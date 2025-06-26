@@ -33,7 +33,6 @@
     "rc-slider": "^11.1.8",
     "rc-table": "^7.50.1",
     "react": "19.0.0",
-    "react-avatar": "^5.0.3",
     "react-confetti": "^6.2.2",
     "react-content-loader": "^7.0.2",
     "react-datepicker": "7.5.0",
