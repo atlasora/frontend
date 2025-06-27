@@ -12,7 +12,7 @@ import {
 
 const navigations = [
   {
-    label: <NavLink to={`${HOME_PAGE}`}>Hotels</NavLink>,
+    label: <NavLink to={`${HOME_PAGE}`}>Homes</NavLink>,
     key: 'hotels',
   },
   {
