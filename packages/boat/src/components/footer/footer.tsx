@@ -32,12 +32,12 @@ export default function Footer({ className }: { className?: string }) {
             <p className="text-center text-sm font-normal capitalize leading-6 text-gray-dark md:text-left 3xl:text-base">
               Copyright &copy; {new Date().getFullYear()}{' '}
               <a
-                href="https://redq.io/"
+                href="#"
                 rel="noreferrer noopener"
-                target="_blank"
+               
                 className="font-semibold hover:underline"
               >
-                RedQ Inc.
+                Atlasora.
               </a>{' '}
               All rights reserved
             </p>
