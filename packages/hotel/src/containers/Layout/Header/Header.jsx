@@ -79,6 +79,7 @@ export default function Header() {
             location={location}
             searchVisibility={searchVisibility}
           />
+          
         ) : (
           <MobileNavbar className={headerType}>
             <LogoArea>
