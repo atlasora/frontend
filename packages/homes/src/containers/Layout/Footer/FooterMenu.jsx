@@ -27,10 +27,6 @@ const navigations = [
     label: <NavLink to={`${PRIVACY_PAGE}`}>Privacy</NavLink>,
     key: 'privacy',
   },
-  {
-    label: <NavLink to={`${AGENT_PROFILE_PAGE}`}>Agent</NavLink>,
-    key: 'agent',
-  },
 ];
 
 const FooterMenu = () => {
