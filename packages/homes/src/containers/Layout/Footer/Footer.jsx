@@ -7,15 +7,10 @@ const Footer = () => {
   return (
     <Footers
       logo={
-        <Logo
-          withLink
-          linkTo="/"
-          src="/images/logo-ao.svg"
-          title="TripFinder."
-        />
+        <Logo withLink linkTo="/" src="/images/logo-ao.svg" title="Atlasora" />
       }
       menu={<FooterMenu />}
-      copyright={`Copyright @ ${new Date().getFullYear()} RedQ, Inc.`}
+      copyright={`Copyright @ ${new Date().getFullYear()} Atlasora, Inc.`}
     />
   );
 };

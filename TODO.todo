@@ -1,7 +1,10 @@
 TODO HOME PAGE
-    change footer graphic
-    remove agent from footer
-    change footer text
     force heart to go to login
     render the json from the server not the json file as it is now 
-    
+    change text "compares prices from 200+ booking sites to help you find the lowest price on the right hotel for you."
+
+DONE
+
+*change footer graphic
+*remove agent from footer
+*change footer text
