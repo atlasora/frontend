@@ -37,7 +37,7 @@ export default function Footer({ className }: { className?: string }) {
                
                 className="font-semibold hover:underline"
               >
-                Atlasora.
+                Atlasora. 
               </a>{' '}
               All rights reserved
             </p>
