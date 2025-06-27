@@ -64,7 +64,7 @@ export default function Header() {
                 <Logo
                   withLink
                   linkTo="/"
-                  src="/images/logo-alt.svg"
+                  src="/images/logo-ao.svg"
                   title="TripFinder."
                 />
               </>
@@ -87,7 +87,7 @@ export default function Header() {
                 <Logo
                   withLink
                   linkTo="/"
-                  src="/images/logo-alt.svg"
+                  src="/images/logo-ao.svg"
                   title="TripFinder."
                 />
               </>
