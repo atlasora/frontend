@@ -42,7 +42,20 @@ const carouselOptions = {
 };
 
 const LocationGrid = () => {
-  const { data } = useDataApi('/data/location.json');
+  //
+  //const { data } = useDataApi(
+  //  'https://wonderful-diamond-9e301caa9a.strapiapp.com/api/locations/',
+  //);
+  //
+
+  const token =
+    'd3ebf900e7b11a63b8c9d4e407c1354a02837b611e2e54b8d603ece3aafc964acb528df06fb95223635e2fc5caa094daeede6aaf5f0ea1ba1d2e22819230b817e2f75dba206d1470b8ddff753fe84fe09aa2479b63e79fad8f27240be411e5c61d62831c344ffa6ab57c593cdfe4bc91fcacf01d35aed074dd9f533700385a17';
+
+  const { data, loading, error, doFetch, loadMoreData } = useDataApi(
+    'https://wonderful-diamond-9e301caa9a.strapiapp.com/api/locations/?populate=locationImage',
+    token,
+    10,
+  );
 
   return (
     <LocationWrapper>
@@ -53,20 +66,31 @@ const LocationGrid = () => {
         />
 
         <CarouselSection>
-          {data.length !== 0 ? (
+          {loading ? (
+            <Loader />
+          ) : data.length !== 0 ? (
             <GlideCarousel
               carouselSelector="explore_carousel"
               prevButton={<IoIosArrowBack />}
               nextButton={<IoIosArrowForward />}
-              options={carouselOptions}
+              options={{
+                type: 'carousel',
+                perView: 4,
+                gap: 30,
+                breakpoints: {
+                  1200: { perView: 3 },
+                  991: { perView: 2 },
+                  600: { perView: 1 },
+                },
+              }}
             >
               <>
                 {data.map((post, index) => (
                   <GlideSlide key={index}>
                     <ImageCard
                       link="listing"
-                      imageSrc={post.locationImage.url}
-                      title={post.city}
+                      imageSrc={post.locationImage?.url || '/default.jpg'} // fallback in case no image
+                      title={post.City}
                       meta={`${post.numberOfPost} Hotels`}
                     />
                   </GlideSlide>
@@ -74,7 +98,7 @@ const LocationGrid = () => {
               </>
             </GlideCarousel>
           ) : (
-            <Loader />
+            <p>No locations found.</p>
           )}
         </CarouselSection>
       </Container>

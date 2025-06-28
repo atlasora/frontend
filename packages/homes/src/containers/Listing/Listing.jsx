@@ -3,7 +3,7 @@ import { useLocation } from 'react-router-dom';
 import Sticky from 'react-stickynode';
 import { Checkbox } from 'antd';
 import useWindowSize from 'library/hooks/useWindowSize';
-import useDataApi from 'library/hooks/useDataApi';
+import useDataApi from 'library/hooks/useDataApiOld';
 import Toolbar from 'components/UI/Toolbar/Toolbar';
 import { PostPlaceholder } from 'components/UI/ContentLoader/ContentLoader';
 import SectionGrid from 'components/SectionGrid/SectionGrid';

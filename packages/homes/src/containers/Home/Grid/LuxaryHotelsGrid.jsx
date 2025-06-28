@@ -5,7 +5,7 @@ import Container from 'components/UI/Container/Container';
 import SectionGrid from 'components/SectionGrid/SectionGrid';
 import { PostPlaceholder } from 'components/UI/ContentLoader/ContentLoader';
 import useWindowSize from 'library/hooks/useWindowSize';
-import useDataApi from 'library/hooks/useDataApi';
+import useDataApi from 'library/hooks/useDataApiOld';
 import SectionTitle from 'components/SectionTitle/SectionTitle';
 import {
   LISTING_POSTS_PAGE,

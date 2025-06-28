@@ -1,38 +1,29 @@
 import { useState, useReducer, useEffect } from 'react';
 
-// SuperFetch now supports token and flexible headers
 async function SuperFetch(
   url,
   method = 'GET',
+  headers = {
+    'Content-type': 'application/x-www-form-urlencoded; charset=UTF-8',
+  },
   body = {},
-  token = null,
-  customHeaders = {},
 ) {
-  const headers = {
-    'Content-Type': 'application/json',
-    ...(token && { Authorization: `Bearer ${token}` }),
-    ...customHeaders,
+  let options = {
+    method,
+    headers,
   };
+  if (method === 'POST' || method === 'PUT') options = { ...options, body };
 
-  let options = { method, headers };
-
-  if (method === 'POST' || method === 'PUT') {
-    options = {
-      ...options,
-      body: JSON.stringify(body),
-    };
-  }
+  // authentication
+  // we will had custom headers here.
 
   return fetch(url, options)
     .then((res) => {
-      if (!res.ok) throw new Error(`HTTP error ${res.status}`);
-      console.log(res.json);
-      return res.json();
+      return Promise.resolve(res.json());
     })
     .catch((error) => Promise.reject(error));
 }
 
-// Reducer to handle data loading states
 function dataFetchReducer(state, action) {
   switch (action.type) {
     case 'FETCH_INIT':
@@ -73,8 +64,7 @@ function dataFetchReducer(state, action) {
   }
 }
 
-// Custom hook with token support
-const useDataApi = (initialUrl, token, limit = 10, initialData = []) => {
+const useDataApi = (initialUrl, limit = 10, initialData = []) => {
   const [url, setUrl] = useState(initialUrl);
 
   const [state, dispatch] = useReducer(dataFetchReducer, {
@@ -92,13 +82,10 @@ const useDataApi = (initialUrl, token, limit = 10, initialData = []) => {
       dispatch({ type: 'FETCH_INIT' });
 
       try {
-        const result = await SuperFetch(url, 'GET', {}, token);
-
-        // Assume Strapi v4 format: result = { data: [...], meta: {...} }
-        const payload = result?.data || [];
-
+        const result = await SuperFetch(url);
+        // console.log(result);
         if (!didCancel) {
-          dispatch({ type: 'FETCH_SUCCESS', payload });
+          dispatch({ type: 'FETCH_SUCCESS', payload: result });
         }
       } catch (error) {
         if (!didCancel) {
@@ -112,14 +99,12 @@ const useDataApi = (initialUrl, token, limit = 10, initialData = []) => {
     return () => {
       didCancel = true;
     };
-  }, [url, token]);
-
+  }, [url]);
   const loadMoreData = () => {
     dispatch({ type: 'LOAD_MORE' });
   };
-
-  const doFetch = (newUrl) => {
-    setUrl(newUrl);
+  const doFetch = (url) => {
+    setUrl(url);
   };
 
   return { ...state, doFetch, loadMoreData };
