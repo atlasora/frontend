@@ -2,18 +2,14 @@ import React from 'react';
 import Heading from 'components/UI/Heading/Heading';
 import TextLink from 'components/UI/TextLink/TextLink';
 import Container from 'components/UI/Container/Container';
-import SectionGrid from 'components/SectionGrid/SectionGrid';
 import { PostPlaceholder } from 'components/UI/ContentLoader/ContentLoader';
+import SectionGrid from 'components/SectionGrid/SectionGrid';
+import SectionTitle from 'components/SectionTitle/SectionTitle';
 import useWindowSize from 'library/hooks/useWindowSize';
 import useDataApi from 'library/hooks/useDataApiOld';
-import SectionTitle from 'components/SectionTitle/SectionTitle';
-import {
-  LISTING_POSTS_PAGE,
-  SINGLE_POST_PAGE,
-} from '../../../settings/constant';
-
-const LuxaryHotelsGrid = () => {
-  const { data, loading } = useDataApi('/data/hotel.json');
+import { LISTING_POSTS_PAGE, SINGLE_POST_PAGE } from 'settings/constant';
+const TopHomesGrid = () => {
+  const { data, loading } = useDataApi('/data/top-hotel.json');
   const { width } = useWindowSize();
 
   let posts = data;
@@ -39,7 +35,7 @@ const LuxaryHotelsGrid = () => {
   return (
     <Container fluid={true}>
       <SectionTitle
-        title={<Heading content="Best Rated: Luxary hotels!!!!" />}
+        title={<Heading content="Travelers’ Choice: Top Homes" />}
         link={<TextLink link={LISTING_POSTS_PAGE} content="Show all" />}
       />
 
@@ -55,4 +51,4 @@ const LuxaryHotelsGrid = () => {
   );
 };
 
-export default LuxaryHotelsGrid;
+export default TopHomesGrid;

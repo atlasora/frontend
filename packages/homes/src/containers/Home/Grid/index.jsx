@@ -1,4 +1,2 @@
-import TopHotelsGrid from './TopHotelsGrid';
-//import LuxaryHotelsGrid from './LuxaryHotelsGrid';
-//export { TopHotelsGrid, LuxaryHotelsGrid };
-export { TopHotelsGrid };
+import TopHomesGrid from './TopHomesGrid';
+export { TopHomesGrid };

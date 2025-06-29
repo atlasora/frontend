@@ -1,5 +1,5 @@
 import React, { useContext } from 'react';
-import { TopHotelsGrid } from './Grid';
+import { TopHomesGrid } from './Grid';
 import SearchArea from './Search/Search';
 import LocationGrid from './Location/Location';
 import { LayoutContext } from 'context/LayoutProvider';
@@ -15,7 +15,7 @@ const Home = () => {
         onLeave={() => dispatch({ type: 'SHOW_TOP_SEARCHBAR' })}
       />
       <LocationGrid />
-      <TopHotelsGrid />
+      <TopHomesGrid />
     </>
   );
 };
