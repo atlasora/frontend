@@ -7,6 +7,13 @@ import Carousel from 'react-multi-carousel';
 import 'react-multi-carousel/lib/styles.css';
 import GridCard from '../GridCard/GridCard';
 
+//todo: we have this in the utils slugify.js but it breaks the loading, fix the bug and move this to an import
+const generateSlug = (title = '') =>
+  title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+
 const responsive = {
   desktop: {
     breakpoint: {
@@ -54,13 +61,13 @@ const PostGrid = ({
           }}
         />
       }
-      location={location.formattedAddress}
-      title={<TextLink link={`${link}/${slug}`} content={title} />}
+      location={location}
+      title={<TextLink link={`post/${generateSlug(title)}`} content={title} />}
       price={`$${price}/Night - Free Cancellation`}
       rating={<Rating rating={rating} ratingCount={ratingCount} type="bulk" />}
       viewDetailsBtn={
         <TextLink
-          link={`${link}/${slug}`}
+          link={`post/${generateSlug(title)}`}
           icon={<FiExternalLink />}
           content="View Details"
         />

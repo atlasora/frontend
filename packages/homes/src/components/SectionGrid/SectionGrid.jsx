@@ -4,6 +4,7 @@ import { Button } from 'antd';
 import Box from 'components/UI/Box/Box';
 import Text from 'components/UI/Text/Text';
 import ProductCard from '../ProductCard/ProductCard';
+
 const LoadMore = ({
   handleLoadMore,
   showButton,
@@ -58,21 +59,44 @@ export default function SectionGrid({
   const n = limit ? Number(limit) : 1;
   const limits = Array(n).fill(0);
 
-  let showButton = data.length < totalItem;
-
+  const showButton = data.length < totalItem;
+  console.log(data);
   return (
     <>
       <Box className="grid_wrapper" {...rowStyle}>
         {data && data.length
           ? data.map((item) => {
+              const {
+                id,
+                Title,
+                FormattedAddress,
+                PricePerNight,
+                Rooms,
+                Bathrooms,
+                Size,
+                Images,
+              } = item;
+
+              const imageUrl = Images?.[0]?.url || '/default.jpg';
+
               return (
                 <Box
                   className="grid_column"
                   width={columnWidth}
-                  key={item.id}
+                  key={id}
                   {...columnStyle}
                 >
-                  <ProductCard link={link} {...item} />
+                  <ProductCard
+                    id={id}
+                    title={Title}
+                    description={FormattedAddress}
+                    price={PricePerNight}
+                    rooms={Rooms}
+                    bathrooms={Bathrooms}
+                    size={Size}
+                    image={imageUrl}
+                    gallery={Images || []}
+                  />
                 </Box>
               );
             })
@@ -101,6 +125,7 @@ export default function SectionGrid({
           loadMoreStyle={loadMoreStyle}
         />
       )}
+
       {paginationComponent && (
         <Box className="pagination_wrapper">{paginationComponent}</Box>
       )}
@@ -126,4 +151,5 @@ SectionGrid.propTypes = {
   rowStyle: PropTypes.object,
   columnStyle: PropTypes.object,
   loadMoreStyle: PropTypes.object,
+  link: PropTypes.string,
 };

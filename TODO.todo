@@ -1,17 +1,21 @@
 TODO HOME PAGE
     force heart to go to login
-    render the json from the server not the json file as it is now 
     change text "compares prices from 200+ booking sites to help you find the lowest price on the right hotel for you."
-    make sure there are at least 4 locations at all times or we can limit the carousel maybe
-    replace top desitions with dynamic rendering
-    move api and bearer token to env var
+    Add 4 properties (with images)
+    *make sure there are at least 4 locations at all times or we can limit the carousel maybe
+    *replace top desitions with dynamic rendering
+    *replace top homes with dynamic rendering
+    *move api and bearer token to env var
+
+SINGLE POST
+    render data
 
 LISTING (property)
-   add the filteringgit a
+   add the filtering function
         coming from locations
         search 
     
-    add property review relation
+    *add property review relation
     add property owner relation
     add property booking relation
 
