@@ -15,7 +15,7 @@ import BottomReservation from './Reservation/BottomReservation';
 import TopBar from './TopBar/TopBar';
 import SinglePageWrapper, { PostImage } from './SinglePageView.style';
 import PostImageGallery from './ImageGallery/ImageGallery';
-import useDataApi from 'library/hooks/useDataApiOld';
+import useDataApi from 'library/hooks/useDataApi';
 import isEmpty from 'lodash/isEmpty';
 
 const SinglePage = () => {
