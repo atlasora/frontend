@@ -111,7 +111,7 @@ const RenderReservationForm = () => {
       </FieldWrapper>
       <FormActionArea>
         <Button htmlType="submit" type="primary">
-          Book Hotel
+          Book Now
         </Button>
       </FormActionArea>
     </ReservationFormWrapper>
