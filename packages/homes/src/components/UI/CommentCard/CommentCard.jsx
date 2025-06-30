@@ -18,7 +18,7 @@ export default class App extends React.Component {
     const reviewTitle = singleReview ? singleReview.reviewTitle : '';
     const commentDate = singleReview ? singleReview.reviewDate : '';
     const postTime = new Date(commentDate).getTime();
-    const authorAvatar = singleReview ? singleReview.reviewAuthorPic.url : '';
+    //const authorAvatar = singleReview ? singleReview.reviewAuthorPic.url : '';
     const reviewRating = singleReview ? singleReview.reviewFields : '';
 
     return (
@@ -27,8 +27,9 @@ export default class App extends React.Component {
           <div className="comment-header">
             <div className="avatar-area">
               <div className="author-avatar">
-                <img src={authorAvatar} alt={authorName} />
+                <img src="#" alt={authorName} />
               </div>
+
               <div className="author-info">
                 <h3 className="author-name">{authorName}</h3>
                 {authorRating && (

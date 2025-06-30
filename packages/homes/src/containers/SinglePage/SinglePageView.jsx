@@ -1,11 +1,15 @@
 import React, { Fragment, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { useLocation } from 'library/hooks/useLocation';
 import Sticky from 'react-stickynode';
 import { Row, Col, Modal, Button } from 'antd';
+import isEmpty from 'lodash/isEmpty';
+
+import { useLocation } from 'library/hooks/useLocation';
+import useWindowSize from 'library/hooks/useWindowSize';
+import useDataApi from 'library/hooks/useDataApi';
+
 import Container from 'components/UI/Container/Container';
 import Loader from 'components/Loader/Loader';
-import useWindowSize from 'library/hooks/useWindowSize';
 import Description from './Description/Description';
 import Amenities from './Amenities/Amenities';
 import Location from './Location/Location';
@@ -13,43 +17,60 @@ import Review from './Review/Review';
 import Reservation from './Reservation/Reservation';
 import BottomReservation from './Reservation/BottomReservation';
 import TopBar from './TopBar/TopBar';
-import SinglePageWrapper, { PostImage } from './SinglePageView.style';
 import PostImageGallery from './ImageGallery/ImageGallery';
-import useDataApi from 'library/hooks/useDataApi';
-import isEmpty from 'lodash/isEmpty';
+
+import SinglePageWrapper, { PostImage } from './SinglePageView.style';
+
+// 🔧 Rich text block parser
+const renderRichText = (blocks = []) =>
+  blocks.map((block, index) => {
+    if (block.type === 'paragraph') {
+      const text = block.children?.map((child) => child.text).join('') || '';
+      return <p key={index}>{text}</p>;
+    }
+    return null;
+  });
 
 const SinglePage = () => {
-  let { slug } = useParams();
+  const { slug } = useParams();
   const { href } = useLocation();
   const [isModalShowing, setIsModalShowing] = useState(false);
   const { width } = useWindowSize();
+
   const decodedSlug = slug.replace(/-/g, ' ');
-  const { data, loading, error, doFetch, loadMoreData } = useDataApi(
-    `${import.meta.env.VITE_APP_API_URL}properties?filters[Title][$eqi]=house%20number%201&populate=*`,
+
+  const { data, loading } = useDataApi(
+    `${import.meta.env.VITE_APP_API_URL}properties?filters[Title][$eqi]=${encodeURIComponent(decodedSlug)}&populate=*`,
     import.meta.env.VITE_APP_API_TOKEN,
     10,
   );
 
   if (isEmpty(data) || loading) return <Loader />;
-  const {
-    reviews,
-    rating,
-    ratingCount,
-    price,
-    title,
-    gallery,
-    location,
-    content,
-    amenities,
-    author,
-  } = data[0];
+
+  const raw = data[0];
+
+  // Extract data
+  const title = raw.Title;
+  const price = raw.PricePerNight;
+  const gallery = raw.Images || [];
+  const descriptionBlocks = raw.Description || [];
+  const locationBlocks = raw.Location || [];
+  const formattedAddress = raw.FormattedAddress;
+  const reviews = raw.property_reviews || [];
+  const currency = raw.currency?.symbol || '$';
+  const ratingCount = reviews.length;
+  const rating = raw.Stars;
+  const amenities = raw.property_amenities || [];
 
   return (
     <SinglePageWrapper>
       <PostImage>
         <img
           className="absolute"
-          src="/images/single-post-bg.jpg"
+          src={
+            import.meta.env.VITE_APP_ADMIN_URL + gallery[0]?.url ||
+            '/images/single-post-bg.jpg'
+          }
           alt="Listing details page banner"
         />
         <Button
@@ -64,21 +85,18 @@ const SinglePage = () => {
           onCancel={() => setIsModalShowing(false)}
           footer={null}
           width="100%"
-          style={{
-            backgroundColor: 'rgba(255, 255, 255, 0.95)',
-          }}
+          style={{ backgroundColor: 'rgba(255, 255, 255, 0.95)' }}
           wrapClassName="image_gallery_modal"
           closable={false}
         >
           <Fragment>
-            <PostImageGallery />
+            <PostImageGallery gallery={gallery} />
             <Button
               onClick={() => setIsModalShowing(false)}
               className="image_gallery_close"
             >
               <svg width="16.004" height="16" viewBox="0 0 16.004 16">
                 <path
-                  id="_ionicons_svg_ios-close_2_"
                   d="M170.4,168.55l5.716-5.716a1.339,1.339,0,1,0-1.894-1.894l-5.716,5.716-5.716-5.716a1.339,1.339,0,1,0-1.894,1.894l5.716,5.716-5.716,5.716a1.339,1.339,0,0,0,1.894,1.894l5.716-5.716,5.716,5.716a1.339,1.339,0,0,0,1.894-1.894Z"
                   transform="translate(-160.5 -160.55)"
                   fill="#909090"
@@ -89,21 +107,22 @@ const SinglePage = () => {
         </Modal>
       </PostImage>
 
-      <TopBar title={title} shareURL={href} author={author} media={gallery} />
+      <TopBar title={title} shareURL={href} author={null} media={gallery} />
 
       <Container>
         <Row gutter={30} id="reviewSection" style={{ marginTop: 30 }}>
           <Col xl={16}>
             <Description
-              content={content}
+              content={renderRichText(descriptionBlocks)}
               title={title}
-              location={location}
               rating={rating}
               ratingCount={ratingCount}
+              formattedAddress={formattedAddress}
             />
             <Amenities amenities={amenities} />
-            <Location location={data[0]} />
+            <Location locationBlocks={locationBlocks} />
           </Col>
+
           <Col xl={8}>
             {width > 1200 ? (
               <Sticky
@@ -112,18 +131,25 @@ const SinglePage = () => {
                 top={202}
                 bottomBoundary="#reviewSection"
               >
-                <Reservation />
+                <Reservation
+                  title={title}
+                  price={`${currency}${price}`}
+                  currency={currency}
+                  rating={rating}
+                  ratingCount={ratingCount}
+                />
               </Sticky>
             ) : (
               <BottomReservation
                 title={title}
-                price={price}
+                price={`${currency}${price}`}
                 rating={rating}
                 ratingCount={ratingCount}
               />
             )}
           </Col>
         </Row>
+
         <Row gutter={30}>
           <Col xl={16}>
             <Review
