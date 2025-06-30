@@ -10,7 +10,7 @@ import { RatingMeta, TextButton } from '../SinglePageView.style';
 
 const Description = ({
   title,
-  location,
+  formattedAddress,
   content,
   rating,
   ratingCount,
@@ -35,15 +35,12 @@ const Description = ({
   return (
     <Element name="overview" className="overview">
       <DescriptionWrapper>
-        <Text content={location.formattedAddress} {...locationMetaStyle} />
+        <Text content={formattedAddress} {...locationMetaStyle} />
         <Heading as="h2" content={title} {...titleStyle} />
         <RatingMeta>
           <Rating rating={rating} ratingCount={ratingCount} type="bulk" />
         </RatingMeta>
         <Text content={content} {...contentStyle} />
-        <TextButton>
-          <Button>Read more about the hotel</Button>
-        </TextButton>
       </DescriptionWrapper>
     </Element>
   );

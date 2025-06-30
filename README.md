@@ -55,6 +55,8 @@ After creating a `.env.local` file at the root of the hotel-next directory then 
 ```
 NEXT_PUBLIC_REACT_APP_GOOGLE_MAP_API_KEY=https://maps.googleapis.com/maps/api/js?v=3.exp&key=YOUR_GOOGLE_MAP_API_KEY
 NEXT_PUBLIC_SERVER_API=YOUR_SERVER_API_ENDPOINT
+VITE_APP_API_TOKEN=TOKEN
+VITE_APP_API_URL=URL
 ```
 
 You can add `http://localhost:3001/` as your NEXT_PUBLIC_SERVER_API endpoint.
@@ -75,36 +77,12 @@ For starting **development server** run the below command at the root directory
 For hotel you need to run,
 
 ```
-pnpm start:hotel
-```
-
-For hotel-next you need to run,
-
-```
-pnpm start:hotel-next
-```
-
-For boat you need to run,
-
-```
-pnpm start:boat
+pnpm start:homes
 ```
 
 For starting **production server** run the below command at the root directory
-For hotel you need to run,
+For homes you need to run,
 
 ```
-pnpm build:hotel
-```
-
-For hotel-next you need to run,
-
-```
-pnpm build:hotel-next
-```
-
-For boat you need to run,
-
-```
-pnpm build:boat
+pnpm build:homes
 ```

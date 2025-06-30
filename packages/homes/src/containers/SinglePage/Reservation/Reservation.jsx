@@ -3,10 +3,10 @@ import PropTypes from 'prop-types';
 import Card from 'components/UI/Card/Card';
 import Heading from 'components/UI/Heading/Heading';
 import Text from 'components/UI/Text/Text';
-import TextLink from 'components/UI/TextLink/TextLink';
 import RenderReservationForm from './RenderReservationForm';
 
 const CardHeader = ({
+  price,
   priceStyle = {
     color: '#2C2C2C',
     fontSize: '25px',
@@ -27,27 +27,22 @@ const CardHeader = ({
       <Heading
         content={
           <Fragment>
-            $162 <Text as="span" content="/ night" {...pricePeriodStyle} />
+            {price} <Text as="span" content="/ night" {...pricePeriodStyle} />
           </Fragment>
         }
         {...priceStyle}
       />
-      <TextLink link="/#1" content="Contact Hotel" {...linkStyle} />
     </Fragment>
   );
 };
 
-export default function Reservation() {
+export default function Reservation({ price }) {
   return (
     <Card
       className="reservation_sidebar"
-      header={<CardHeader />}
+      header={<CardHeader price={price} />} // ✅ pass price here
       content={<RenderReservationForm />}
-      footer={
-        <p>
-          Special offers available. <TextLink to="/#1" content="See details" />
-        </p>
-      }
+      footer={<p></p>}
     />
   );
 }

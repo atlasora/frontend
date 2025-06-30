@@ -1,14 +1,13 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import * as FaIcons from 'react-icons/fa';
 import Heading from 'components/UI/Heading/Heading';
-import TextLink from 'components/UI/TextLink/TextLink';
-import { FaWifi, FaCarAlt, FaSwimmer, FaAirFreshener } from 'react-icons/fa';
 import IconCard from 'components/IconCard/IconCard';
 import AmenitiesWrapper, { AmenitiesArea } from './Amenities.style';
-import { TextButton } from '../SinglePageView.style';
 import { Element } from 'react-scroll';
 
 const Amenities = ({
+  amenities = [],
   titleStyle = {
     color: '#2C2C2C',
     fontSize: ['17px', '20px', '25px'],
@@ -26,20 +25,24 @@ const Amenities = ({
       <AmenitiesWrapper>
         <Heading as="h2" content="Amenities" {...titleStyle} />
         <AmenitiesArea>
-          <IconCard icon={<FaWifi />} title="Free wifi" />
-          <IconCard icon={<FaCarAlt />} title="Free parking" />
-          <IconCard icon={<FaSwimmer />} title="Free pool" />
-          <IconCard icon={<FaAirFreshener />} title="Air Freshener" />
+          {amenities.map((amenity) => {
+            const IconComponent = FaIcons[amenity.Icon]; // icon name from Strapi like "FaWifi"
+            return (
+              <IconCard
+                key={amenity.id}
+                icon={IconComponent ? <IconComponent /> : null}
+                title={amenity.Name}
+              />
+            );
+          })}
         </AmenitiesArea>
-        <TextButton>
-          <TextLink link="#1" content="Show all amenities" {...linkStyle} />
-        </TextButton>
       </AmenitiesWrapper>
     </Element>
   );
 };
 
 Amenities.propTypes = {
+  amenities: PropTypes.array,
   titleStyle: PropTypes.object,
   linkStyle: PropTypes.object,
 };

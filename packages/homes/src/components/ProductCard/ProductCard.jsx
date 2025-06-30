@@ -91,7 +91,7 @@ const PostGrid = ({
       >
         {gallery.map(({ url, title }, index) => (
           <img
-            src={url}
+            src={import.meta.env.VITE_APP_ADMIN_URL + url}
             alt={title}
             key={index}
             draggable={false}

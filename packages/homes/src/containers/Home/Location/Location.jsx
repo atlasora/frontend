@@ -80,7 +80,10 @@ const LocationGrid = () => {
                   <GlideSlide key={index}>
                     <ImageCard
                       link="listing"
-                      imageSrc={post.locationImage?.url || '/default.jpg'} // fallback in case no image
+                      imageSrc={
+                        import.meta.env.VITE_APP_ADMIN_URL +
+                          post.locationImage?.url || '/default.jpg'
+                      } // fallback in case no image
                       title={post.City}
                       meta={`${post.numberOfPost} Hotels`}
                     />

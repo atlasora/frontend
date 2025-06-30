@@ -60,7 +60,6 @@ export default function SectionGrid({
   const limits = Array(n).fill(0);
 
   const showButton = data.length < totalItem;
-  console.log(data);
   return (
     <>
       <Box className="grid_wrapper" {...rowStyle}>
@@ -77,7 +76,11 @@ export default function SectionGrid({
                 Images,
               } = item;
 
-              const imageUrl = Images?.[0]?.url || '/default.jpg';
+              const imageUrl =
+                import.meta.env.VITE_APP_ADMIN_URL + Images?.[0]?.url ||
+                '/default.jpg';
+
+              console.log(imageUrl);
 
               return (
                 <Box
