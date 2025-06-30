@@ -23,12 +23,13 @@ const SinglePage = () => {
   const { href } = useLocation();
   const [isModalShowing, setIsModalShowing] = useState(false);
   const { width } = useWindowSize();
+  const decodedSlug = slug.replace(/-/g, ' ');
+  const { data, loading, error, doFetch, loadMoreData } = useDataApi(
+    `${import.meta.env.VITE_APP_API_URL}properties?filters[Title][$eqi]=house%20number%201&populate=*`,
+    import.meta.env.VITE_APP_API_TOKEN,
+    10,
+  );
 
-  let url = '/data/hotel-single.json';
-  if (!slug) {
-    url += slug;
-  }
-  const { data, loading } = useDataApi(url);
   if (isEmpty(data) || loading) return <Loader />;
   const {
     reviews,
