@@ -7,18 +7,11 @@ import {
   HOME_PAGE,
   LISTING_POSTS_PAGE,
   SINGLE_POST_PAGE,
-  AGENT_PROFILE_PAGE,
-  AGENT_PROFILE_FAVORITE,
-  AGENT_PROFILE_CONTACT,
-  PRICING_PLAN_PAGE,
   PRIVACY_PAGE,
   LOGIN_PAGE,
   REGISTRATION_PAGE,
   FORGET_PASSWORD_PAGE,
   ADD_HOTEL_PAGE,
-  AGENT_IMAGE_EDIT_PAGE,
-  AGENT_PASSWORD_CHANGE_PAGE,
-  AGENT_ACCOUNT_SETTINGS_PAGE,
 } from './settings/constant';
 
 // protected route
@@ -38,19 +31,6 @@ const ListingPage = React.lazy(() => import('containers/Listing/Listing'));
 const SinglePageView = React.lazy(
   () => import('containers/SinglePage/SinglePageView'),
 );
-const AgentDetailsViewPage = React.lazy(
-  () => import('containers/Agent/AccountDetails/AgentDetailsViewPage'),
-);
-const AgentItemLists = React.lazy(
-  () => import('containers/Agent/AccountDetails/AgentItemLists'),
-);
-const AgentFavItemLists = React.lazy(
-  () => import('containers/Agent/AccountDetails/AgentFavItemLists'),
-);
-const AgentContact = React.lazy(
-  () => import('containers/Agent/AccountDetails/AgentContact'),
-);
-const PricingPage = React.lazy(() => import('containers/Pricing/Pricing'));
 const PrivacyPage = React.lazy(() => import('containers/Privacy/Privacy'));
 const SignInPage = React.lazy(() => import('containers/Auth/SignIn/SignIn'));
 const SignUpPage = React.lazy(() => import('containers/Auth/SignUp/SignUp'));
@@ -61,15 +41,6 @@ const NotFound = React.lazy(() => import('containers/404/404'));
 // protected route
 const AddListingPage = React.lazy(
   () => import('containers/AddListing/AddListing'),
-);
-const AgentAccountSettingsPage = React.lazy(
-  () => import('containers/Agent/AccountSettings/AgentAccountSettingsPage'),
-);
-const AgentCreateOrUpdateForm = React.lazy(
-  () => import('containers/Agent/AccountSettings/AgentCreateOrUpdateForm'),
-);
-const AgentPictureChangeForm = React.lazy(
-  () => import('containers/Agent/AccountSettings/AgentPictureChangeForm'),
 );
 const ChangePassWord = React.lazy(
   () => import('containers/Agent/AccountSettings/ChangePassWordForm'),
@@ -103,49 +74,9 @@ export default function AppRoutes() {
             </React.Suspense>
           }
         />
-        {/* Nested routes for agent page */}
-        <Route
-          path={AGENT_PROFILE_PAGE}
-          element={
-            <React.Suspense fallback={<Loader />}>
-              <AgentDetailsViewPage />
-            </React.Suspense>
-          }
-        >
-          <Route
-            path={AGENT_PROFILE_PAGE}
-            element={
-              <React.Suspense fallback={<Loader />}>
-                <AgentItemLists />
-              </React.Suspense>
-            }
-          />
-          <Route
-            path={AGENT_PROFILE_FAVORITE}
-            element={
-              <React.Suspense fallback={<Loader />}>
-                <AgentFavItemLists />
-              </React.Suspense>
-            }
-          />
-          <Route
-            path={AGENT_PROFILE_CONTACT}
-            element={
-              <React.Suspense fallback={<Loader />}>
-                <AgentContact />
-              </React.Suspense>
-            }
-          />
-        </Route>
+
         {/* end of Nested routes */}
-        <Route
-          path={PRICING_PLAN_PAGE}
-          element={
-            <React.Suspense fallback={<Loader />}>
-              <PricingPage />
-            </React.Suspense>
-          }
-        />
+
         <Route
           path={PRIVACY_PAGE}
           element={
@@ -189,41 +120,7 @@ export default function AppRoutes() {
             </React.Suspense>
           }
         />
-        <Route
-          path={AGENT_ACCOUNT_SETTINGS_PAGE}
-          element={
-            <React.Suspense fallback={<Loader />}>
-              <RequireAuth>
-                <AgentAccountSettingsPage />
-              </RequireAuth>
-            </React.Suspense>
-          }
-        >
-          <Route
-            path={AGENT_ACCOUNT_SETTINGS_PAGE}
-            element={
-              <React.Suspense fallback={<Loader />}>
-                <AgentCreateOrUpdateForm />
-              </React.Suspense>
-            }
-          />
-          <Route
-            path={AGENT_IMAGE_EDIT_PAGE}
-            element={
-              <React.Suspense fallback={<Loader />}>
-                <AgentPictureChangeForm />
-              </React.Suspense>
-            }
-          />
-          <Route
-            path={AGENT_PASSWORD_CHANGE_PAGE}
-            element={
-              <React.Suspense fallback={<Loader />}>
-                <ChangePassWord />
-              </React.Suspense>
-            }
-          />
-        </Route>
+
         {/* end of Protected routes*/}
         <Route
           path="*"
