@@ -8,6 +8,8 @@ export default function resolveURL(url) {
   }
 
   // Otherwise, prepend the admin base URL from environment
+  //todo if url is blank return the default image set it in an env var
   console.log(url);
+
   return `${import.meta.env.VITE_APP_ADMIN_URL}${url}`;
 }

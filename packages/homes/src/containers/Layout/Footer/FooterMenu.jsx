@@ -20,10 +20,6 @@ const navigations = [
     key: 'listing',
   },
   {
-    label: <NavLink to={`${PRICING_PLAN_PAGE}`}>Pricing</NavLink>,
-    key: 'pricing',
-  },
-  {
     label: <NavLink to={`${PRIVACY_PAGE}`}>Privacy</NavLink>,
     key: 'privacy',
   },
