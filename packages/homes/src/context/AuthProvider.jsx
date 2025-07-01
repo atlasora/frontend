@@ -23,11 +23,43 @@ const AuthProvider = (props) => {
     navigate('/', { replace: true });
   };
 
-  const signUp = (params) => {
-    console.log(params, 'sign up form Props');
-    setUser(fakeUserData);
-    setLoggedIn(true);
-    navigate('/', { replace: true });
+  const signUp = async (params) => {
+    const { username, email, password, ...rest } = params;
+    try {
+      // Register the user with Strapi authentication
+      const response = await fetch(
+        `${import.meta.env.VITE_APP_API_URL}auth/local/register`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ username, email, password }),
+        },
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data?.error?.message || 'Failed to register');
+      }
+
+      // create an entry in propertyUser collection type
+      await fetch(`${import.meta.env.VITE_APP_API_URL}property-users`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${data.jwt}`,
+        },
+        body: JSON.stringify({ data: { user: data.user.id, ...rest } }),
+      });
+
+      setUser(data.user);
+      setLoggedIn(true);
+      navigate('/', { replace: true });
+    } catch (error) {
+      console.error('Registration error:', error);
+    }
   };
 
   const logOut = () => {
