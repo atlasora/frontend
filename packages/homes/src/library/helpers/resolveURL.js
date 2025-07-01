@@ -3,9 +3,11 @@ export default function resolveURL(url) {
   console.log(url);
   // Check if the URL is already absolute (starts with http or https)
   if (/^https?:\/\//i.test(url)) {
+    console.log(url);
     return url;
   }
 
   // Otherwise, prepend the admin base URL from environment
+  console.log(url);
   return `${import.meta.env.VITE_APP_ADMIN_URL}${url}`;
 }
