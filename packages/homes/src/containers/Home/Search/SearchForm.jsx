@@ -173,7 +173,7 @@ export default function SearchForm() {
         size="large"
         onClick={goToSearchPage}
       >
-        Find Hotels
+        Search
       </Button>
     </FormWrapper>
   );

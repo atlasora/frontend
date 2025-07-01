@@ -6,14 +6,8 @@ import Favourite from 'components/UI/Favorite/Favorite';
 import Carousel from 'react-multi-carousel';
 import 'react-multi-carousel/lib/styles.css';
 import GridCard from '../GridCard/GridCard';
-
-//todo: we have this in the utils slugify.js but it breaks the loading, fix the bug and move this to an import
-const generateSlug = (title = '') =>
-  title
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
-
+import resolveUrl from 'library/helpers/resolveURL';
+import slugify from 'library/helpers/slugify';
 const responsive = {
   desktop: {
     breakpoint: {
@@ -62,12 +56,12 @@ const PostGrid = ({
         />
       }
       location={location}
-      title={<TextLink link={`post/${generateSlug(title)}`} content={title} />}
+      title={<TextLink link={`post/${slugify(title)}`} content={title} />}
       price={`$${price}/Night - Free Cancellation`}
       rating={<Rating rating={rating} ratingCount={ratingCount} type="bulk" />}
       viewDetailsBtn={
         <TextLink
-          link={`post/${generateSlug(title)}`}
+          link={`post/${slugify(title)}`}
           icon={<FiExternalLink />}
           content="View Details"
         />
@@ -91,7 +85,7 @@ const PostGrid = ({
       >
         {gallery.map(({ url, title }, index) => (
           <img
-            src={import.meta.env.VITE_APP_ADMIN_URL + url}
+            src={resolveUrl(url)}
             alt={title}
             key={index}
             draggable={false}
