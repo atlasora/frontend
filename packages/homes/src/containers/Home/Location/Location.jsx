@@ -13,6 +13,7 @@ import GlideCarousel, {
 import useDataApi from 'library/hooks/useDataApi';
 import { LISTING_POSTS_PAGE } from 'settings/constant';
 import LocationWrapper, { CarouselSection } from './Location.style';
+import resolveURL from '../../../library/helpers/resolveURL';
 const carouselOptions = {
   type: 'carousel',
   perView: 5,
@@ -81,9 +82,9 @@ const LocationGrid = () => {
                     <ImageCard
                       link="listing"
                       imageSrc={
-                        import.meta.env.VITE_APP_ADMIN_URL +
-                          post.locationImage?.url || '/default.jpg'
-                      } // fallback in case no image
+                        resolveURL(post.locationImage?.url) || '/default.jpg'
+                      }
+                      // fallback in case no image
                       title={post.City}
                       meta={`${post.numberOfPost} Hotels`}
                     />
