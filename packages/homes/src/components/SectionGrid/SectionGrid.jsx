@@ -4,6 +4,7 @@ import { Button } from 'antd';
 import Box from 'components/UI/Box/Box';
 import Text from 'components/UI/Text/Text';
 import ProductCard from '../ProductCard/ProductCard';
+import resolveURL from '../../library/helpers/resolveURL';
 
 const LoadMore = ({
   handleLoadMore,
@@ -76,11 +77,7 @@ export default function SectionGrid({
                 Images,
               } = item;
 
-              const imageUrl =
-                import.meta.env.VITE_APP_ADMIN_URL + Images?.[0]?.url ||
-                '/default.jpg';
-
-              console.log(imageUrl);
+              const imageUrl = resolveURL(Images?.[0]?.url) || '/default.jpg';
 
               return (
                 <Box
