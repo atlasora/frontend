@@ -20,8 +20,10 @@ import TopBar from './TopBar/TopBar';
 import PostImageGallery from './ImageGallery/ImageGallery';
 
 import SinglePageWrapper, { PostImage } from './SinglePageView.style';
+import resolveURL from '../../library/helpers/resolveURL';
 
-// 🔧 Rich text block parser
+// Rich text block parser
+// todo move to library
 const renderRichText = (blocks = []) =>
   blocks.map((block, index) => {
     if (block.type === 'paragraph') {
@@ -67,10 +69,7 @@ const SinglePage = () => {
       <PostImage>
         <img
           className="absolute"
-          src={
-            import.meta.env.VITE_APP_ADMIN_URL + gallery[0]?.url ||
-            '/images/single-post-bg.jpg'
-          }
+          src={resolveURL(gallery[0]?.url) || '/images/single-post-bg.jpg'}
           alt="Listing details page banner"
         />
         <Button
