@@ -12,10 +12,12 @@ const TopHomesGrid = () => {
   //const { data, loading } = useDataApi('/data/top-hotel.json');
 
   const { data, loading, error, doFetch, loadMoreData } = useDataApi(
-    `${import.meta.env.VITE_APP_API_URL}properties/?populate=Images`,
+    `${import.meta.env.VITE_APP_API_URL}properties/?populate=*`,
     import.meta.env.VITE_APP_API_TOKEN,
     10,
+    '',
   );
+
   const { width } = useWindowSize();
 
   let posts = data;

@@ -34,7 +34,6 @@ const responsive = {
     paritialVisibilityGutter: 30,
   },
 };
-
 const PostGrid = ({
   title,
   rating,
@@ -44,6 +43,7 @@ const PostGrid = ({
   gallery,
   slug,
   link,
+  currency,
 }) => {
   return (
     <GridCard
@@ -56,12 +56,12 @@ const PostGrid = ({
         />
       }
       location={location}
-      title={<TextLink link={`post/${slugify(title)}`} content={title} />}
-      price={`$${price}/Night - Free Cancellation`}
+      title={<TextLink link={`/post/${slugify(title)}`} content={title} />}
+      price={`${currency}${price}/Night - Free Cancellation`}
       rating={<Rating rating={rating} ratingCount={ratingCount} type="bulk" />}
       viewDetailsBtn={
         <TextLink
-          link={`post/${slugify(title)}`}
+          link={`/post/${slugify(title)}`}
           icon={<FiExternalLink />}
           content="View Details"
         />

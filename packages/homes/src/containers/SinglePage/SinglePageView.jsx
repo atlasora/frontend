@@ -40,11 +40,15 @@ const SinglePage = () => {
   const { width } = useWindowSize();
 
   const decodedSlug = slug.replace(/-/g, ' ');
+  //todo : remove hardcoded housenumber 2
 
+  const deslug = slug.replace(/-/g, ' ');
   const { data, loading } = useDataApi(
-    `${import.meta.env.VITE_APP_API_URL}properties?filters[Title][$eqi]=house%20number%202&populate[property_reviews][populate][property_user][populate]=Picture`,
+    `${import.meta.env.VITE_APP_API_URL}properties?filters[Title][$eqi]=${deslug}`,
     import.meta.env.VITE_APP_API_TOKEN,
     10,
+    'properties',
+    [],
   );
 
   http: if (isEmpty(data) || loading) return <Loader />;
