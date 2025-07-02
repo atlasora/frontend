@@ -29,7 +29,7 @@ const HeaderWrapper = styled.header`
       &.is_transparent {
         > div > div {
           > svg {
-            width: 20px;
+            width: 200px;
             position: absolute;
           }
 
@@ -61,7 +61,7 @@ const HeaderWrapper = styled.header`
       &.transparent {
         > div > div {
           > svg {
-            width: 20px;
+            width: 200px;
             position: absolute;
           }
 
