@@ -3,7 +3,7 @@ import { useLocation } from 'react-router-dom';
 import Sticky from 'react-stickynode';
 import { Checkbox } from 'antd';
 import useWindowSize from 'library/hooks/useWindowSize';
-import useDataApi from 'library/hooks/useDataApiOld';
+import useDataApi from 'library/hooks/useDataApi';
 import Toolbar from 'components/UI/Toolbar/Toolbar';
 import { PostPlaceholder } from 'components/UI/ContentLoader/ContentLoader';
 import SectionGrid from 'components/SectionGrid/SectionGrid';
@@ -17,8 +17,11 @@ export default function Listing() {
   let location = useLocation();
   const { width } = useWindowSize();
   const [showMap, setShowMap] = useState(false);
-  let url = '/data/hotel.json';
-  const { data, loading, loadMoreData, total, limit } = useDataApi(url);
+  const { data, loading, error, doFetch, loadMoreData } = useDataApi(
+    `${import.meta.env.VITE_APP_API_URL}properties/?populate=Images`,
+    import.meta.env.VITE_APP_API_TOKEN,
+    10,
+  );
   let columnWidth = [1 / 1, 1 / 2, 1 / 3, 1 / 4, 1 / 5];
   if (location.search) {
     url += location.search;
@@ -26,6 +29,10 @@ export default function Listing() {
   if (showMap) {
     columnWidth = [1 / 1, 1 / 2, 1 / 2, 1 / 2, 1 / 3];
   }
+  const limit = 100;
+  console.log('data');
+
+  console.log(data);
   const handleMapToggle = () => {
     setShowMap((showMap) => !showMap);
   };
@@ -57,7 +64,7 @@ export default function Listing() {
             link={SINGLE_POST_PAGE}
             columnWidth={columnWidth}
             data={data}
-            totalItem={total.length}
+            totalItem={10}
             loading={loading}
             limit={limit}
             handleLoadMore={loadMoreData}

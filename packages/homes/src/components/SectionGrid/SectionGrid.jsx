@@ -28,7 +28,6 @@ const LoadMore = ({
     )
   );
 };
-
 export default function SectionGrid({
   data = [],
   totalItem,
@@ -75,6 +74,7 @@ export default function SectionGrid({
                 Bathrooms,
                 Size,
                 Images,
+                currency,
               } = item;
 
               const imageUrl = resolveURL(Images?.[0]?.url) || '/default.jpg';
@@ -96,6 +96,7 @@ export default function SectionGrid({
                     size={Size}
                     image={imageUrl}
                     gallery={Images || []}
+                    currency={currency?.symbol || '$'}
                   />
                 </Box>
               );

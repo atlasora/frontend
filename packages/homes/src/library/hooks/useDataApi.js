@@ -74,7 +74,12 @@ function dataFetchReducer(state, action) {
 }
 
 // Custom hook with token support
-const useDataApi = (initialUrl, token, limit = 10, initialData = []) => {
+const useDataApi = (initialUrl, token, limit = 10, table, initialData = []) => {
+  if (table == 'properties') {
+    initialUrl += `&populate[currency]=true`;
+    initialUrl += `&populate[Images]=true`;
+    initialUrl += `&populate[property_reviews][populate][property_user][populate][Picture]=true`;
+  }
   const [url, setUrl] = useState(initialUrl);
 
   const [state, dispatch] = useReducer(dataFetchReducer, {
