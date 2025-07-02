@@ -16,18 +16,74 @@ const AuthProvider = (props) => {
   const [loggedIn, setLoggedIn] = useState(false);
   const [user, setUser] = useState({});
 
-  const signIn = (params) => {
-    console.log(params, 'sign in form Props');
-    setUser(fakeUserData);
-    setLoggedIn(true);
-    navigate('/', { replace: true });
+  const signIn = async (params) => {
+    const { identifier, password } = params;
+    try {
+      // Authenticate the user with Strapi
+      const response = await fetch(
+        `${import.meta.env.VITE_APP_API_URL}auth/local`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ identifier, password }),
+        },
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data?.error?.message || 'Failed to sign in');
+      }
+
+      setUser(data.user);
+      setLoggedIn(true);
+      // Optionally store
+      // token: localStorage.setItem('jwt', data.jwt);
+      navigate('/', { replace: true });
+    } catch (error) {
+      console.error('Sign-in error:', error);
+    }
   };
 
-  const signUp = (params) => {
-    console.log(params, 'sign up form Props');
-    setUser(fakeUserData);
-    setLoggedIn(true);
-    navigate('/', { replace: true });
+  const signUp = async (params) => {
+    const { username, email, password, ...rest } = params;
+    try {
+      // Register the user with Strapi authentication
+      const response = await fetch(
+        `${import.meta.env.VITE_APP_API_URL}auth/local/register`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ username, email, password }),
+        },
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data?.error?.message || 'Failed to register');
+      }
+
+      // create an entry in propertyUser collection type
+      await fetch(`${import.meta.env.VITE_APP_API_URL}property-users`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${data.jwt}`,
+        },
+        body: JSON.stringify({ data: { user: data.user.id, ...rest } }),
+      });
+
+      setUser(data.user);
+      setLoggedIn(true);
+      //navigate('/', { replace: true });
+    } catch (error) {
+      console.error('Registration error:', error);
+    }
   };
 
   const logOut = () => {

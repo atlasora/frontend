@@ -8,15 +8,17 @@ import resolveURL from '../../../library/helpers/resolveURL';
 export default class App extends React.Component {
   render() {
     const { singleReview, authorRating } = this.props;
-    const authorName = singleReview ? singleReview.property_user.Name : '';
+    const authorName = singleReview
+      ? singleReview.users_permissions_user.username
+      : '';
     const content = singleReview ? singleReview.Review : '';
     const reviewTitle = singleReview ? singleReview.Title : '';
     const commentDate = singleReview ? singleReview.createdAt : '';
     const postTime = new Date(commentDate).getTime();
-    const authorAvatar = singleReview
-      ? resolveURL(singleReview.property_user.Picture.url)
-      : '';
-
+    const authorAvatar = singleReview?.users_permissions_user?.picture?.url
+      ? resolveURL(singleReview.users_permissions_user.picture.url)
+      : resolveURL('/uploads/beautiful_picture_18ef7cb155.jpeg'); // <- your default avatar URL
+    console.log(singleReview);
     // authorAvatar{resolveURL(gallery[0]?.url) || '/images/single-post-bg.jpg'}
     const reviewRating = singleReview ? singleReview.reviewFields : '';
     console.log(singleReview);

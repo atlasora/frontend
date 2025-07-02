@@ -4,7 +4,6 @@ import { Divider } from 'antd';
 import Logo from 'components/UI/Logo/Logo';
 import { REGISTRATION_PAGE } from 'settings/constant';
 import SignInForm from './SignInForm';
-import SocialLogin from '../SocialLogin';
 import Wrapper, {
   Title,
   TitleInfo,
@@ -26,8 +25,8 @@ const SignIn = () => {
         <Title>Welcome Back</Title>
         <TitleInfo>Please log into your account</TitleInfo>
         <SignInForm />
-        <Divider>Or log in with </Divider>
-        <SocialLogin />
+        <Divider> </Divider>
+
         <Text>
           Don't Have an Account?&nbsp;
           <Link to={REGISTRATION_PAGE}>Registration</Link>

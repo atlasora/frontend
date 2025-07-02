@@ -23,7 +23,7 @@ const SignUpForm = () => {
     signUp(data);
   };
   if (loggedIn) {
-    return <Navigate to="/" replace={true} />;
+    //return <Navigate to="/" replace={true} />;
   }
 
   return (

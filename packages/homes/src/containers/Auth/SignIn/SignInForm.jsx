@@ -19,7 +19,8 @@ export default function SignInForm() {
     signIn(data);
   };
   if (loggedIn) {
-    return <Navigate to="/" replace={true} />;
+    console.log(handleSubmit);
+    //return <Navigate to="/" replace={true} />;
   }
 
   return (
@@ -41,7 +42,7 @@ export default function SignInForm() {
         }
       >
         <Controller
-          name="email"
+          name="identifier"
           defaultValue=""
           control={control}
           rules={{

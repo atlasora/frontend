@@ -78,7 +78,8 @@ const useDataApi = (initialUrl, token, limit = 10, table, initialData = []) => {
   if (table == 'properties') {
     initialUrl += `&populate[currency]=true`;
     initialUrl += `&populate[Images]=true`;
-    initialUrl += `&populate[property_reviews][populate][property_user][populate][Picture]=true`;
+    initialUrl += `&populate[property_amenities]=true`;
+    initialUrl += `&populate[property_reviews][populate][users_permissions_user][populate][picture]=true`;
   }
   const [url, setUrl] = useState(initialUrl);
 
