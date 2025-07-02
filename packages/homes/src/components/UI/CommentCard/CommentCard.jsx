@@ -3,31 +3,30 @@ import { Popover } from 'antd';
 import moment from 'moment';
 import LikeDislike from './LikeDislike';
 import Rating from '../Rating/Rating';
+import resolveURL from '../../../library/helpers/resolveURL';
 
 export default class App extends React.Component {
   render() {
     const { singleReview, authorRating } = this.props;
-    const reviewAuthorFirstName = singleReview
-      ? singleReview.reviewAuthorFirstName
-      : '';
-    const reviewAuthorLastName = singleReview
-      ? singleReview.reviewAuthorLastName
-      : '';
-    const authorName = reviewAuthorFirstName + ' ' + reviewAuthorLastName;
-    const content = singleReview ? singleReview.reviewText : '';
-    const reviewTitle = singleReview ? singleReview.reviewTitle : '';
-    const commentDate = singleReview ? singleReview.reviewDate : '';
+    const authorName = singleReview ? singleReview.property_user.Name : '';
+    const content = singleReview ? singleReview.Review : '';
+    const reviewTitle = singleReview ? singleReview.Title : '';
+    const commentDate = singleReview ? singleReview.createdAt : '';
     const postTime = new Date(commentDate).getTime();
-    //const authorAvatar = singleReview ? singleReview.reviewAuthorPic.url : '';
-    const reviewRating = singleReview ? singleReview.reviewFields : '';
+    const authorAvatar = singleReview
+      ? resolveURL(singleReview.property_user.Picture.url)
+      : '';
 
+    // authorAvatar{resolveURL(gallery[0]?.url) || '/images/single-post-bg.jpg'}
+    const reviewRating = singleReview ? singleReview.reviewFields : '';
+    console.log(singleReview);
     return (
       <div className="comment-area">
         <div className="comment-wrapper">
           <div className="comment-header">
             <div className="avatar-area">
               <div className="author-avatar">
-                <img src="#" alt={authorName} />
+                <img src={authorAvatar} alt={authorName} />
               </div>
 
               <div className="author-info">
@@ -42,7 +41,7 @@ export default class App extends React.Component {
                       'dddd, MMMM Do YYYY, h:mm:ss a',
                     )}
                   >
-                    <span>Reviewd - {moment(postTime).fromNow()}</span>
+                    <span>Review - {moment(postTime).fromNow()}</span>
                   </Popover>
                 </div>
               </div>
