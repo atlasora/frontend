@@ -105,7 +105,6 @@ export default function Header() {
                   withLink
                   linkTo="/"
                   src="/images/logo-ao.svg"
-                  title="Atlasora"
                 />
               </>
             }
@@ -128,7 +127,6 @@ export default function Header() {
                   withLink
                   linkTo="/"
                   src="/images/logo-ao.svg"
-                  title="Atlasora"
                 />
               </>
               <NavbarSearch />
