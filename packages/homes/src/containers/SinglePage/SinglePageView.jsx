@@ -42,12 +42,12 @@ const SinglePage = () => {
   const decodedSlug = slug.replace(/-/g, ' ');
 
   const { data, loading } = useDataApi(
-    `${import.meta.env.VITE_APP_API_URL}properties?filters[Title][$eqi]=${encodeURIComponent(decodedSlug)}&populate=*`,
+    `${import.meta.env.VITE_APP_API_URL}properties?filters[Title][$eqi]=house%20number%202&populate[property_reviews][populate][property_user][populate]=Picture`,
     import.meta.env.VITE_APP_API_TOKEN,
     10,
   );
 
-  if (isEmpty(data) || loading) return <Loader />;
+  http: if (isEmpty(data) || loading) return <Loader />;
 
   const raw = data[0];
 
