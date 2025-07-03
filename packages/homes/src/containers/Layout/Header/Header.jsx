@@ -27,9 +27,7 @@ import HeaderWrapper, {
 
 const user = JSON.parse(localStorage.getItem('user') || '{}');
 
-const avatarImg =
-  user.avatar ||
-  'http://s3.amazonaws.com/redqteam.com/isomorphic-reloaded-image/profilepic.png';
+const avatarImg = user.avatar;
 
 const LogoIcon = () => (
   <svg

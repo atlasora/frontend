@@ -8,6 +8,7 @@ import resolveURL from '../../../library/helpers/resolveURL';
 export default class App extends React.Component {
   render() {
     const { singleReview, authorRating } = this.props;
+    //todo: make these render on libe
     const authorName = singleReview
       ? singleReview.users_permissions_user?.username
       : '';
@@ -17,11 +18,11 @@ export default class App extends React.Component {
     const postTime = new Date(commentDate).getTime();
     const authorAvatar = singleReview?.users_permissions_user?.picture?.url
       ? resolveURL(singleReview.users_permissions_user.picture.url)
-      : resolveURL('/uploads/beautiful_picture_18ef7cb155.jpeg');
+      : resolveURL('/uploads/thumbnail_favicon_15c376b1a2.png');
     console.log(singleReview);
     // authorAvatar{resolveURL(gallery[0]?.url) || '/images/single-post-bg.jpg'}
     const reviewRating = singleReview ? singleReview.reviewFields : '';
-    console.log(singleReview);
+
     return (
       <div className="comment-area">
         <div className="comment-wrapper">
