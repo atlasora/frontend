@@ -11,11 +11,12 @@ export default class App extends React.Component {
     //todo: make these render on libe
     const authorName = singleReview
       ? singleReview.users_permissions_user?.username
-      : '';
+      : 'Private';
     const content = singleReview ? singleReview.Review : '';
     const reviewTitle = singleReview ? singleReview.Title : '';
     const commentDate = singleReview ? singleReview.createdAt : '';
     const postTime = new Date(commentDate).getTime();
+    //todo fix this as its hardcoded a avatar image for the reviews
     const authorAvatar = singleReview?.users_permissions_user?.picture?.url
       ? resolveURL(singleReview.users_permissions_user.picture.url)
       : 'https://frontend-g1i.pages.dev/images/avatar.jpeg';
