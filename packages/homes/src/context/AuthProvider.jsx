@@ -86,24 +86,18 @@ const AuthProvider = (props) => {
         },
       );
 
-      const data = await response.json();
-
       if (!response.ok) {
-        throw new Error(data?.error?.message || 'Failed to register');
+        const error = await response.json();
+        throw error;
       }
 
-      await fetch(`${import.meta.env.VITE_APP_API_URL}property-users`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${data.jwt}`,
-        },
-        body: JSON.stringify({ data: { user: data.user.id, ...rest } }),
-      });
+      const data = await response.json();
+      //todo : this is a default avatar for now we have to extend user permissions in the strapi auth to return the picture.
+      data.user.avatar = resolveUrl(
+        '/uploads/thumbnail_favicon_15c376b1a2.png',
+      );
 
-      setUser(data.user);
-      setToken(data.jwt);
-      navigate('/', { replace: true });
+      navigate('/sign-in', { replace: true });
       return { success: true };
     } catch (error) {
       console.error('Registration error:', error);

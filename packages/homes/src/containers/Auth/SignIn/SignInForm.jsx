@@ -24,6 +24,7 @@ export default function SignInForm() {
       setFormError(null); // Clear any previous error on success
     } catch (data) {
       if (data.error?.status === 400) {
+        // console.log(data.error.status);
         setFormError(data?.error?.message || 'Invalid identifier or password');
       } else {
         setFormError('Something went wrong. Please try again.');
