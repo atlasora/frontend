@@ -23,11 +23,10 @@ const SignUp = () => {
           src="/images/logo-alt.svg"
           title="TripFinder."
         />
-        <Title>Welcome To TripFinder</Title>
+        <Title>Welcome To Atlasora</Title>
         <TitleInfo>Please Register for your account</TitleInfo>
         <SignUpForm />
-        <Divider>Or Register Up With </Divider>
-        <SocialLogin />
+
         <Text>
           Already Have an Account! &nbsp;
           <Link to={LOGIN_PAGE}>Login</Link>

@@ -25,6 +25,7 @@ const SocialLogin = () => {
     }, 600);
   };
   if (loggedIn) {
+    console.log('in sl');
     return <Navigate to="/" replace={true} />;
   }
 
