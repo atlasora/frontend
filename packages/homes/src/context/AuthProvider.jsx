@@ -7,7 +7,6 @@ export const AuthContext = React.createContext();
 const AuthProvider = (props) => {
   const navigate = useNavigate();
 
-  // Initialize from localStorage
   const [user, setUser] = useState(() => {
     try {
       const saved = localStorage.getItem('user');
@@ -23,7 +22,6 @@ const AuthProvider = (props) => {
 
   const loggedIn = !!user && !!token;
 
-  // Sync user & token to localStorage on change
   useEffect(() => {
     if (user) {
       localStorage.setItem('user', JSON.stringify(user));
@@ -58,15 +56,12 @@ const AuthProvider = (props) => {
       }
 
       const data = await response.json();
-      //todo : this is a default avatar for now we have to extend user permissions in the strapi auth to return the picture.
       data.user.avatar = resolveUrl(
         '/uploads/thumbnail_favicon_15c376b1a2.png',
       );
 
-      console.log(data);
       setUser(data.user);
       setToken(data.jwt);
-      //navigate('/', { replace: true });
       return { success: true };
     } catch (error) {
       console.error('Sign-in error:', error);
@@ -92,7 +87,6 @@ const AuthProvider = (props) => {
       }
 
       const data = await response.json();
-      //todo : this is a default avatar for now we have to extend user permissions in the strapi auth to return the picture.
       data.user.avatar = resolveUrl(
         '/uploads/thumbnail_favicon_15c376b1a2.png',
       );
@@ -104,7 +98,33 @@ const AuthProvider = (props) => {
       throw error;
     }
   };
+  /*
+  const forgotPassword = async (email) => {
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_APP_API_URL}auth/forgot-password`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email,
+            URL: `${window.location.origin}/reset-password`,
+          }),
+        },
+      );
+      console.log(`${window.location.origin}/reset-password`);
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data?.error?.message || 'Something went wrong');
+      }
 
+      return { success: true, message: 'Reset email sent successfully' };
+    } catch (error) {
+      console.error('Forgot password error:', error);
+      return { success: false, message: error.message };
+    }
+  };
+*/
   const logOut = () => {
     setUser(null);
     setToken(null);
