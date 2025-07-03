@@ -9,7 +9,7 @@ export default class App extends React.Component {
   render() {
     const { singleReview, authorRating } = this.props;
     const authorName = singleReview
-      ? singleReview.users_permissions_user.username
+      ? singleReview.users_permissions_user?.username
       : '';
     const content = singleReview ? singleReview.Review : '';
     const reviewTitle = singleReview ? singleReview.Title : '';
