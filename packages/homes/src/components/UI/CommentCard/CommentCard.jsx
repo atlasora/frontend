@@ -17,7 +17,7 @@ export default class App extends React.Component {
     const postTime = new Date(commentDate).getTime();
     const authorAvatar = singleReview?.users_permissions_user?.picture?.url
       ? resolveURL(singleReview.users_permissions_user.picture.url)
-      : resolveURL('/uploads/beautiful_picture_18ef7cb155.jpeg'); // <- your default avatar URL
+      : resolveURL('/uploads/beautiful_picture_18ef7cb155.jpeg');
     console.log(singleReview);
     // authorAvatar{resolveURL(gallery[0]?.url) || '/images/single-post-bg.jpg'}
     const reviewRating = singleReview ? singleReview.reviewFields : '';

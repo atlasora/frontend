@@ -145,7 +145,6 @@ const SignUpForm = () => {
               <Switch onChange={onChange} checked={value} />
             )}
           />
-          <Label>Remember Me</Label>
         </SwitchWrapper>
         <SwitchWrapper>
           <Controller
