@@ -15,6 +15,7 @@ const HeaderWrapper = styled.header`
   @media (max-width: 667px) {
     nav {
       &:not(.transparent) {
+      background: linear-gradient(to top, transparent, white);
         a {
           > h3 {
             display: none;
@@ -27,6 +28,7 @@ const HeaderWrapper = styled.header`
   .sticky-outer-wrapper {
     nav {
       &.is_transparent {
+      background: linear-gradient(to top, transparent, white);
         > div > div {
           > svg {
             width: 180px;
