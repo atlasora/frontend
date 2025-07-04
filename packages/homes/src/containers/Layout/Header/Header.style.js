@@ -29,7 +29,7 @@ const HeaderWrapper = styled.header`
       &.is_transparent {
         > div > div {
           > svg {
-            width: 200px;
+            width: 180px;
             position: absolute;
           }
 
