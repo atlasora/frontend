@@ -41,7 +41,7 @@ const HeaderWrapper = styled.header`
             }
 
             h3 {
-              color: ${themeGet('color.1', '#ffffff')};
+              color: ${themeGet('color.1', '#000000')};
             }
           }
         }
@@ -50,10 +50,10 @@ const HeaderWrapper = styled.header`
           li {
             a {
               &.active {
-                color: ${themeGet('color.1', '#ffffff')};
+                color: ${themeGet('color.1', '#000000')};
               }
               &:hover {
-                color: ${themeGet('color.1', '#ffffff')};
+                color: ${themeGet('color.1', '#000000')};
               }
             }
           }
@@ -73,7 +73,7 @@ const HeaderWrapper = styled.header`
             }
 
             h3 {
-              color: ${themeGet('color.1', '#ffffff')};
+              color: ${themeGet('color.1', '#000000')};
             }
           }
         }
@@ -83,7 +83,7 @@ const HeaderWrapper = styled.header`
     &.isHeaderSticky {
       nav {
         &.is_transparent {
-          background-color: ${themeGet('color.1', '#ffffff')};
+          background-color: ${themeGet('color.1', '#000000')};
           box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
 
           > div > div {
@@ -122,7 +122,7 @@ const HeaderWrapper = styled.header`
               li {
                 &:last-child {
                   a {
-                    color: ${themeGet('color.1', '#ffffff')};
+                    color: ${themeGet('color.1', '#000000')};
                   }
                 }
               }
@@ -131,7 +131,7 @@ const HeaderWrapper = styled.header`
         }
 
         &.transparent {
-          background-color: ${themeGet('color.1', '#ffffff')};
+          background-color: ${themeGet('color.1', '#000000')};
           box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
 
           > div > div {
@@ -171,7 +171,7 @@ export const MobileNavbar = styled.nav`
 
   &.default {
     border-bottom: 1px solid ${themeGet('border.3', '#E6E6E6')};
-    background-color: ${themeGet('color.1', '#ffffff')};
+    background-color: ${themeGet('color.1', '#000000')};
   }
 
   .hamburg-btn {
@@ -213,7 +213,7 @@ export const MobileNavbar = styled.nav`
 
     .hamburg-btn {
       > span {
-        background-color: ${themeGet('color.1', '#ffffff')};
+        background-color: ${themeGet('color.1', '#000000')};
       }
     }
   }
