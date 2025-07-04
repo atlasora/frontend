@@ -163,7 +163,7 @@ const HeaderWrapper = styled.header`
 
 export const MobileNavbar = styled.nav`
   display: flex;
-  padding: 0 25px;
+  padding: 4px 25px;
   align-items: center;
   justify-content: space-between;
   min-height: 82px;

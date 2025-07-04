@@ -31,7 +31,7 @@ const avatarImg = user.avatar;
 
 const LogoIcon = () => (
   <svg
-    height="30"
+    height="34"
     viewBox="0 0 448 84"
     fill="none"
     xmlns="http://www.w3.org/2000/svg"
