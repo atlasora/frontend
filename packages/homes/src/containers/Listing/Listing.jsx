@@ -1,5 +1,5 @@
 import React, { useState, Fragment } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import Sticky from 'react-stickynode';
 import { Checkbox } from 'antd';
 import useWindowSize from 'library/hooks/useWindowSize';
@@ -14,28 +14,32 @@ import { SINGLE_POST_PAGE } from 'settings/constant';
 import ListingWrapper, { PostsWrapper, ShowMapCheckbox } from './Listing.style';
 
 export default function Listing() {
-  let location = useLocation();
+  const location = useLocation();
+  const navigate = useNavigate();
   const { width } = useWindowSize();
   const [showMap, setShowMap] = useState(false);
-  const { data, loading, error, doFetch, loadMoreData } = useDataApi(
-    `${import.meta.env.VITE_APP_API_URL}properties/?populate=Images`,
-    import.meta.env.VITE_APP_API_TOKEN,
-    10,
-  );
+
+  const { data, total, pagination, loading, error, doFetch, loadMoreData } =
+    useDataApi(
+      `${import.meta.env.VITE_APP_API_URL}properties?pagination[pageSize]=100`,
+      import.meta.env.VITE_APP_API_TOKEN,
+      10,
+      'properties',
+    );
+
+  const limit = 100;
   let columnWidth = [1 / 1, 1 / 2, 1 / 3, 1 / 4, 1 / 5];
-  if (location.search) {
-    url += location.search;
-  }
+
   if (showMap) {
     columnWidth = [1 / 1, 1 / 2, 1 / 2, 1 / 2, 1 / 3];
   }
-  const limit = 100;
-  console.log('data');
 
-  console.log(data);
   const handleMapToggle = () => {
-    setShowMap((showMap) => !showMap);
+    setShowMap((prev) => !prev);
   };
+
+  const isEmpty = !loading && data.length === 0;
+  const isLoadMoreVisible = data.length < (total?.length || 0);
 
   return (
     <ListingWrapper>
@@ -60,16 +64,22 @@ export default function Listing() {
 
       <Fragment>
         <PostsWrapper className={width > 767 && showMap ? 'col-12' : 'col-24'}>
-          <SectionGrid
-            link={SINGLE_POST_PAGE}
-            columnWidth={columnWidth}
-            data={data}
-            totalItem={10}
-            loading={loading}
-            limit={limit}
-            handleLoadMore={loadMoreData}
-            placeholder={<PostPlaceholder />}
-          />
+          {isEmpty ? (
+            <div style={{ padding: '2rem', textAlign: 'center' }}>
+              <h3>No properties found. Try adjusting your filters.</h3>
+            </div>
+          ) : (
+            <SectionGrid
+              link={SINGLE_POST_PAGE}
+              columnWidth={columnWidth}
+              data={data}
+              totalItem={data.length}
+              loading={loading}
+              limit={limit}
+              handleLoadMore={isLoadMoreVisible ? loadMoreData : null}
+              placeholder={<PostPlaceholder />}
+            />
+          )}
         </PostsWrapper>
 
         {showMap && <ListingMap />}

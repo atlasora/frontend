@@ -1,6 +1,7 @@
 import { useState, useReducer, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 
-// SuperFetch now supports token and flexible headers
+// General-purpose fetch wrapper
 async function SuperFetch(
   url,
   method = 'GET',
@@ -26,35 +27,27 @@ async function SuperFetch(
   return fetch(url, options)
     .then((res) => {
       if (!res.ok) throw new Error(`HTTP error ${res.status}`);
-      console.log(res.json);
       return res.json();
     })
     .catch((error) => Promise.reject(error));
 }
 
-// Reducer to handle data loading states
+// Reducer for managing API state
 function dataFetchReducer(state, action) {
   switch (action.type) {
     case 'FETCH_INIT':
-      return {
-        ...state,
-        loading: true,
-        error: false,
-      };
+      return { ...state, loading: true, error: false };
     case 'FETCH_SUCCESS':
       return {
         ...state,
-        data: action.payload.slice(0, state.limit),
-        total: action.payload,
+        data: action.payload.data.slice(0, state.limit),
+        total: action.payload.data,
+        pagination: action.payload.meta?.pagination || null,
         loading: false,
         error: false,
       };
     case 'FETCH_FAILURE':
-      return {
-        ...state,
-        loading: false,
-        error: true,
-      };
+      return { ...state, loading: false, error: true };
     case 'LOAD_MORE':
       return {
         ...state,
@@ -65,23 +58,39 @@ function dataFetchReducer(state, action) {
             state.data.length + state.limit,
           ),
         ],
-        loading: false,
-        error: false,
       };
     default:
       throw new Error();
   }
 }
 
-// Custom hook with token support
-const useDataApi = (initialUrl, token, limit = 10, table, initialData = []) => {
-  if (table == 'properties') {
-    initialUrl += `&populate[currency]=true`;
-    initialUrl += `&populate[Images]=true`;
-    initialUrl += `&populate[property_amenities]=true`;
-    initialUrl += `&populate[property_reviews][populate][users_permissions_user][populate][picture]=true`;
-  }
-  const [url, setUrl] = useState(initialUrl);
+// Utility: Convert "free-wifi" → "Free Wifi"
+const slugToName = (slug) =>
+  slug
+    .split('-')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+
+// Main custom hook
+const useDataApi = (
+  initialUrl,
+  token,
+  limit = 10,
+  table = 'properties',
+  initialData = [],
+) => {
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+
+  const address = queryParams.get('address');
+  const startDate = queryParams.get('startDate');
+  const endDate = queryParams.get('endDate');
+  const room = queryParams.get('room');
+  const guest = queryParams.get('guest');
+  const price = queryParams.get('price');
+  const amenities = queryParams.get('amenities');
+
+  const [url, setUrl] = useState(null);
 
   const [state, dispatch] = useReducer(dataFetchReducer, {
     loading: false,
@@ -89,9 +98,98 @@ const useDataApi = (initialUrl, token, limit = 10, table, initialData = []) => {
     data: initialData,
     total: initialData,
     limit: limit,
+    pagination: null,
   });
 
   useEffect(() => {
+    const hasValidFilters =
+      (address && address.length >= 4) ||
+      startDate ||
+      endDate ||
+      room ||
+      guest ||
+      price ||
+      amenities;
+
+    if (!hasValidFilters) {
+      setUrl(null);
+      return;
+    }
+
+    const filterParams = [];
+
+    if (address && address.length >= 4) {
+      const encoded = encodeURIComponent(address);
+      filterParams.push(`filters[$or][0][Title][$containsi]=${encoded}`);
+      filterParams.push(`filters[$or][1][FormattedAddress][$eq]=${encoded}`);
+      filterParams.push(`filters[$or][2][Address1][$eq]=${encoded}`);
+      filterParams.push(`filters[$or][3][Address2][$eq]=${encoded}`);
+      filterParams.push(`filters[$or][4][Address3][$eq]=${encoded}`);
+      filterParams.push(`filters[$or][5][Address4][$eq]=${encoded}`);
+      filterParams.push(`filters[$or][6][Address5][$eq]=${encoded}`);
+    }
+
+    if (startDate && endDate) {
+      filterParams.push(`filters[AvailableStartDate][$lte]=${endDate}`);
+      filterParams.push(`filters[AvailableEndDate][$gte]=${startDate}`);
+    }
+
+    if (room) filterParams.push(`filters[Rooms][$gte]=${room}`);
+    if (guest) filterParams.push(`filters[Guests][$gte]=${guest}`);
+    if (price) filterParams.push(`filters[PricePerNight][$lte]=${price}`);
+
+    if (amenities) {
+      const amenityList = amenities.split(',');
+      amenityList.forEach((slug, index) => {
+        const formattedName = slugToName(slug);
+        filterParams.push(
+          `filters[$and][${index}][property_amenities][Name][$eq]=${encodeURIComponent(
+            formattedName,
+          )}`,
+        );
+      });
+    }
+
+    filterParams.push(`filters[CurrentlyRented][$ne]=true`);
+
+    const filterString = filterParams.join('&');
+
+    const populateString = [
+      'populate[currency]=true',
+      'populate[Images]=true',
+      'populate[property_amenities]=true',
+      'populate[property_reviews][populate][users_permissions_user][populate][picture]=true',
+    ].join('&');
+
+    let fullUrl = initialUrl;
+    if (!fullUrl.includes('?')) {
+      fullUrl += '?';
+    } else if (!fullUrl.endsWith('&') && !fullUrl.endsWith('?')) {
+      fullUrl += '&';
+    }
+
+    if (filterString) {
+      fullUrl += `${filterString}&`;
+    }
+
+    fullUrl += populateString;
+
+    setUrl(fullUrl);
+  }, [
+    location.search,
+    initialUrl,
+    address,
+    startDate,
+    endDate,
+    room,
+    guest,
+    price,
+    amenities,
+  ]);
+
+  useEffect(() => {
+    if (!url) return;
+
     let didCancel = false;
 
     const fetchData = async () => {
@@ -99,12 +197,8 @@ const useDataApi = (initialUrl, token, limit = 10, table, initialData = []) => {
 
       try {
         const result = await SuperFetch(url, 'GET', {}, token);
-
-        // Assume Strapi v4 format: result = { data: [...], meta: {...} }
-        const payload = result?.data || [];
-
         if (!didCancel) {
-          dispatch({ type: 'FETCH_SUCCESS', payload });
+          dispatch({ type: 'FETCH_SUCCESS', payload: result });
         }
       } catch (error) {
         if (!didCancel) {
@@ -120,13 +214,8 @@ const useDataApi = (initialUrl, token, limit = 10, table, initialData = []) => {
     };
   }, [url, token]);
 
-  const loadMoreData = () => {
-    dispatch({ type: 'LOAD_MORE' });
-  };
-
-  const doFetch = (newUrl) => {
-    setUrl(newUrl);
-  };
+  const loadMoreData = () => dispatch({ type: 'LOAD_MORE' });
+  const doFetch = (newUrl) => setUrl(newUrl);
 
   return { ...state, doFetch, loadMoreData };
 };

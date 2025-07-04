@@ -51,7 +51,7 @@ const CategorySearch = ({ location }) => {
       ...state,
       [type]: value,
     };
-    const search = setStateToUrl(query);
+    const search = setStateToUrl(query, location);
     navigate({
       pathname: LISTING_POSTS_PAGE,
       search: `?${createSearchParams(search)}`,
@@ -64,7 +64,7 @@ const CategorySearch = ({ location }) => {
       room: countRoom,
       guest: countGuest,
     };
-    const search = setStateToUrl(query);
+    const search = setStateToUrl(query, location);
     navigate({
       pathname: LISTING_POSTS_PAGE,
       search: `?${createSearchParams(search)}`,
@@ -79,7 +79,7 @@ const CategorySearch = ({ location }) => {
       room: 0,
       guest: 0,
     };
-    const search = setStateToUrl(query);
+    const search = setStateToUrl(query, location);
     navigate({
       pathname: LISTING_POSTS_PAGE,
       search: `?${createSearchParams(search)}`,

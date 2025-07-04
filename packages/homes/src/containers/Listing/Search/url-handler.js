@@ -1,195 +1,154 @@
+// Create a query string from a key-value object
 export function createUrl(urlData) {
   const keys = Object.keys(urlData);
   let search = '?';
   keys.forEach((key) => {
     if (urlData[key] !== null && urlData[key] !== '') {
-      search += `${key}=${urlData[key]}&`;
+      search += `${key}=${encodeURIComponent(urlData[key])}&`;
     }
   });
-  return search.substring(0, search.length - 1);
+  return search.slice(0, -1); // remove trailing '&'
 }
 
+// Parse query string from location
 export function getUrl(location) {
   const data = location.search
     ? location.search.slice(location.search.indexOf('?') + 1).split('&')
     : [];
   const urlData = {};
-  data.forEach((data) => {
+  data.forEach((item) => {
     try {
-      data = data.split('=');
-      const dataVal = decodeURIComponent(data[1]);
-      urlData[data[0]] = dataVal;
-    } catch (e) {}
+      const [key, value] = item.split('=');
+      urlData[key] = decodeURIComponent(value);
+    } catch (e) {
+      // Ignore malformed pairs
+    }
   });
   return urlData;
 }
 
-export function setStateToUrl(state) {
-  console.log(state, 'state');
-  let urlData = {};
-  for (const key in state) {
-    if (state.hasOwnProperty(key)) {
-      switch (key) {
-        case 'date_range':
-          let data = Object.values(state[key]);
-          if (data[0] === null && data[1] === null) {
-            data = '';
-          }
-          urlData[key] = data && data.length ? data.join() : null;
-          break;
-        case 'amenities':
-          urlData[key] =
-            state[key] && state[key].length ? state[key].join() : null;
-          break;
-        case 'room':
-          if (state[key]) {
-            urlData[key] = state[key] ? state[key] : 0;
-          } else {
-            urlData[key] = '';
-          }
-          break;
-        case 'guest':
-          if (state[key]) {
-            urlData[key] = state[key] ? state[key] : 0;
-          } else {
-            urlData[key] = '';
-          }
-          break;
-        case 'property':
-          urlData[key] =
-            state[key] && state[key].length ? state[key].join() : null;
-          break;
-        case 'price':
-          urlData[key] =
-            state[key] && state[key].length ? state[key].join() : null;
-          break;
-        case 'location':
-          if (state[key] && state[key].lat) {
-            urlData[`${key}_lat`] = state[key].lat;
-          }
-          if (state[key] && state[key].lng) {
-            urlData[`${key}_lng`] = state[key].lng;
-          }
-          break;
-        case 'reset':
-          urlData = state[key];
-          break;
+// ✅ Create a query string from state, preserving 'address' from URL
+export function setStateToUrl(state, location) {
+  console.log(location);
+  const params = new URLSearchParams(location.search);
+  const storedAddress = params.get('address');
 
-        default:
-          urlData[key] = state[key];
-          break;
-      }
+  let urlData = {};
+
+  if (storedAddress) {
+    urlData['address'] = storedAddress;
+  }
+
+  for (const key in state) {
+    if (!Object.prototype.hasOwnProperty.call(state, key)) continue;
+
+    switch (key) {
+      case 'date_range':
+        const [start, end] = Object.values(state[key] || {});
+        urlData[key] = start && end ? `${start},${end}` : null;
+        break;
+
+      case 'amenities':
+      case 'property':
+        urlData[key] =
+          state[key] && state[key].length ? state[key].join(',') : null;
+        break;
+
+      case 'room':
+      case 'guest':
+        urlData[key] = state[key] ? state[key] : '';
+        break;
+
+      case 'price':
+        urlData[key] =
+          state[key] && state[key].length ? state[key].join(',') : null;
+        break;
+
+      case 'location':
+        if (state[key]?.lat) {
+          urlData['location_lat'] = state[key].lat;
+        }
+        if (state[key]?.lng) {
+          urlData['location_lng'] = state[key].lng;
+        }
+        break;
+
+      case 'reset':
+        urlData = state[key]; // allow full override
+        break;
+
+      default:
+        urlData[key] = state[key];
+        break;
     }
   }
+
   return createUrl(urlData);
 }
 
+// Parse query string into filter state
 export function getStateFromUrl(location) {
   const urlData = getUrl(location);
   const state = {};
 
   for (const key in urlData) {
-    if (urlData.hasOwnProperty(key)) {
-      switch (key) {
-        case 'date_range':
-          const date = urlData[key] ? urlData[key] : null;
-          if (date) {
-            let splitDate = date ? date.split(',') : null;
-            let setStartDate = splitDate ? splitDate[0] : null;
-            let setEndDate = splitDate ? splitDate[1] : null;
-            state[key] = date
-              ? { setStartDate: setStartDate, setEndDate: setEndDate }
-              : null;
-          }
-          break;
+    if (!Object.prototype.hasOwnProperty.call(urlData, key)) continue;
 
-        case 'amenities':
-          state[key] =
-            urlData[key] && urlData[key] !== 'null'
-              ? urlData[key].split(',')
-              : [];
-          break;
-
-        case 'room':
-          if (urlData[key]) {
-            state[key] = urlData[key] ? urlData[key] : 0;
-          } else {
-            state[key] = '';
-          }
-          break;
-
-        case 'guest':
-          if (urlData[key]) {
-            state[key] = urlData[key] ? urlData[key] : 0;
-          } else {
-            state[key] = '';
-          }
-          break;
-
-        case 'property':
-          state[key] =
-            urlData[key] && urlData[key] !== 'null'
-              ? urlData[key].split(',')
-              : [];
-          break;
-
-        case 'price':
-          const defaultPrice = {
-            min: 0,
-            max: 100,
-            defaultMin: 0,
-            defaultMax: 100,
-          };
-          const price = urlData[key] ? urlData[key].split(',') : defaultPrice;
-          if (price) {
-            let min, max;
-            min = price ? Number(price[0]) : 0;
-            max = price ? Number(price[1]) : 100;
-            if (min > 0 || max < 100) {
-              state[key] = {
-                min: min,
-                max: max,
-                defaultMin: 0,
-                defaultMax: 100,
-              };
-            } else {
-              state[key] = '';
+    switch (key) {
+      case 'date_range':
+        const date = urlData[key];
+        const [setStartDate, setEndDate] = date.split(',');
+        state[key] = date
+          ? {
+              setStartDate: setStartDate || null,
+              setEndDate: setEndDate || null,
             }
-          }
-          break;
+          : null;
+        break;
 
-        case 'location_lat':
-          if (urlData['location_lat']) {
-            state['location'] = {};
-            state['location']['lat'] = Number(urlData[key]);
-          } else {
-            state['location'] = null;
-          }
-          break;
+      case 'amenities':
+      case 'property':
+        state[key] =
+          urlData[key] && urlData[key] !== 'null'
+            ? urlData[key].split(',')
+            : [];
+        break;
 
-        case 'location_lng':
-          if (urlData[key]) {
-            state['location']['lng'] = Number(urlData[key]);
-          }
-          break;
+      case 'room':
+      case 'guest':
+        state[key] = urlData[key] || '';
+        break;
 
-        case 'page':
-          if (urlData[key]) {
-            state['page'] = Number(urlData[key]);
-          }
-          break;
+      case 'price':
+        const [minStr, maxStr] = urlData[key]?.split(',') || [];
+        const min = Number(minStr) || 0;
+        const max = Number(maxStr) || 100;
+        state[key] =
+          min > 0 || max < 100
+            ? { min, max, defaultMin: 0, defaultMax: 100 }
+            : '';
+        break;
 
-        case 'limit':
-          if (urlData[key]) {
-            state['limit'] = Number(urlData[key]);
-          }
-          break;
+      case 'location_lat':
+        if (!state.location) state.location = {};
+        state.location.lat = Number(urlData[key]);
+        break;
 
-        default:
-          state[key] = urlData[key];
-          break;
-      }
+      case 'location_lng':
+        if (!state.location) state.location = {};
+        state.location.lng = Number(urlData[key]);
+        break;
+
+      case 'page':
+      case 'limit':
+        state[key] = Number(urlData[key]) || 0;
+        break;
+
+      default:
+        state[key] = urlData[key];
+        break;
     }
   }
+
   return state;
 }
