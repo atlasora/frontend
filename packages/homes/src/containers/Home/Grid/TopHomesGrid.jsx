@@ -18,9 +18,10 @@ import { LISTING_POSTS_PAGE, SINGLE_POST_PAGE } from 'settings/constant';
  * @returns {React.ReactElement} A React element representing the top homes
  * section.
  */
+
 const TopHomesGrid = () => {
   const { data, loading, error, doFetch, loadMoreData } = useDataApi(
-    `${import.meta.env.VITE_APP_API_URL}properties/?populate=*`,
+    `${import.meta.env.VITE_APP_API_URL}properties?populate=*&filters[Featured][$eq]=true`,
     import.meta.env.VITE_APP_API_TOKEN,
     10,
     '',

@@ -86,7 +86,7 @@ const LocationGrid = () => {
                       }
                       // fallback in case no image
                       title={post.City}
-                      meta={`${post.numberOfPost} Hotels`}
+                      meta={`${post.numberOfPost.toLocaleString()} Properties`}
                     />
                   </GlideSlide>
                 ))}
