@@ -30,11 +30,12 @@ export const getPropertyType = {
   name: 'Property Type',
   identifier: 'property-type',
   options: [
-    { label: 'Villa', value: 'villa' },
-    { label: 'Hotel', value: 'hotel' },
-    { label: 'Resort', value: 'resort' },
-    { label: 'Cottage', value: 'cottage' },
-    { label: 'Duplex', value: 'duplex' },
-    { label: 'Landscape', value: 'landscape' },
+    { label: 'Villa', value: 'Villa' },
+    { label: 'Hotel', value: 'Hotel' },
+    { label: 'Resort', value: 'Resort' },
+    { label: 'Cottage', value: 'Cottage' },
+    { label: 'Duplex', value: 'Duplex' },
+    { label: 'Landscape', value: 'Landscape' },
+    { label: 'Condo', value: 'Condo' },
   ],
 };

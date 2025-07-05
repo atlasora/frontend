@@ -150,7 +150,7 @@ const useDataApi = (
       });
     }
 
-    filterParams.push(`filters[CurrentlyRented][$ne]=true`);
+    filterParams.push(`filters[CurrentlyRented][$eq]=false`);
 
     const filterString = filterParams.join('&');
 
@@ -158,6 +158,7 @@ const useDataApi = (
       'populate[currency]=true',
       'populate[Images]=true',
       'populate[property_amenities]=true',
+      'populate[property_type]=true',
       'populate[property_reviews][populate][users_permissions_user][populate][picture]=true',
     ].join('&');
 
