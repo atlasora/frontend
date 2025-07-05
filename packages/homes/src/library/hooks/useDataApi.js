@@ -82,7 +82,7 @@ const useDataApi = (
   const dateRange = queryParams.get('date_range'); // This will now be used directly
   const room = queryParams.get('room');
   const guest = queryParams.get('guest');
-  const price = queryParams.get('price');
+  const price = queryParams.get('price'); // Ensure price is being parsed
   const amenities = queryParams.get('amenities');
   const property = queryParams.get('property');
 
@@ -100,7 +100,7 @@ const useDataApi = (
   useEffect(() => {
     const hasValidFilters =
       (address && address.length >= 4) ||
-      dateRange || // Add dateRange to the condition
+      dateRange ||
       room ||
       guest ||
       price ||
@@ -137,6 +137,8 @@ const useDataApi = (
 
     if (room) filterParams.push(`filters[Rooms][$gte]=${room}`);
     if (guest) filterParams.push(`filters[Guests][$gte]=${guest}`);
+
+    // Handle price filter
     if (price) {
       const [minPrice, maxPrice] = price.split(',');
       filterParams.push(`filters[PricePerNight][$gte]=${minPrice}`);
@@ -191,10 +193,10 @@ const useDataApi = (
     location.search,
     initialUrl,
     address,
-    dateRange, // Add dateRange to the dependency array
+    dateRange,
     room,
     guest,
-    price,
+    price, // Include price in the dependency array
     amenities,
     property,
   ]);

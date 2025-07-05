@@ -54,7 +54,12 @@ const CategorySearch = ({ location }) => {
 
     // Handle price range and update it in the state
     if (type === 'price') {
-      query.price = `${value[0]},${value[1]}`; // Ensure price has both min and max
+      query.price = { min: value[0], max: value[1] }; // Store price as an object with min and max
+      const search = setStateToUrl(query, location);
+      navigate({
+        pathname: LISTING_POSTS_PAGE,
+        search: `?${createSearchParams(search)}`,
+      });
     }
 
     const search = setStateToUrl(query, location);
@@ -71,6 +76,7 @@ const CategorySearch = ({ location }) => {
       guest: countGuest,
     };
     const search = setStateToUrl(query, location);
+
     navigate({
       pathname: LISTING_POSTS_PAGE,
       search: `?${createSearchParams(search)}`,
@@ -93,9 +99,31 @@ const CategorySearch = ({ location }) => {
   };
 
   const onSearchReset = () => {
-    setRoom(0);
-    setGuest(0);
-    const search = setStateToUrl({ reset: '' });
+    // Reset all filters to their default values
+    const resetState = {
+      amenities: [],
+      property: [],
+      date_range: {
+        setStartDate: null,
+        setEndDate: null,
+      },
+      price: {
+        min: 0,
+        max: 100,
+        defaultMin: 0,
+        defaultMax: 100,
+      },
+      location: {
+        lat: null,
+        lng: null,
+      },
+      room: 0,
+      guest: 0,
+    };
+
+    const search = setStateToUrl(resetState, location);
+
+    // Navigate to the same page but with cleared filters
     navigate({
       pathname: LISTING_POSTS_PAGE,
       search: `?${createSearchParams(search)}`,

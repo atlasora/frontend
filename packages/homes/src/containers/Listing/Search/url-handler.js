@@ -51,7 +51,9 @@ export function setStateToUrl(state, location) {
       case 'amenities':
       case 'property':
         urlData[key] =
-          state[key] && state[key].length ? state[key].join(',') : null;
+          state[key] && Array.isArray(state[key]) && state[key].length
+            ? state[key].join(',')
+            : null;
         break;
 
       case 'room':
@@ -60,8 +62,15 @@ export function setStateToUrl(state, location) {
         break;
 
       case 'price':
-        urlData[key] =
-          state[key] && state[key].length ? state[key].join(',') : null;
+        // Ensure price is in the correct format
+        if (state[key] && typeof state[key] === 'object') {
+          const { min, max } = state[key];
+          if (min !== undefined && max !== undefined) {
+            urlData[key] = `${min},${max}`; // correctly format price
+          }
+        } else {
+          urlData[key] = ''; // If price is not an object, don't append it
+        }
         break;
 
       case 'location':
@@ -119,12 +128,17 @@ export function getStateFromUrl(location) {
 
       case 'price':
         const [minStr, maxStr] = urlData[key]?.split(',') || [];
-        const min = Number(minStr) || 0;
-        const max = Number(maxStr) || 100;
-        state[key] =
-          min > 0 || max < 100
-            ? { min, max, defaultMin: 0, defaultMax: 100 }
-            : '';
+
+        // Parse min and max values safely
+        const min = minStr ? Number(minStr) : 0; // Default to 0 if not a valid number
+        const max = maxStr ? Number(maxStr) : 100; // Default to 100 if not a valid number
+
+        // Only set price if both min and max are valid numbers
+        if (min >= 0 && max >= 0 && min <= max) {
+          state[key] = { min, max, defaultMin: 0, defaultMax: 100 };
+        } else {
+          state[key] = ''; // If invalid, clear the price range
+        }
         break;
 
       case 'location_lat':
