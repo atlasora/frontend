@@ -8,9 +8,17 @@ import SectionTitle from 'components/SectionTitle/SectionTitle';
 import useWindowSize from 'library/hooks/useWindowSize';
 import useDataApi from 'library/hooks/useDataApi';
 import { LISTING_POSTS_PAGE, SINGLE_POST_PAGE } from 'settings/constant';
+/**
+ * A component that renders a section of top homes.
+ *
+ * The component renders a SectionTitle component with a heading and a link to
+ * the listing page. Then it renders a SectionGrid component with the top homes.
+ * The number of posts to render is determined by the window width.
+ *
+ * @returns {React.ReactElement} A React element representing the top homes
+ * section.
+ */
 const TopHomesGrid = () => {
-  //const { data, loading } = useDataApi('/data/top-hotel.json');
-
   const { data, loading, error, doFetch, loadMoreData } = useDataApi(
     `${import.meta.env.VITE_APP_API_URL}properties/?populate=*`,
     import.meta.env.VITE_APP_API_TOKEN,

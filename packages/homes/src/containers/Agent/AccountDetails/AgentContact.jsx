@@ -4,7 +4,7 @@ import Heading from 'components/UI/Heading/Heading';
 import Text from 'components/UI/Text/Text';
 import Loader from 'components/Loader/Loader';
 import ContactForm from 'components/ContactForm/ContactFrom';
-import useDataApi from 'library/hooks/useDataApiOld';
+import useDataApi from 'library/hooks/useSearchApi';
 import { AgentContactWrapper, ContactDetails } from './AgentDetails.style';
 import isEmpty from 'lodash/isEmpty';
 

@@ -1,7 +1,8 @@
 import React from 'react';
 import isEmpty from 'lodash/isEmpty';
 import Map from 'components/Map/Map';
-import useDataApi from 'library/hooks/useDataApiOld';
+import useDataApi from 'library/hooks/useDataApi';
+
 import { FixedMap } from './Listing.style';
 
 const ListingMap = () => {

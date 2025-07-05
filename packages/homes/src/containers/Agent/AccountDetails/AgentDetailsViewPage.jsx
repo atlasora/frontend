@@ -15,7 +15,7 @@ import Text from 'components/UI/Text/Text';
 import { ProfilePicLoader } from 'components/UI/ContentLoader/ContentLoader';
 import Loader from 'components/Loader/Loader';
 import AuthProvider, { AuthContext } from 'context/AuthProvider';
-import useDataApi from 'library/hooks/useDataApiOld';
+import useDataApi from 'library/hooks/useSearchApi';
 import {
   ADD_HOTEL_PAGE,
   AGENT_PROFILE_PAGE,

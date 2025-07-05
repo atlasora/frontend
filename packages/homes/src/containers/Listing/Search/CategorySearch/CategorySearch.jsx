@@ -5,7 +5,9 @@ import { Button, Slider, Checkbox } from 'antd';
 import ViewWithPopup from 'components/UI/ViewWithPopup/ViewWithPopup';
 import InputIncDec from 'components/UI/InputIncDec/InputIncDec';
 import DateRangePicker from 'components/UI/DatePicker/ReactDates';
-import { setStateToUrl, getStateFromUrl } from '../url-handler';
+//import { setStateToUrl, getStateFromUrl } from '../url-handler';
+import { setStateToUrl, getStateFromUrl } from 'library/helpers/url-handler';
+
 import { LISTING_POSTS_PAGE } from 'settings/constant';
 import {
   priceInit,

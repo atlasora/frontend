@@ -5,7 +5,13 @@ import { Button } from 'antd';
 import DateRangePickerBox from 'components/UI/DatePicker/ReactDates';
 import ViewWithPopup from 'components/UI/ViewWithPopup/ViewWithPopup';
 import InputIncDec from 'components/UI/InputIncDec/InputIncDec';
-import { setStateToUrl } from 'library/helpers/url_handler';
+//todo: we current have two url handlers the second one is the most up to date we want to get it working so that we are calling the library one as it is
+//      a better place then we want to take the the old one (which we will rename url-handlerold) and move the new one to library/ helpers once we have
+//      done we will test home page (requires work to be done) but we could also create a customer helper for that as it calls locations and featured
+//      properties and point the search page to the new helper location.  Once we have done this listing page should just work but we will have to double
+//      check that as well
+//import { setStateToUrl } from '../../Listing/Search/url-handler';//
+import { setStateToUrl } from 'library/helpers/url-handler';
 import { LISTING_POSTS_PAGE } from 'settings/constant';
 import {
   FormWrapper,

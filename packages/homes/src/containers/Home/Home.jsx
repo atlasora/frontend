@@ -4,7 +4,7 @@ import SearchArea from './Search/Search';
 import LocationGrid from './Location/Location';
 import { LayoutContext } from 'context/LayoutProvider';
 import { Waypoint } from 'react-waypoint';
-import resolveUrl from 'library/helpers/resolveURL';
+
 const Home = () => {
   const [, dispatch] = useContext(LayoutContext);
   return (

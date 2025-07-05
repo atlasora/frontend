@@ -19,9 +19,14 @@ export default function Listing() {
   const { width } = useWindowSize();
   const [showMap, setShowMap] = useState(false);
 
+  let baseFilters = 'pagination[pageSize]=100';
+  if (location.search === '') {
+    baseFilters = 'populate=*';
+  }
+
   const { data, total, pagination, loading, error, doFetch, loadMoreData } =
     useDataApi(
-      `${import.meta.env.VITE_APP_API_URL}properties?pagination[pageSize]=100`,
+      `${import.meta.env.VITE_APP_API_URL}properties?${baseFilters}`,
       import.meta.env.VITE_APP_API_TOKEN,
       10,
       'properties',
