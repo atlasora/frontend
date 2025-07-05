@@ -106,8 +106,7 @@ const useDataApi = (
       price ||
       amenities ||
       property;
-    console.log(initialUrl);
-    console.log(hasValidFilters);
+
     if (!hasValidFilters) {
       setUrl(initialUrl);
       return;
@@ -203,7 +202,6 @@ const useDataApi = (
   ]);
 
   useEffect(() => {
-    console.log(url);
     if (!url) return;
 
     let didCancel = false;
