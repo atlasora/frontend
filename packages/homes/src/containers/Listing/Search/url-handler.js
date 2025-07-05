@@ -108,10 +108,8 @@ export function getStateFromUrl(location) {
 
       case 'amenities':
       case 'property':
-        state[key] =
-          urlData[key] && urlData[key] !== 'null'
-            ? urlData[key].split(',')
-            : [];
+        urlData[key] =
+          state[key] && state[key].length ? state[key].join(',') : null;
         break;
 
       case 'room':

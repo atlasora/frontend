@@ -89,6 +89,7 @@ const useDataApi = (
   const guest = queryParams.get('guest');
   const price = queryParams.get('price');
   const amenities = queryParams.get('amenities');
+  const property = queryParams.get('property'); // Get property filter
 
   const [url, setUrl] = useState(null);
 
@@ -109,7 +110,8 @@ const useDataApi = (
       room ||
       guest ||
       price ||
-      amenities;
+      amenities ||
+      property; // Include property filter in the check
 
     if (!hasValidFilters) {
       setUrl(null);
@@ -137,6 +139,15 @@ const useDataApi = (
     if (room) filterParams.push(`filters[Rooms][$gte]=${room}`);
     if (guest) filterParams.push(`filters[Guests][$gte]=${guest}`);
     if (price) filterParams.push(`filters[PricePerNight][$lte]=${price}`);
+
+    // Handle property types filter (multiple selected types) - Apply $or for property types
+    if (property && property.length > 0) {
+      const propertyList = property.split(','); // Multiple property types
+      const propertyConditions = propertyList.map((type, index) => {
+        return `filters[$or][${index}][property_type][Name][$eq]=${encodeURIComponent(type)}`;
+      });
+      filterParams.push(...propertyConditions);
+    }
 
     if (amenities) {
       const amenityList = amenities.split(',');

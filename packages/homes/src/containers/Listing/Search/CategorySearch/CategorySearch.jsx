@@ -51,6 +51,12 @@ const CategorySearch = ({ location }) => {
       ...state,
       [type]: value,
     };
+
+    // Handle price range and update it in the state
+    if (type === 'price') {
+      query.price = `${value[0]},${value[1]}`; // Ensure price has both min and max
+    }
+
     const search = setStateToUrl(query, location);
     navigate({
       pathname: LISTING_POSTS_PAGE,
