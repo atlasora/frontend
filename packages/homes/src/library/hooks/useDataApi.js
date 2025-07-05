@@ -18,10 +18,7 @@ async function SuperFetch(
   let options = { method, headers };
 
   if (method === 'POST' || method === 'PUT') {
-    options = {
-      ...options,
-      body: JSON.stringify(body),
-    };
+    options = { ...options, body: JSON.stringify(body) };
   }
 
   return fetch(url, options)
@@ -64,7 +61,6 @@ function dataFetchReducer(state, action) {
   }
 }
 
-// Utility: Convert "free-wifi" → "Free Wifi"
 const slugToName = (slug) =>
   slug
     .split('-')
@@ -83,13 +79,12 @@ const useDataApi = (
   const queryParams = new URLSearchParams(location.search);
 
   const address = queryParams.get('address');
-  const startDate = queryParams.get('startDate');
-  const endDate = queryParams.get('endDate');
+  const dateRange = queryParams.get('date_range'); // This will now be used directly
   const room = queryParams.get('room');
   const guest = queryParams.get('guest');
   const price = queryParams.get('price');
   const amenities = queryParams.get('amenities');
-  const property = queryParams.get('property'); // Get property filter
+  const property = queryParams.get('property');
 
   const [url, setUrl] = useState(null);
 
@@ -105,13 +100,12 @@ const useDataApi = (
   useEffect(() => {
     const hasValidFilters =
       (address && address.length >= 4) ||
-      startDate ||
-      endDate ||
+      dateRange || // Add dateRange to the condition
       room ||
       guest ||
       price ||
       amenities ||
-      property; // Include property filter in the check
+      property;
 
     if (!hasValidFilters) {
       setUrl(null);
@@ -131,18 +125,26 @@ const useDataApi = (
       filterParams.push(`filters[$or][6][Address5][$eq]=${encoded}`);
     }
 
-    if (startDate && endDate) {
-      filterParams.push(`filters[AvailableStartDate][$lte]=${endDate}`);
-      filterParams.push(`filters[AvailableEndDate][$gte]=${startDate}`);
+    // Handle Date Range
+    if (dateRange) {
+      const [startDate, endDate] = dateRange.split(',');
+      if (startDate && endDate) {
+        //todo : enable when bookings are being stored
+        // filterParams.push(`filters[AvailableStartDate][$lte]=${startDate}`);
+        // filterParams.push(`filters[AvailableEndDate][$gte]=${endDate}`);
+      }
     }
 
     if (room) filterParams.push(`filters[Rooms][$gte]=${room}`);
     if (guest) filterParams.push(`filters[Guests][$gte]=${guest}`);
-    if (price) filterParams.push(`filters[PricePerNight][$lte]=${price}`);
+    if (price) {
+      const [minPrice, maxPrice] = price.split(',');
+      filterParams.push(`filters[PricePerNight][$gte]=${minPrice}`);
+      filterParams.push(`filters[PricePerNight][$lte]=${maxPrice}`);
+    }
 
-    // Handle property types filter (multiple selected types) - Apply $or for property types
     if (property && property.length > 0) {
-      const propertyList = property.split(','); // Multiple property types
+      const propertyList = property.split(',');
       const propertyConditions = propertyList.map((type, index) => {
         return `filters[$or][${index}][property_type][Name][$eq]=${encodeURIComponent(type)}`;
       });
@@ -154,9 +156,7 @@ const useDataApi = (
       amenityList.forEach((slug, index) => {
         const formattedName = slugToName(slug);
         filterParams.push(
-          `filters[$and][${index}][property_amenities][Name][$eq]=${encodeURIComponent(
-            formattedName,
-          )}`,
+          `filters[$or][${index}][property_amenities][Name][$eq]=${formattedName}`,
         );
       });
     }
@@ -191,12 +191,12 @@ const useDataApi = (
     location.search,
     initialUrl,
     address,
-    startDate,
-    endDate,
+    dateRange, // Add dateRange to the dependency array
     room,
     guest,
     price,
     amenities,
+    property,
   ]);
 
   useEffect(() => {
