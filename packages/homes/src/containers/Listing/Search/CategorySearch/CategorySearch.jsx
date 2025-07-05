@@ -24,6 +24,7 @@ import CategorySearchWrapper, {
 const CategorySearch = ({ location }) => {
   let navigate = useNavigate();
   const searchParams = getStateFromUrl(location);
+  console.log(searchParams);
   const state = {
     amenities: searchParams.amenities || [],
     property: searchParams.property || [],
@@ -49,22 +50,24 @@ const CategorySearch = ({ location }) => {
   const [countGuest, setGuest] = useState(guest);
 
   const onChange = (value, type) => {
-    const query = {
-      ...state,
+    // Get the current state from the URL
+    const currentState = getStateFromUrl(location);
+
+    // Update the current state with the new filter value
+    const updatedState = {
+      ...currentState,
       [type]: value,
     };
 
-    // Handle price range and update it in the state
+    // If the filter is price, make sure it's in the correct format
     if (type === 'price') {
-      query.price = { min: value[0], max: value[1] }; // Store price as an object with min and max
-      const search = setStateToUrl(query, location);
-      navigate({
-        pathname: LISTING_POSTS_PAGE,
-        search: `?${createSearchParams(search)}`,
-      });
+      updatedState.price = { min: value[0], max: value[1] };
     }
 
-    const search = setStateToUrl(query, location);
+    // Create a new query string using the updated state
+    const search = setStateToUrl(updatedState, location);
+
+    // Update the URL with the new query string
     navigate({
       pathname: LISTING_POSTS_PAGE,
       search: `?${createSearchParams(search)}`,
