@@ -1,28 +1,23 @@
-import React from 'react';
+import React, { useState } from 'react';
 import PropTypes from 'prop-types';
-import useToggle from './useToggle';
 import FavoriteWrapper from './Favorite.style';
 
 const Favorite = ({ className, content, onClick = () => {} }) => {
-  // use toggle hooks
-  const [toggleValue, toggleHandler] = useToggle(false);
+  const [toggleValue, setToggleValue] = useState(false);
 
-  // Add all classs to an array
   const addAllClass = ['favorite'];
-
-  // className prop checking
   if (className) {
     addAllClass.push(className);
   }
 
-  const handelClick = (event) => {
-    toggleHandler();
-    onClick(!toggleValue);
+  const handleClick = (event) => {
+    setToggleValue((prevState) => !prevState);
+    onClick(!toggleValue); // Send updated value to the parent or perform the toggle action
   };
 
   return (
     <FavoriteWrapper
-      onClick={handelClick}
+      onClick={handleClick}
       className={`${addAllClass.join(' ')} ${toggleValue ? 'active' : ''}`}
     >
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 18.64 18.232">
@@ -37,16 +32,8 @@ const Favorite = ({ className, content, onClick = () => {} }) => {
 };
 
 Favorite.propTypes = {
-  /** ClassName of the Favorite */
   className: PropTypes.string,
-  /** content of the Favorite */
   content: PropTypes.string,
-  /**
-   * Callback fired when the value is changed.
-   *
-   * @param {object} event The event source of the callback.
-   * You can pull out the new value by accessing `event.target.value`.
-   */
   onClick: PropTypes.func,
 };
 
