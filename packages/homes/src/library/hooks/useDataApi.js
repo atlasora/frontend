@@ -79,10 +79,10 @@ const useDataApi = (
   const queryParams = new URLSearchParams(location.search);
 
   const address = queryParams.get('address');
-  const dateRange = queryParams.get('date_range'); // This will now be used directly
+  const dateRange = queryParams.get('date_range');
   const room = queryParams.get('room');
-  const guest = queryParams.get('guest');
-  const price = queryParams.get('price'); // Ensure price is being parsed
+  const guest = queryParams.get('guest'); // Grab guest parameter from the URL
+  const price = queryParams.get('price');
   const amenities = queryParams.get('amenities');
   const property = queryParams.get('property');
 
@@ -129,14 +129,14 @@ const useDataApi = (
     if (dateRange) {
       const [startDate, endDate] = dateRange.split(',');
       if (startDate && endDate) {
-        //todo : enable when bookings are being stored
+        // Enable once bookings are implemented
         // filterParams.push(`filters[AvailableStartDate][$lte]=${startDate}`);
         // filterParams.push(`filters[AvailableEndDate][$gte]=${endDate}`);
       }
     }
 
     if (room) filterParams.push(`filters[Rooms][$gte]=${room}`);
-    if (guest) filterParams.push(`filters[Guests][$gte]=${guest}`);
+    if (guest) filterParams.push(`filters[MaxGuests][$gte]=${guest}`); // Use guest parameter from the URL
 
     // Handle price filter
     if (price) {
@@ -195,8 +195,8 @@ const useDataApi = (
     address,
     dateRange,
     room,
-    guest,
-    price, // Include price in the dependency array
+    guest, // Ensure 'guest' is a dependency for updates
+    price,
     amenities,
     property,
   ]);
