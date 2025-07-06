@@ -1,5 +1,5 @@
 import React, { useState, Fragment } from 'react';
-import { Tooltip } from 'antd';
+import { Tooltip, message } from 'antd';
 import {
   LikeOutlined,
   LikeFilled,
@@ -7,29 +7,96 @@ import {
   DislikeFilled,
 } from '@ant-design/icons';
 
-const LikeDislike = () => {
+const LikeDislike = ({ singleReview }) => {
+  const initialLikes = singleReview?.LikeCounter || 0;
+  const initialDislikes = singleReview?.DislikeCounter || 0;
   const [state, setState] = useState({
-    likes: 0,
-    dislikes: 0,
+    likes: initialLikes,
+    dislikes: initialDislikes,
     action: null,
   });
 
-  const handleLike = () => {
-    setState({
-      ...state,
-      likes: 1,
-      dislikes: 0,
-      action: 'liked',
+  const API_URL = import.meta.env.VITE_APP_API_URL;
+  const API_TOKEN = import.meta.env.VITE_APP_API_TOKEN;
+
+  const updateReview = async (documentId, likeCount, dislikeCount) => {
+    // Step 1: Lookup by documentId
+    const lookupRes = await fetch(
+      `${API_URL}property-reviews?filters[documentId][$eq]=${documentId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${API_TOKEN}`,
+        },
+      },
+    );
+
+    const lookupData = await lookupRes.json();
+    const review = lookupData?.data?.[0];
+
+    if (!review) {
+      throw new Error('Review not found by documentId');
+    }
+
+    const reviewId = review.id;
+
+    // Step 2: Update review
+    const updateRes = await fetch(`${API_URL}property-reviews/${documentId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${API_TOKEN}`,
+      },
+      body: JSON.stringify({
+        data: {
+          LikeCounter: likeCount,
+          DislikeCounter: dislikeCount,
+        },
+      }),
     });
+
+    if (!updateRes.ok) {
+      const errorText = await updateRes.text();
+      throw new Error(
+        `Failed to update review: ${updateRes.status} - ${errorText}`,
+      );
+    }
+
+    return await updateRes.json();
   };
 
-  const handleDisLike = () => {
+  const handleLike = async () => {
+    const newLikes = state.action === 'liked' ? initialLikes : initialLikes + 1;
+    const newDislikes = initialDislikes;
+
     setState({
-      ...state,
-      likes: 0,
-      dislikes: 1,
-      action: 'disliked',
+      likes: newLikes,
+      dislikes: newDislikes,
+      action: state.action === 'liked' ? null : 'liked',
     });
+
+    try {
+      await updateReview(singleReview.documentId, newLikes, newDislikes);
+    } catch (error) {
+      message.error(error.message);
+    }
+  };
+
+  const handleDislike = async () => {
+    const newLikes = initialLikes;
+    const newDislikes =
+      state.action === 'disliked' ? initialDislikes : initialDislikes + 1;
+
+    setState({
+      likes: newLikes,
+      dislikes: newDislikes,
+      action: state.action === 'disliked' ? null : 'disliked',
+    });
+
+    try {
+      await updateReview(singleReview.documentId, newLikes, newDislikes);
+    } catch (error) {
+      message.error(error.message);
+    }
   };
 
   return (
@@ -42,17 +109,17 @@ const LikeDislike = () => {
             <LikeOutlined onClick={handleLike} />
           )}
         </Tooltip>
-        <span style={{ paddingLeft: 8, cursor: 'auto' }}>{state.likes}</span>
+        <span style={{ paddingLeft: 8 }}>{state.likes}</span>
       </span>
       <span className="comment-report">
         <Tooltip title="Dislike">
           {state.action === 'disliked' ? (
-            <DislikeFilled onClick={handleDisLike} />
+            <DislikeFilled onClick={handleDislike} />
           ) : (
-            <DislikeOutlined onClick={handleDisLike} />
+            <DislikeOutlined onClick={handleDislike} />
           )}
         </Tooltip>
-        <span style={{ paddingLeft: 8, cursor: 'auto' }}>{state.dislikes}</span>
+        <span style={{ paddingLeft: 8 }}>{state.dislikes}</span>
       </span>
     </Fragment>
   );

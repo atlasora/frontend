@@ -16,6 +16,7 @@ export default class App extends React.Component {
     const reviewTitle = singleReview ? singleReview.Title : '';
     const commentDate = singleReview ? singleReview.createdAt : '';
     const postTime = new Date(commentDate).getTime();
+
     //todo fix this as its hardcoded a avatar image for the reviews
     const authorAvatar = singleReview?.users_permissions_user?.picture?.url
       ? resolveURL(singleReview.users_permissions_user.picture.url)
@@ -51,7 +52,7 @@ export default class App extends React.Component {
               </div>
             </div>
             <div className="rating-area">
-              <LikeDislike />
+              <LikeDislike singleReview={singleReview} />
             </div>
           </div>
           <div className="comment-body">
