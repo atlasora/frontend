@@ -7,6 +7,13 @@ const ReservationFormWrapper = styled.form`
   }
 `;
 
+export const Notice = styled.p`
+  text-align: center;
+  font-size: 13px;
+  color: #555;
+  margin-top: 8px;
+`;
+
 export const FieldWrapper = styled.div`
   margin-bottom: 30px;
   @media (max-width: 375px) {
