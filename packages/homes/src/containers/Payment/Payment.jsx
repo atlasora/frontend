@@ -54,7 +54,10 @@ const PaymentPage = () => {
         <h3>Your trip</h3>
         <SummaryBox>
           <p>
-            <strong>Location:</strong> {address}
+            <strong>Location:</strong>{' '}
+            <a target="_blank" href="/post/house-number-2">
+              House Number 2
+            </a>
           </p>
           <p>
             <strong>Dates:</strong>{' '}
@@ -68,38 +71,30 @@ const PaymentPage = () => {
           <p>
             <strong>Rooms:</strong> {room || 1}
           </p>
+          <p>
+            <strong>Price details:</strong> $100 * 10 Nights $1,000
+          </p>
+          <p>
+            <strong>Total:</strong> $1,000
+          </p>
         </SummaryBox>
       </Section>
-
       <Section>
-        <h3>Enter your details</h3>
-        <Label>Full name</Label>
-        <Input placeholder="John Doe" />
-
-        <Label style={{ marginTop: '16px' }}>Email address</Label>
-        <Input type="email" placeholder="email@example.com" />
-      </Section>
-
-      <Section>
-        <h3>Payment</h3>
-        <p>
-          This is a placeholder. You can plug in Stripe or another provider
-          here.
-        </p>
-        <Input placeholder="Card number" style={{ marginBottom: '8px' }} />
-        <Input placeholder="MM/YY" style={{ marginBottom: '8px' }} />
-        <Input placeholder="CVC" />
+        Lower price. Your dates are $11 less than the avg. nightly rate of the
+        last 60 days
       </Section>
 
       <Divider />
 
       <Section style={{ textAlign: 'center' }}>
         <Button type="primary" size="large" onClick={handlePayment}>
-          Confirm and Pay
+          Pay with Crypto
         </Button>
-        <p style={{ color: '#717171', fontSize: '14px', marginTop: '8px' }}>
-          You won’t be charged yet
-        </p>
+        <p style={{ color: '#717171', fontSize: '14px', marginTop: '8px' }}></p>
+        <Button type="primary" size="large" onClick={handlePayment}>
+          Pay With Credit Card
+        </Button>
+        <p style={{ color: '#717171', fontSize: '14px', marginTop: '8px' }}></p>
       </Section>
     </PageWrapper>
   );
