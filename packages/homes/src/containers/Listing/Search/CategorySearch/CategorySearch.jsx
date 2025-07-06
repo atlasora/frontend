@@ -24,7 +24,6 @@ import CategorySearchWrapper, {
 const CategorySearch = ({ location }) => {
   let navigate = useNavigate();
   const searchParams = getStateFromUrl(location);
-  console.log(searchParams);
   const state = {
     amenities: searchParams.amenities || [],
     property: searchParams.property || [],
