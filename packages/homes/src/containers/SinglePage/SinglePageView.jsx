@@ -39,12 +39,11 @@ const SinglePage = () => {
   const [isModalShowing, setIsModalShowing] = useState(false);
   const { width } = useWindowSize();
 
-  const decodedSlug = slug.replace(/-/g, ' ');
-  //todo : remove hardcoded housenumber 2
-
   const deslug = slug.replace(/-/g, ' ');
+
   const { data, loading } = useDataApi(
-    `${import.meta.env.VITE_APP_API_URL}properties?filters[Title][$eqi]=${deslug}`,
+    //todo: pass in the review revirews and images re
+    `${import.meta.env.VITE_APP_API_URL}properties?filters[Title][$eqi]=${deslug}&populate[Images]=true&populate[property_reviews]=true`,
     import.meta.env.VITE_APP_API_TOKEN,
     10,
     'properties',

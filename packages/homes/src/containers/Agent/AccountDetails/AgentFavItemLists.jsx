@@ -1,7 +1,7 @@
 import React from 'react';
 import SectionGrid from 'components/SectionGrid/SectionGrid';
 import { PostPlaceholder } from 'components/UI/ContentLoader/ContentLoader';
-import useDataApi from 'library/hooks/useDataApiOld';
+import useDataApi from 'library/hooks/useSearchApi';
 import { SINGLE_POST_PAGE } from 'settings/constant';
 
 const AgentFavItemLists = () => {

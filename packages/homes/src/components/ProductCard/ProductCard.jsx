@@ -1,13 +1,15 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { FiExternalLink } from 'react-icons/fi';
 import TextLink from 'components/UI/TextLink/TextLink';
 import Rating from 'components/UI/Rating/Rating';
-import Favourite from 'components/UI/Favorite/Favorite';
+import Favorite from 'components/UI/Favorite/Favorite';
 import Carousel from 'react-multi-carousel';
 import 'react-multi-carousel/lib/styles.css';
 import GridCard from '../GridCard/GridCard';
 import resolveUrl from 'library/helpers/resolveURL';
 import slugify from 'library/helpers/slugify';
+import useFavorites from 'library/hooks/useFavorites'; // adjust path if needed
+
 const responsive = {
   desktop: {
     breakpoint: {
@@ -34,6 +36,7 @@ const responsive = {
     paritialVisibilityGutter: 30,
   },
 };
+
 const PostGrid = ({
   title,
   rating,
@@ -45,14 +48,19 @@ const PostGrid = ({
   link,
   currency,
 }) => {
+  const { isFavorite, toggleFavorite } = useFavorites();
+  // lStorage when the component mounts
+  useEffect(() => {
+    const storedFavorites = JSON.parse(localStorage.getItem('favorites')) || [];
+  }, []);
+
   return (
     <GridCard
       isCarousel={true}
       favorite={
-        <Favourite
-          onClick={(event) => {
-            console.log(event);
-          }}
+        <Favorite
+          className={isFavorite(slugify(title)) ? 'active' : ''}
+          onClick={() => toggleFavorite(slugify(title))} // Toggle favorite on click
         />
       }
       location={location}

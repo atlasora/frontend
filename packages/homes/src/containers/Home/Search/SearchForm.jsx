@@ -1,14 +1,17 @@
 import React, { useState } from 'react';
 import { useNavigate, createSearchParams } from 'react-router-dom';
-import isEmpty from 'lodash/isEmpty';
 import { FaMapMarkerAlt, FaRegCalendar, FaUserFriends } from 'react-icons/fa';
 import { Button } from 'antd';
 import DateRangePickerBox from 'components/UI/DatePicker/ReactDates';
-import MapAutoComplete from 'components/Map/MapAutoComplete';
-import { mapDataHelper } from 'components/Map/mapDataHelper';
 import ViewWithPopup from 'components/UI/ViewWithPopup/ViewWithPopup';
 import InputIncDec from 'components/UI/InputIncDec/InputIncDec';
-import { setStateToUrl } from 'library/helpers/url_handler';
+//todo: we current have two url handlers the second one is the most up to date we want to get it working so that we are calling the library one as it is
+//      a better place then we want to take the the old one (which we will rename url-handlerold) and move the new one to library/ helpers once we have
+//      done we will test home page (requires work to be done) but we could also create a customer helper for that as it calls locations and featured
+//      properties and point the search page to the new helper location.  Once we have done this listing page should just work but we will have to double
+//      check that as well
+//import { setStateToUrl } from '../../Listing/Search/url-handler';//
+import { setStateToUrl } from 'library/helpers/url-handler';
 import { LISTING_POSTS_PAGE } from 'settings/constant';
 import {
   FormWrapper,
@@ -24,69 +27,58 @@ const calendarItem = {
 };
 
 export default function SearchForm() {
-  let navigate = useNavigate();
+  const navigate = useNavigate();
+
+  const [searchInput, setSearchInput] = useState('');
   const [searchDate, setSearchDate] = useState({
     setStartDate: null,
     setEndDate: null,
   });
 
-  // place data
-  const [mapValue, setMapValue] = useState([]);
-  const updateValueFunc = (event) => {
-    const { searchedPlaceAPIData } = event;
-    if (!isEmpty(searchedPlaceAPIData)) {
-      setMapValue(searchedPlaceAPIData);
-    }
-  };
-
-  // Room guest state
   const [roomGuest, setRoomGuest] = useState({
     room: 0,
     guest: 0,
   });
+
   const handleIncrement = (type) => {
-    setRoomGuest({
-      ...roomGuest,
-      [type]: roomGuest[type] + 1,
-    });
-  };
-  const handleDecrement = (type) => {
-    if (roomGuest[type] <= 0) {
-      return false;
-    }
-    setRoomGuest({
-      ...roomGuest,
-      [type]: roomGuest[type] - 1,
-    });
-  };
-  const handleIncDecOnChange = (e, type) => {
-    let currentValue = e.target.value;
-    setRoomGuest({
-      ...roomGuest,
-      [type]: currentValue,
-    });
+    setRoomGuest((prev) => ({
+      ...prev,
+      [type]: prev[type] + 1,
+    }));
   };
 
-  // navigate to the search page
+  const handleDecrement = (type) => {
+    setRoomGuest((prev) => ({
+      ...prev,
+      [type]: Math.max(prev[type] - 1, 0),
+    }));
+  };
+
+  const handleIncDecOnChange = (e, type) => {
+    const currentValue = parseInt(e.target.value, 10);
+    if (!isNaN(currentValue)) {
+      setRoomGuest((prev) => ({
+        ...prev,
+        [type]: currentValue,
+      }));
+    }
+  };
+
   const goToSearchPage = () => {
-    let tempLocation = [];
-    const mapData = mapValue ? mapDataHelper(mapValue) : [];
-    mapData &&
-      mapData.map((singleMapData, i) => {
-        return tempLocation.push({
-          formattedAddress: singleMapData ? singleMapData.formattedAddress : '',
-          lat: singleMapData ? singleMapData.lat.toFixed(3) : null,
-          lng: singleMapData ? singleMapData.lng.toFixed(3) : null,
-        });
-      });
-    const location = tempLocation ? tempLocation[0] : {};
     const query = {
-      date_range: searchDate,
+      startDate: searchDate.setStartDate,
+      endDate: searchDate.setEndDate,
       room: roomGuest.room,
       guest: roomGuest.guest,
-      location,
+      address: searchInput,
     };
-    const search = setStateToUrl(query);
+
+    const cleanedQuery = Object.fromEntries(
+      Object.entries(query).filter(([_, v]) => v !== null && v !== ''),
+    );
+
+    const search = setStateToUrl(cleanedQuery);
+
     navigate({
       pathname: LISTING_POSTS_PAGE,
       search: `?${createSearchParams(search)}`,
@@ -95,48 +87,59 @@ export default function SearchForm() {
 
   return (
     <FormWrapper>
-      <ComponentWrapper>
+      {/* LOCATION INPUT 
+      
+      //TODO add map stuff back later as i am to lazy and no one uses a map search anyway if you knew the area well enough to use a map search you would be booking a room there would you !
+        <ComponentWrapper>
         <FaMapMarkerAlt className="map-marker" />
-        <MapAutoComplete updateValue={(value) => updateValueFunc(value)} />
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          version="1.1"
-          x="0px"
-          y="0px"
-          width="30"
-          height="30"
-          viewBox="0 0 144.083 144"
-          enableBackground="new 0 0 144.083 144"
-          className="target"
-        >
-          <path d="M117.292,69h-13.587C102.28,53.851,90.19,41.761,75.042,40.337V26.5h-6v13.837C53.893,41.761,41.802,53.851,40.378,69  H26.792v6h13.587c1.425,15.148,13.515,27.238,28.663,28.663V117.5h6v-13.837C90.19,102.238,102.28,90.148,103.705,75h13.587V69z   M72.042,97.809c-14.23,0-25.809-11.578-25.809-25.809c0-14.231,11.578-25.809,25.809-25.809S97.85,57.769,97.85,72  C97.85,86.23,86.272,97.809,72.042,97.809z" />
-          <path d="M72.042,52.541c-10.729,0-19.459,8.729-19.459,19.459s8.729,19.459,19.459,19.459S91.5,82.729,91.5,72  S82.771,52.541,72.042,52.541z M72.042,85.459c-7.421,0-13.459-6.037-13.459-13.459c0-7.421,6.038-13.459,13.459-13.459  S85.5,64.579,85.5,72C85.5,79.422,79.462,85.459,72.042,85.459z" />
-        </svg>
+        <MapAutoComplete updateValue={updateValueFunc} />
       </ComponentWrapper>
 
+      */}
+      <ComponentWrapper>
+        <FaMapMarkerAlt className="map-marker" />
+        <div className="map_autocomplete">
+          <input
+            type="text"
+            placeholder="Enter location"
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                e.stopPropagation();
+                goToSearchPage();
+              }
+            }}
+          />
+        </div>
+      </ComponentWrapper>
+
+      {/* DATE PICKER */}
       <ComponentWrapper>
         <FaRegCalendar className="calendar" />
         <DateRangePickerBox
           item={calendarItem}
-          startDateId="startDateId-id-home"
-          endDateId="endDateId-id-home"
-          updateSearchData={(setDateValue) => setSearchDate(setDateValue)}
+          startDateId="startDateId-home"
+          endDateId="endDateId-home"
+          updateSearchData={setSearchDate}
           showClearDates={true}
-          small={true}
+          small
           numberOfMonths={1}
         />
       </ComponentWrapper>
 
+      {/* ROOM & GUESTS */}
       <ComponentWrapper>
         <FaUserFriends className="user-friends" />
         <ViewWithPopup
           key={200}
-          noView={true}
+          noView
           className="room_guest"
           view={
             <Button type="default">
               <span>Room {roomGuest.room > 0 && `: ${roomGuest.room}`}</span>
-              <span>-</span>
+              <span> - </span>
               <span>Guest{roomGuest.guest > 0 && `: ${roomGuest.guest}`}</span>
             </Button>
           }
@@ -167,9 +170,10 @@ export default function SearchForm() {
         />
       </ComponentWrapper>
 
+      {/* SEARCH BUTTON */}
       <Button
         type="primary"
-        htmlType="submit"
+        htmlType="button"
         size="large"
         onClick={goToSearchPage}
       >

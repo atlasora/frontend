@@ -10,6 +10,7 @@ import { Button, Dropdown } from 'antd';
 import Favorite from 'components/UI/Favorite/Favorite';
 import ScrollBar from 'components/UI/ScrollBar/ScrollBar';
 import { TobBarWrapper, ButtonGroup } from '../SinglePageView.style';
+import useFavorites from 'library/hooks/useFavorites';
 
 const topBarMenu = [
   {
@@ -30,10 +31,18 @@ const topBarMenu = [
   },
 ];
 
-const SideButtons = (props) => {
+const SideButtons = ({ title, ...props }) => {
+  const { isFavorite, toggleFavorite } = useFavorites();
+  const slug = title ? title.toLowerCase().replace(/\s+/g, '-') : ''; // or use `slugify` if available
+
   return (
     <ButtonGroup>
-      <Favorite className="ant-btn" content="Save" />
+      <Favorite
+        className="ant-btn"
+        content="Save"
+        isActive={isFavorite(slug)} // ✅ controlled state
+        onClick={() => toggleFavorite(slug)} // ✅ toggle action
+      />
       <Dropdown
         placement="bottomRight"
         menu={{

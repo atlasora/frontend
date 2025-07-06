@@ -5,7 +5,9 @@ import { Button, Slider, Checkbox } from 'antd';
 import ViewWithPopup from 'components/UI/ViewWithPopup/ViewWithPopup';
 import InputIncDec from 'components/UI/InputIncDec/InputIncDec';
 import DateRangePicker from 'components/UI/DatePicker/ReactDates';
-import { setStateToUrl, getStateFromUrl } from '../url-handler';
+//import { setStateToUrl, getStateFromUrl } from '../url-handler';
+import { setStateToUrl, getStateFromUrl } from 'library/helpers/url-handler';
+
 import { LISTING_POSTS_PAGE } from 'settings/constant';
 import {
   priceInit,
@@ -47,11 +49,24 @@ const CategorySearch = ({ location }) => {
   const [countGuest, setGuest] = useState(guest);
 
   const onChange = (value, type) => {
-    const query = {
-      ...state,
+    // Get the current state from the URL
+    const currentState = getStateFromUrl(location);
+
+    // Update the current state with the new filter value
+    const updatedState = {
+      ...currentState,
       [type]: value,
     };
-    const search = setStateToUrl(query);
+
+    // If the filter is price, make sure it's in the correct format
+    if (type === 'price') {
+      updatedState.price = { min: value[0], max: value[1] };
+    }
+
+    // Create a new query string using the updated state
+    const search = setStateToUrl(updatedState, location);
+
+    // Update the URL with the new query string
     navigate({
       pathname: LISTING_POSTS_PAGE,
       search: `?${createSearchParams(search)}`,
@@ -64,7 +79,8 @@ const CategorySearch = ({ location }) => {
       room: countRoom,
       guest: countGuest,
     };
-    const search = setStateToUrl(query);
+    const search = setStateToUrl(query, location);
+
     navigate({
       pathname: LISTING_POSTS_PAGE,
       search: `?${createSearchParams(search)}`,
@@ -79,7 +95,7 @@ const CategorySearch = ({ location }) => {
       room: 0,
       guest: 0,
     };
-    const search = setStateToUrl(query);
+    const search = setStateToUrl(query, location);
     navigate({
       pathname: LISTING_POSTS_PAGE,
       search: `?${createSearchParams(search)}`,
@@ -87,9 +103,31 @@ const CategorySearch = ({ location }) => {
   };
 
   const onSearchReset = () => {
-    setRoom(0);
-    setGuest(0);
-    const search = setStateToUrl({ reset: '' });
+    // Reset all filters to their default values
+    const resetState = {
+      amenities: [],
+      property: [],
+      date_range: {
+        setStartDate: null,
+        setEndDate: null,
+      },
+      price: {
+        min: 0,
+        max: 100,
+        defaultMin: 0,
+        defaultMax: 100,
+      },
+      location: {
+        lat: null,
+        lng: null,
+      },
+      room: 0,
+      guest: 0,
+    };
+
+    const search = setStateToUrl(resetState, location);
+
+    // Navigate to the same page but with cleared filters
     navigate({
       pathname: LISTING_POSTS_PAGE,
       search: `?${createSearchParams(search)}`,
