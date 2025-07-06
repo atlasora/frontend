@@ -8,6 +8,7 @@ import 'react-multi-carousel/lib/styles.css';
 import GridCard from '../GridCard/GridCard';
 import resolveUrl from 'library/helpers/resolveURL';
 import slugify from 'library/helpers/slugify';
+import useFavorites from 'library/hooks/useFavorites'; // adjust path if needed
 
 const responsive = {
   desktop: {
@@ -47,32 +48,11 @@ const PostGrid = ({
   link,
   currency,
 }) => {
-  const [favorites, setFavorites] = useState([]);
-
-  // Load favorites from localStorage when the component mounts
+  const { isFavorite, toggleFavorite } = useFavorites();
+  // lStorage when the component mounts
   useEffect(() => {
     const storedFavorites = JSON.parse(localStorage.getItem('favorites')) || [];
-    setFavorites(storedFavorites);
   }, []);
-
-  // Check if the property is in localStorage favorites
-  const isFavorite = (id) => favorites.includes(id);
-
-  // Toggle the favorite state in localStorage and React state
-  const toggleFavorite = (id) => {
-    let updatedFavorites = [...favorites];
-    if (updatedFavorites.includes(id)) {
-      // Remove from favorites
-      updatedFavorites = updatedFavorites.filter(
-        (favoriteId) => favoriteId !== id,
-      );
-    } else {
-      // Add to favorites
-      updatedFavorites.push(id);
-    }
-    setFavorites(updatedFavorites); // Update state
-    localStorage.setItem('favorites', JSON.stringify(updatedFavorites)); // Update localStorage
-  };
 
   return (
     <GridCard
