@@ -1,12 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, createSearchParams } from 'react-router-dom';
 import { FaMapMarkerAlt, FaRegCalendar, FaUserFriends } from 'react-icons/fa';
 import { Button } from 'antd';
+import moment from 'moment';
+
 import DateRangePickerBox from 'components/UI/DatePicker/ReactDates';
 import ViewWithPopup from 'components/UI/ViewWithPopup/ViewWithPopup';
 import InputIncDec from 'components/UI/InputIncDec/InputIncDec';
 import { setStateToUrl } from 'library/helpers/url-handler';
 import { LISTING_POSTS_PAGE } from 'settings/constant';
+
 import {
   FormWrapper,
   ComponentWrapper,
@@ -19,6 +22,8 @@ const calendarItem = {
   format: 'MM-DD-YYYY',
   locale: 'en',
 };
+
+const PARAMS_KEY = 'listing_search_params';
 
 export default function SearchForm() {
   const navigate = useNavigate();
@@ -39,6 +44,30 @@ export default function SearchForm() {
     date: false,
   });
 
+  // ✅ Load from localStorage on mount
+  useEffect(() => {
+    const stored = localStorage.getItem(PARAMS_KEY);
+    if (stored) {
+      const params = new URLSearchParams(stored.replace(/^\?/, ''));
+
+      const startDateRaw = params.get('startDate');
+      const endDateRaw = params.get('endDate');
+      const address = params.get('address') || '';
+      const room = parseInt(params.get('room'), 10) || 0;
+      const guest = parseInt(params.get('guest'), 10) || 0;
+
+      setSearchInput(address);
+      setRoomGuest({ room, guest });
+
+      if (startDateRaw && endDateRaw) {
+        setSearchDate({
+          setStartDate: startDateRaw,
+          setEndDate: endDateRaw,
+        });
+      }
+    }
+  }, []);
+
   const validate = () => {
     const newErrors = {
       location: !searchInput.trim(),
@@ -46,30 +75,6 @@ export default function SearchForm() {
     };
     setErrors(newErrors);
     return !newErrors.location && !newErrors.date;
-  };
-
-  const handleIncrement = (type) => {
-    setRoomGuest((prev) => ({
-      ...prev,
-      [type]: prev[type] + 1,
-    }));
-  };
-
-  const handleDecrement = (type) => {
-    setRoomGuest((prev) => ({
-      ...prev,
-      [type]: Math.max(prev[type] - 1, 0),
-    }));
-  };
-
-  const handleIncDecOnChange = (e, type) => {
-    const currentValue = parseInt(e.target.value, 10);
-    if (!isNaN(currentValue)) {
-      setRoomGuest((prev) => ({
-        ...prev,
-        [type]: currentValue,
-      }));
-    }
   };
 
   const goToSearchPage = () => {
@@ -89,15 +94,31 @@ export default function SearchForm() {
 
     const search = setStateToUrl(cleanedQuery);
 
+    // Save to localStorage
+    localStorage.setItem(PARAMS_KEY, `?${createSearchParams(search)}`);
+
     navigate({
       pathname: LISTING_POSTS_PAGE,
       search: `?${createSearchParams(search)}`,
     });
   };
 
+  const handleIncrement = (type) =>
+    setRoomGuest((prev) => ({ ...prev, [type]: prev[type] + 1 }));
+
+  const handleDecrement = (type) =>
+    setRoomGuest((prev) => ({ ...prev, [type]: Math.max(0, prev[type] - 1) }));
+
+  const handleIncDecOnChange = (e, type) => {
+    const value = parseInt(e.target.value, 10);
+    if (!isNaN(value)) {
+      setRoomGuest((prev) => ({ ...prev, [type]: value }));
+    }
+  };
+
   return (
     <FormWrapper>
-      {/* LOCATION INPUT */}
+      {/* LOCATION */}
       <ComponentWrapper>
         <FaMapMarkerAlt className="map-marker" />
         <div className="map_autocomplete">
@@ -112,7 +133,6 @@ export default function SearchForm() {
             onKeyDown={(e) => {
               if (e.key === 'Enter') {
                 e.preventDefault();
-                e.stopPropagation();
                 goToSearchPage();
               }
             }}
@@ -123,21 +143,29 @@ export default function SearchForm() {
             }}
           />
           {errors.location && (
-            <div style={{ color: 'red', fontSize: '12px', marginTop: '4px' }}>
+            <div style={{ color: 'red', fontSize: '12px' }}>
               Location is required
             </div>
           )}
         </div>
       </ComponentWrapper>
 
-      {/* DATE PICKER */}
+      {/* DATES */}
       <ComponentWrapper>
         <FaRegCalendar className="calendar" />
         <div style={{ width: '100%' }}>
           <DateRangePickerBox
             item={calendarItem}
-            startDateId="startDateId-home"
-            endDateId="endDateId-home"
+            startDateId="home-start"
+            endDateId="home-end"
+            startDate={
+              searchDate.setStartDate &&
+              moment(searchDate.setStartDate, 'MM-DD-YYYY')
+            }
+            endDate={
+              searchDate.setEndDate &&
+              moment(searchDate.setEndDate, 'MM-DD-YYYY')
+            }
             updateSearchData={(range) => {
               setSearchDate(range);
               setErrors((prev) => ({ ...prev, date: false }));
@@ -147,14 +175,14 @@ export default function SearchForm() {
             numberOfMonths={1}
           />
           {errors.date && (
-            <div style={{ color: 'red', fontSize: '12px', marginTop: '4px' }}>
+            <div style={{ color: 'red', fontSize: '12px' }}>
               Start and end date are required
             </div>
           )}
         </div>
       </ComponentWrapper>
 
-      {/* ROOM & GUESTS */}
+      {/* ROOMS & GUESTS */}
       <ComponentWrapper>
         <FaUserFriends className="user-friends" />
         <ViewWithPopup
@@ -195,13 +223,8 @@ export default function SearchForm() {
         />
       </ComponentWrapper>
 
-      {/* SEARCH BUTTON */}
-      <Button
-        type="primary"
-        htmlType="button"
-        size="large"
-        onClick={goToSearchPage}
-      >
+      {/* SUBMIT */}
+      <Button type="primary" size="large" onClick={goToSearchPage}>
         Search
       </Button>
     </FormWrapper>

@@ -1,3 +1,4 @@
+// Listing.jsx
 import React, { useState, useEffect, Fragment } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Sticky from 'react-stickynode';
@@ -21,7 +22,6 @@ export default function Listing() {
   const { width } = useWindowSize();
   const [showMap, setShowMap] = useState(false);
 
-  // 1. Restore search from localStorage on first mount if URL has no query
   useEffect(() => {
     if (!location.search) {
       const storedParams = localStorage.getItem(PARAMS_KEY);
@@ -29,7 +29,6 @@ export default function Listing() {
         navigate(`/listing${storedParams}`, { replace: true });
       }
     } else {
-      // 2. Save search params to localStorage
       localStorage.setItem(PARAMS_KEY, location.search);
     }
   }, [location.search, navigate]);
@@ -47,7 +46,6 @@ export default function Listing() {
     );
 
   const limit = 100;
-
   let columnWidth = [1 / 1, 1 / 2, 1 / 3, 1 / 4, 1 / 5];
   if (showMap) columnWidth = [1 / 1, 1 / 2, 1 / 2, 1 / 2, 1 / 3];
 
@@ -62,7 +60,7 @@ export default function Listing() {
         <Toolbar
           left={
             width > 991 ? (
-              <CategorySearch location={location} />
+              <CategorySearch key={location.search} location={location} />
             ) : (
               <FilterDrawer location={location} />
             )
