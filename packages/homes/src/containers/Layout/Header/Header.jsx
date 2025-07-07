@@ -113,12 +113,12 @@ export default function Header() {
             <LogoArea>
               <>
                 {headerType === 'transparent' && <LogoIcon />}
-                <Logo
+                {/*<Logo
                   withLink
                   linkTo="/"
                   src="/images/logo-ao.svg"
                   title="Atlasora"
-                />
+                />*/}
               </>
               <NavbarSearch />
             </LogoArea>
