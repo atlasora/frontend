@@ -1,18 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, createSearchParams } from 'react-router-dom';
 import { FaMapMarkerAlt, FaRegCalendar, FaUserFriends } from 'react-icons/fa';
 import { Button } from 'antd';
+import moment from 'moment';
+
 import DateRangePickerBox from 'components/UI/DatePicker/ReactDates';
 import ViewWithPopup from 'components/UI/ViewWithPopup/ViewWithPopup';
 import InputIncDec from 'components/UI/InputIncDec/InputIncDec';
-//todo: we current have two url handlers the second one is the most up to date we want to get it working so that we are calling the library one as it is
-//      a better place then we want to take the the old one (which we will rename url-handlerold) and move the new one to library/ helpers once we have
-//      done we will test home page (requires work to be done) but we could also create a customer helper for that as it calls locations and featured
-//      properties and point the search page to the new helper location.  Once we have done this listing page should just work but we will have to double
-//      check that as well
-//import { setStateToUrl } from '../../Listing/Search/url-handler';//
 import { setStateToUrl } from 'library/helpers/url-handler';
 import { LISTING_POSTS_PAGE } from 'settings/constant';
+
 import {
   FormWrapper,
   ComponentWrapper,
@@ -25,6 +22,8 @@ const calendarItem = {
   format: 'MM-DD-YYYY',
   locale: 'en',
 };
+
+const PARAMS_KEY = 'listing_search_params';
 
 export default function SearchForm() {
   const navigate = useNavigate();
@@ -40,31 +39,47 @@ export default function SearchForm() {
     guest: 0,
   });
 
-  const handleIncrement = (type) => {
-    setRoomGuest((prev) => ({
-      ...prev,
-      [type]: prev[type] + 1,
-    }));
-  };
+  const [errors, setErrors] = useState({
+    location: false,
+    date: false,
+  });
 
-  const handleDecrement = (type) => {
-    setRoomGuest((prev) => ({
-      ...prev,
-      [type]: Math.max(prev[type] - 1, 0),
-    }));
-  };
+  // ✅ Load from localStorage on mount
+  useEffect(() => {
+    const stored = localStorage.getItem(PARAMS_KEY);
+    if (stored) {
+      const params = new URLSearchParams(stored.replace(/^\?/, ''));
 
-  const handleIncDecOnChange = (e, type) => {
-    const currentValue = parseInt(e.target.value, 10);
-    if (!isNaN(currentValue)) {
-      setRoomGuest((prev) => ({
-        ...prev,
-        [type]: currentValue,
-      }));
+      const startDateRaw = params.get('startDate');
+      const endDateRaw = params.get('endDate');
+      const address = params.get('address') || '';
+      const room = parseInt(params.get('room'), 10) || 0;
+      const guest = parseInt(params.get('guest'), 10) || 0;
+
+      setSearchInput(address);
+      setRoomGuest({ room, guest });
+
+      if (startDateRaw && endDateRaw) {
+        setSearchDate({
+          setStartDate: startDateRaw,
+          setEndDate: endDateRaw,
+        });
+      }
     }
+  }, []);
+
+  const validate = () => {
+    const newErrors = {
+      location: !searchInput.trim(),
+      date: !searchDate.setStartDate || !searchDate.setEndDate,
+    };
+    setErrors(newErrors);
+    return !newErrors.location && !newErrors.date;
   };
 
   const goToSearchPage = () => {
+    if (!validate()) return;
+
     const query = {
       startDate: searchDate.setStartDate,
       endDate: searchDate.setEndDate,
@@ -79,23 +94,31 @@ export default function SearchForm() {
 
     const search = setStateToUrl(cleanedQuery);
 
+    // Save to localStorage
+    localStorage.setItem(PARAMS_KEY, `?${createSearchParams(search)}`);
+
     navigate({
       pathname: LISTING_POSTS_PAGE,
       search: `?${createSearchParams(search)}`,
     });
   };
 
+  const handleIncrement = (type) =>
+    setRoomGuest((prev) => ({ ...prev, [type]: prev[type] + 1 }));
+
+  const handleDecrement = (type) =>
+    setRoomGuest((prev) => ({ ...prev, [type]: Math.max(0, prev[type] - 1) }));
+
+  const handleIncDecOnChange = (e, type) => {
+    const value = parseInt(e.target.value, 10);
+    if (!isNaN(value)) {
+      setRoomGuest((prev) => ({ ...prev, [type]: value }));
+    }
+  };
+
   return (
     <FormWrapper>
-      {/* LOCATION INPUT 
-      
-      //TODO add map stuff back later as i am to lazy and no one uses a map search anyway if you knew the area well enough to use a map search you would be booking a room there would you !
-        <ComponentWrapper>
-        <FaMapMarkerAlt className="map-marker" />
-        <MapAutoComplete updateValue={updateValueFunc} />
-      </ComponentWrapper>
-
-      */}
+      {/* LOCATION */}
       <ComponentWrapper>
         <FaMapMarkerAlt className="map-marker" />
         <div className="map_autocomplete">
@@ -103,33 +126,63 @@ export default function SearchForm() {
             type="text"
             placeholder="Enter location"
             value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
+            onChange={(e) => {
+              setSearchInput(e.target.value);
+              setErrors((prev) => ({ ...prev, location: false }));
+            }}
             onKeyDown={(e) => {
               if (e.key === 'Enter') {
                 e.preventDefault();
-                e.stopPropagation();
                 goToSearchPage();
               }
             }}
+            style={{
+              borderColor: errors.location ? 'red' : undefined,
+              borderWidth: '1px',
+              borderStyle: 'solid',
+            }}
           />
+          {errors.location && (
+            <div style={{ color: 'red', fontSize: '12px' }}>
+              Location is required
+            </div>
+          )}
         </div>
       </ComponentWrapper>
 
-      {/* DATE PICKER */}
+      {/* DATES */}
       <ComponentWrapper>
         <FaRegCalendar className="calendar" />
-        <DateRangePickerBox
-          item={calendarItem}
-          startDateId="startDateId-home"
-          endDateId="endDateId-home"
-          updateSearchData={setSearchDate}
-          showClearDates={true}
-          small
-          numberOfMonths={1}
-        />
+        <div style={{ width: '100%' }}>
+          <DateRangePickerBox
+            item={calendarItem}
+            startDateId="home-start"
+            endDateId="home-end"
+            startDate={
+              searchDate.setStartDate &&
+              moment(searchDate.setStartDate, 'MM-DD-YYYY')
+            }
+            endDate={
+              searchDate.setEndDate &&
+              moment(searchDate.setEndDate, 'MM-DD-YYYY')
+            }
+            updateSearchData={(range) => {
+              setSearchDate(range);
+              setErrors((prev) => ({ ...prev, date: false }));
+            }}
+            showClearDates={true}
+            small
+            numberOfMonths={1}
+          />
+          {errors.date && (
+            <div style={{ color: 'red', fontSize: '12px' }}>
+              Start and end date are required
+            </div>
+          )}
+        </div>
       </ComponentWrapper>
 
-      {/* ROOM & GUESTS */}
+      {/* ROOMS & GUESTS */}
       <ComponentWrapper>
         <FaUserFriends className="user-friends" />
         <ViewWithPopup
@@ -170,13 +223,8 @@ export default function SearchForm() {
         />
       </ComponentWrapper>
 
-      {/* SEARCH BUTTON */}
-      <Button
-        type="primary"
-        htmlType="button"
-        size="large"
-        onClick={goToSearchPage}
-      >
+      {/* SUBMIT */}
+      <Button type="primary" size="large" onClick={goToSearchPage}>
         Search
       </Button>
     </FormWrapper>

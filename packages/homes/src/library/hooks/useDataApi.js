@@ -74,6 +74,7 @@ const useDataApi = (
   limit = 10,
   table = 'properties',
   initialData = [],
+  byPassFilters = false,
 ) => {
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
@@ -107,7 +108,7 @@ const useDataApi = (
       amenities ||
       property;
 
-    if (!hasValidFilters) {
+    if (!hasValidFilters || byPassFilters == true) {
       setUrl(initialUrl);
       return;
     }

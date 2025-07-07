@@ -139,6 +139,8 @@ const SinglePage = () => {
                   currency={currency}
                   rating={rating}
                   ratingCount={ratingCount}
+                  propertyId={raw.id}
+                  slug={slug} // from URL params or generate from title
                 />
               </Sticky>
             ) : (

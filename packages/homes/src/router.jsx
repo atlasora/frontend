@@ -14,10 +14,11 @@ import {
   ADD_HOTEL_PAGE,
 } from './settings/constant';
 
-// protected route
+// Protected route component
 function RequireAuth({ children }) {
-  let { loggedIn } = useContext(AuthContext);
-  let location = useLocation();
+  const { loggedIn } = useContext(AuthContext);
+  const location = useLocation();
+
   if (!loggedIn) {
     return <Navigate to={LOGIN_PAGE} state={{ from: location }} />;
   }
@@ -25,7 +26,7 @@ function RequireAuth({ children }) {
   return children;
 }
 
-// public routes
+// Lazy-loaded public pages
 const HomePage = React.lazy(() => import('containers/Home/Home'));
 const ListingPage = React.lazy(() => import('containers/Listing/Listing'));
 const SinglePageView = React.lazy(
@@ -38,7 +39,8 @@ const ForgetPasswordPage = React.lazy(
   () => import('containers/Auth/ForgetPassword'),
 );
 const NotFound = React.lazy(() => import('containers/404/404'));
-// protected route
+
+// Lazy-loaded protected pages
 const AddListingPage = React.lazy(
   () => import('containers/AddListing/AddListing'),
 );
@@ -46,10 +48,17 @@ const ChangePassWord = React.lazy(
   () => import('containers/Agent/AccountSettings/ChangePassWordForm'),
 );
 
+// ✅ New lazy-loaded payment page
+const PaymentPage = React.lazy(() => import('containers/Payment/Payment'));
+const ThankYouPage = React.lazy(
+  () => import('containers/ThankYou/ThankYouPage'),
+);
+
 export default function AppRoutes() {
   return (
     <Routes>
       <Route path={HOME_PAGE} element={<Layout />}>
+        {/* Public Routes */}
         <Route
           index
           element={
@@ -74,9 +83,22 @@ export default function AppRoutes() {
             </React.Suspense>
           }
         />
-
-        {/* end of Nested routes */}
-
+        <Route
+          path="/payment"
+          element={
+            <React.Suspense fallback={<Loader />}>
+              <PaymentPage />
+            </React.Suspense>
+          }
+        />
+        <Route
+          path="/thank-you"
+          element={
+            <React.Suspense fallback={<Loader />}>
+              <ThankYouPage />
+            </React.Suspense>
+          }
+        />
         <Route
           path={PRIVACY_PAGE}
           element={
@@ -109,7 +131,8 @@ export default function AppRoutes() {
             </React.Suspense>
           }
         />
-        {/* Protected routes */}
+
+        {/* Protected Routes */}
         <Route
           path={ADD_HOTEL_PAGE}
           element={
@@ -121,7 +144,7 @@ export default function AppRoutes() {
           }
         />
 
-        {/* end of Protected routes*/}
+        {/* Fallback */}
         <Route
           path="*"
           element={

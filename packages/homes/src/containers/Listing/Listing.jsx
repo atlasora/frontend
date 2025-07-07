@@ -1,4 +1,5 @@
-import React, { useState, Fragment } from 'react';
+// Listing.jsx
+import React, { useState, useEffect, Fragment } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Sticky from 'react-stickynode';
 import { Checkbox } from 'antd';
@@ -13,16 +14,28 @@ import ListingMap from './ListingMap';
 import { SINGLE_POST_PAGE } from 'settings/constant';
 import ListingWrapper, { PostsWrapper, ShowMapCheckbox } from './Listing.style';
 
+const PARAMS_KEY = 'listing_search_params';
+
 export default function Listing() {
   const location = useLocation();
   const navigate = useNavigate();
   const { width } = useWindowSize();
   const [showMap, setShowMap] = useState(false);
 
-  let baseFilters = 'pagination[pageSize]=100';
-  if (location.search === '') {
-    baseFilters = 'populate=*';
-  }
+  useEffect(() => {
+    if (!location.search) {
+      const storedParams = localStorage.getItem(PARAMS_KEY);
+      if (storedParams) {
+        navigate(`/listing${storedParams}`, { replace: true });
+      }
+    } else {
+      localStorage.setItem(PARAMS_KEY, location.search);
+    }
+  }, [location.search, navigate]);
+
+  const baseFilters = location.search
+    ? location.search.replace(/^\?/, '')
+    : 'populate=*';
 
   const { data, total, pagination, loading, error, doFetch, loadMoreData } =
     useDataApi(
@@ -34,14 +47,9 @@ export default function Listing() {
 
   const limit = 100;
   let columnWidth = [1 / 1, 1 / 2, 1 / 3, 1 / 4, 1 / 5];
+  if (showMap) columnWidth = [1 / 1, 1 / 2, 1 / 2, 1 / 2, 1 / 3];
 
-  if (showMap) {
-    columnWidth = [1 / 1, 1 / 2, 1 / 2, 1 / 2, 1 / 3];
-  }
-
-  const handleMapToggle = () => {
-    setShowMap((prev) => !prev);
-  };
+  const handleMapToggle = () => setShowMap((prev) => !prev);
 
   const isEmpty = !loading && data.length === 0;
   const isLoadMoreVisible = data.length < (total?.length || 0);
@@ -52,7 +60,7 @@ export default function Listing() {
         <Toolbar
           left={
             width > 991 ? (
-              <CategorySearch location={location} />
+              <CategorySearch key={location.search} location={location} />
             ) : (
               <FilterDrawer location={location} />
             )
