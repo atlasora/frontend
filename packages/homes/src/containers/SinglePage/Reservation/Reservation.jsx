@@ -36,12 +36,13 @@ const CardHeader = ({
   );
 };
 
-export default function Reservation({ price }) {
+// ✅ Accept propertyId and slug as props
+export default function Reservation({ price, propertyId, slug }) {
   return (
     <Card
       className="reservation_sidebar"
-      header={<CardHeader price={price} />} // ✅ pass price here
-      content={<RenderReservationForm />}
+      header={<CardHeader price={price} />}
+      content={<RenderReservationForm propertyId={propertyId} slug={slug} />}
       footer={<p></p>}
     />
   );

@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { Button, Input, Divider } from 'antd';
 import moment from 'moment';
+import useDataApi from 'library/hooks/useDataApi';
 
 const PageWrapper = styled.div`
   max-width: 800px;
@@ -30,6 +31,13 @@ const SummaryBox = styled.div`
   border-radius: 8px;
 `;
 
+//todo : update details price etc from api call
+//todo : rener the image in the slug path
+//todo : define the booking in the database
+//todo : store the booking when payment has been made
+//todo : create the thankyou page
+//todo : check the booking page if the dates are avalible or not (could be post MVP)
+
 const PaymentPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -39,7 +47,21 @@ const PaymentPage = () => {
   const endDate = searchParams.get('endDate');
   const guest = searchParams.get('guest');
   const room = searchParams.get('room');
-  const address = searchParams.get('address');
+  const slug = searchParams.get('slug');
+  //not used but could be useful
+  //const propertyId = searchParams.get('propertyId');
+
+  //Now you can use slug safely
+  const deslug = slug ? slug.replace(/-/g, ' ') : '';
+
+  const { data, loading } = useDataApi(
+    `${import.meta.env.VITE_APP_API_URL}properties?filters[Title][$eqi]=${deslug}&populate[Images]=true`,
+    import.meta.env.VITE_APP_API_TOKEN,
+    10,
+    'properties',
+    [],
+    true,
+  );
 
   const handlePayment = () => {
     alert('Payment submitted!');
@@ -81,7 +103,7 @@ const PaymentPage = () => {
       </Section>
       <Section>
         Lower price. Your dates are $11 less than the avg. nightly rate of the
-        last 60 days
+        last 60 days!
       </Section>
 
       <Divider />

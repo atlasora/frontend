@@ -17,7 +17,8 @@ import ReservationFormWrapper, {
 
 const PARAMS_KEY = 'listing_search_params';
 
-const RenderReservationForm = () => {
+// ✅ Accept props
+const RenderReservationForm = ({ propertyId, slug }) => {
   const navigate = useNavigate();
 
   const [formState, setFormState] = useState({
@@ -93,11 +94,14 @@ const RenderReservationForm = () => {
       return;
     }
 
+    // ✅ Add id and slug to query
     const queryParams = new URLSearchParams({
       startDate: startDate.format('MM-DD-YYYY'),
       endDate: endDate.format('MM-DD-YYYY'),
       room: room.toString(),
       guest: guest.toString(),
+      propertyId: propertyId?.toString() || '',
+      slug: slug || '',
     });
 
     navigate(`/payment?${queryParams.toString()}`);
