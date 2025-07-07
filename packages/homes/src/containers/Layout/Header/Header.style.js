@@ -105,13 +105,13 @@ const HeaderWrapper = styled.header`
           .ant-menu {
             li {
               a {
-                color: ${themeGet('text.0', '#2C2C2C')};
+                color: ${themeGet('text.1', '#2C2C2C')};
                 &:hover {
-                  color: ${themeGet('primary.0', '#008489')};
+                  color: ${themeGet('primary.1', '#008489')};
                 }
                 &.active {
-                  color: ${themeGet('primary.0', '#008489')};
-                  border-bottom: 3px solid ${themeGet('primary.0', '#008489')};
+                  color: ${themeGet('primary.1', '#008489')};
+                  border-bottom: 3px solid ${themeGet('primary.1', '#008489')};
                 }
               }
             }
