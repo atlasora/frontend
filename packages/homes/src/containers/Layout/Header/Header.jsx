@@ -90,12 +90,7 @@ export default function Header() {
             logo={
               <>
                 {headerType === 'transparent' && <LogoIcon />}
-                <Logo
-                  withLink
-                  linkTo="/"
-                  src="/images/logo-ao.svg"
-                  title="Atlasora"
-                />
+                
               </>
             }
             navMenu={<MainMenu />}
@@ -113,12 +108,7 @@ export default function Header() {
             <LogoArea>
               <>
                 {headerType === 'transparent' && <LogoIcon />}
-                <Logo
-                  withLink
-                  linkTo="/"
-                  src="/images/logo-ao.svg"
-                  title="Atlasora"
-                />
+                
               </>
               <NavbarSearch />
             </LogoArea>
