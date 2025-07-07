@@ -83,7 +83,7 @@ const HeaderWrapper = styled.header`
     &.isHeaderSticky {
       nav {
         &.is_transparent {
-          background-color: ${themeGet('color.0', '#000000')};
+          background-color: ${themeGet('color.0', '#ffffff')};
           box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
 
           > div > div {
@@ -131,7 +131,7 @@ const HeaderWrapper = styled.header`
         }
 
         &.transparent {
-          background-color: ${themeGet('color.0', '#000000')};
+          background-color: ${themeGet('color.0', '#ffffff')};
           box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
 
           > div > div {
