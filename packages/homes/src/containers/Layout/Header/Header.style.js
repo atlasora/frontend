@@ -131,7 +131,7 @@ const HeaderWrapper = styled.header`
         }
 
         &.transparent {
-          background-color: ${themeGet('color.0', '#ffffff')};
+          background-color: ${themeGet('color.1', '#ffffff')};
           box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
 
           > div > div {
