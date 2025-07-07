@@ -50,6 +50,9 @@ const ChangePassWord = React.lazy(
 
 // ✅ New lazy-loaded payment page
 const PaymentPage = React.lazy(() => import('containers/Payment/Payment'));
+const ThankYouPage = React.lazy(
+  () => import('containers/ThankYou/ThankYouPage'),
+);
 
 export default function AppRoutes() {
   return (
@@ -85,6 +88,14 @@ export default function AppRoutes() {
           element={
             <React.Suspense fallback={<Loader />}>
               <PaymentPage />
+            </React.Suspense>
+          }
+        />
+        <Route
+          path="/thank-you"
+          element={
+            <React.Suspense fallback={<Loader />}>
+              <ThankYouPage />
             </React.Suspense>
           }
         />

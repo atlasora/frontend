@@ -4,6 +4,7 @@ import styled from 'styled-components';
 import { Button, Input, Divider } from 'antd';
 import moment from 'moment';
 import useDataApi from 'library/hooks/useDataApi';
+import resolveURL from '../../library/helpers/resolveURL';
 
 const PageWrapper = styled.div`
   max-width: 800px;
@@ -55,7 +56,7 @@ const PaymentPage = () => {
   const deslug = slug ? slug.replace(/-/g, ' ') : '';
 
   const { data, loading } = useDataApi(
-    `${import.meta.env.VITE_APP_API_URL}properties?filters[Title][$eqi]=${deslug}&populate[Images]=true`,
+    `${import.meta.env.VITE_APP_API_URL}properties?filters[Title][$eqi]=${deslug}&populate[Images]=true&populate[currency]=true`,
     import.meta.env.VITE_APP_API_TOKEN,
     10,
     'properties',
@@ -63,9 +64,74 @@ const PaymentPage = () => {
     true,
   );
 
-  const handlePayment = () => {
-    alert('Payment submitted!');
-    navigate('/thank-you');
+  if (loading || !data || !Array.isArray(data) || data.length === 0) {
+    return <p>Loading...</p>;
+  }
+
+  const raw = data[0];
+  const title = raw.Title;
+  const price = raw.PricePerNight;
+  const gallery = raw.Images || [];
+  const homeImage = gallery[0]?.url;
+  const currency = raw.currency?.symbol || '$';
+  const atlasfees = raw.AtlasFees;
+  const cleaningfee = raw.CleaningFee;
+  const nights =
+    startDate && endDate
+      ? moment(endDate, 'MM-DD-YYYY').diff(
+          moment(startDate, 'MM-DD-YYYY'),
+          'days',
+        )
+      : 0;
+
+  const total = nights * price;
+  //add the fee to the total
+  const totalWithFees = total + nights * atlasfees;
+  //get the fee total
+  const feesTotal = nights * atlasfees;
+  //add the cleaning fee to the total
+  const totalWithCleaningFee = totalWithFees + cleaningfee;
+
+  const handlePayment = async (paymentMethod) => {
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_APP_API_URL}proeprty-bookings`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${import.meta.env.VITE_APP_API_TOKEN}`,
+          },
+          body: JSON.stringify({
+            data: {
+              property: raw.documentId,
+              StartDate: moment(startDate).format('YYYY-MM-DD'),
+              EndDate: moment(endDate).format('YYYY-MM-DD'),
+              Guests: parseInt(guest),
+              Rooms: parseInt(room),
+              PriceperNight: price,
+              NumberOfNights: nights,
+              AtlasFee: atlasfees,
+              CleaningFee: cleaningfee,
+              TotalPaid: totalWithCleaningFee,
+              PaidBy: paymentMethod,
+            },
+          }),
+        },
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Booking error:', errorData);
+        alert('There was an issue submitting your booking.');
+        return;
+      }
+
+      navigate('/thank-you');
+    } catch (error) {
+      console.error('Error submitting booking:', error);
+      alert('Failed to complete booking.');
+    }
   };
 
   return (
@@ -76,11 +142,20 @@ const PaymentPage = () => {
         <h3>Your trip</h3>
         <SummaryBox>
           <p>
-            <strong>Location:</strong>{' '}
-            <a target="_blank" href="/post/house-number-2">
-              House Number 2
+            <strong>Location:</strong>
+            <a target="_blank" href={`/post/${slug}`} rel="noopener noreferrer">
+              <img
+                height="100px"
+                width="100px"
+                src={
+                  resolveURL(gallery[0]?.url) || '/images/single-post-bg.jpg'
+                }
+                alt="{title}"
+              />
+              {title}
             </a>
           </p>
+          <p>This reservation is non-refundable. Full policy</p>
           <p>
             <strong>Dates:</strong>{' '}
             {startDate && endDate
@@ -88,16 +163,27 @@ const PaymentPage = () => {
               : 'N/A'}
           </p>
           <p>
-            <strong>Guests:</strong> {guest || 1}
+            <strong>Guests:</strong> {guest}
           </p>
           <p>
-            <strong>Rooms:</strong> {room || 1}
+            <strong>Rooms:</strong> {room}
           </p>
           <p>
-            <strong>Price details:</strong> $100 * 10 Nights $1,000
+            <strong>Price details:</strong> {currency}
+            {price} * {nights} Nights {currency}
+            {total}
           </p>
           <p>
-            <strong>Total:</strong> $1,000
+            <strong>Atlas Fees:</strong> {currency}
+            {feesTotal} ({atlasfees}%)
+          </p>
+          <p>
+            <strong>Cleaning Fee:</strong> {currency}
+            {cleaningfee}
+          </p>
+          <p>
+            <strong>Total:</strong> {currency}
+            {totalWithCleaningFee}
           </p>
         </SummaryBox>
       </Section>
@@ -109,11 +195,19 @@ const PaymentPage = () => {
       <Divider />
 
       <Section style={{ textAlign: 'center' }}>
-        <Button type="primary" size="large" onClick={handlePayment}>
+        <Button
+          type="primary"
+          size="large"
+          onClick={() => handlePayment('ETH')}
+        >
           Pay with Crypto
         </Button>
         <p style={{ color: '#717171', fontSize: '14px', marginTop: '8px' }}></p>
-        <Button type="primary" size="large" onClick={handlePayment}>
+        <Button
+          type="primary"
+          size="large"
+          onClick={() => handlePayment('Credit Card')}
+        >
           Pay With Credit Card
         </Button>
         <p style={{ color: '#717171', fontSize: '14px', marginTop: '8px' }}></p>
