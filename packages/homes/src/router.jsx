@@ -10,7 +10,6 @@ import {
   SINGLE_POST_PAGE,
   AGENT_PROFILE_PAGE,
   AGENT_PROFILE_FAVORITE,
-  AGENT_PROFILE_CONTACT,
   PRIVACY_PAGE,
   LOGIN_PAGE,
   REGISTRATION_PAGE,
@@ -19,6 +18,7 @@ import {
   AGENT_ACCOUNT_SETTINGS_PAGE,
   AGENT_IMAGE_EDIT_PAGE,
   AGENT_PASSWORD_CHANGE_PAGE,
+  AGENT_PROFILE_BOOKING,
 } from './settings/constant';
 
 // 🔐 Protected route wrapper
@@ -225,7 +225,7 @@ export default function AppRoutes() {
             }
           />
           <Route
-            path={AGENT_PROFILE_FAVORITE}
+            path={AGENT_PROFILE_BOOKING}
             element={
               <React.Suspense fallback={<Loader />}>
                 <AgentFavItemLists />
@@ -233,10 +233,10 @@ export default function AppRoutes() {
             }
           />
           <Route
-            path={AGENT_PROFILE_CONTACT}
+            path={AGENT_PROFILE_FAVORITE}
             element={
               <React.Suspense fallback={<Loader />}>
-                <AgentContact />
+                <AgentFavItemLists />
               </React.Suspense>
             }
           />

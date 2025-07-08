@@ -32,7 +32,7 @@ export default function ProfileMenu({ avatar }) {
       key: 'view_profile',
     },
     {
-      label: <NavLink to={ADD_HOTEL_PAGE}>Add Hotel</NavLink>,
+      label: <NavLink to={ADD_HOTEL_PAGE}>Add Property</NavLink>,
       key: 'add_hotel',
     },
     {
