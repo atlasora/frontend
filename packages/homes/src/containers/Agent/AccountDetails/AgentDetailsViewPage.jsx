@@ -35,7 +35,6 @@ import AgentDetailsPage, {
   NavigationArea,
 } from './AgentDetails.style';
 
-//{"id":3,"documentId":"hqcktcs1thyuh501hf9n6qpg","username":"333","email":"chrisjmccreadie3@protonmail.com","provider":"local","confirmed":true,"blocked":false,"createdAt":"2025-07-02T18:17:33.951Z","updatedAt":"2025-07-08T10:34:17.624Z","publishedAt":"2025-07-08T10:34:17.612Z","FirstName":"Chris","SecondName":"McC","Twitter":"tw","Facebook":"fb","Instagram":"i","Bio":"This a bio","avatar":"http://localhost:1337/uploads/thumbnail_favicon_15c376b1a2.png"}
 const ProfileNavigation = (props) => {
   const { path, className } = props;
   const { loggedIn } = useContext(AuthContext);
@@ -44,10 +43,6 @@ const ProfileNavigation = (props) => {
     navigate('/sign-in');
     return;
   }
-  //todo : get a list of listings
-  //todo : get a lost of favorite
-  //todo : add a propety
-  //todo : account settings
 
   const navigations = [
     {
@@ -93,8 +88,8 @@ const ProfileNavigation = (props) => {
 const AgentProfileInfo = () => {
   const { user: userInfo } = useContext(AuthContext);
 
-  //todo : get a list of bookings for the user
   const { data: bookingsData, loading: bookingsLoading } = useDataApi(
+    //todo get the currency
     `${import.meta.env.VITE_APP_API_URL}proeprty-bookings?filters[users_permissions_user][id][$eq]=${userInfo?.id}&populate=property&populate=users_permissions_user`,
     import.meta.env.VITE_APP_API_TOKEN,
     10,
@@ -104,16 +99,8 @@ const AgentProfileInfo = () => {
 
   if (!userInfo) return <Loader />;
 
-  const {
-    FirstName,
-    SecondName,
-    content, // not in your object but safe fallback
-    avatar,
-    Twitter,
-    Facebook,
-    Instagram,
-    Bio,
-  } = userInfo;
+  const { FirstName, SecondName, avatar, Twitter, Facebook, Instagram, Bio } =
+    userInfo;
 
   const username = `${FirstName || ''} ${SecondName || ''}`.trim();
 

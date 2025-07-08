@@ -16,9 +16,9 @@ const AgentBookingPage = () => {
       navigate('/sign-in');
     }
   }, [loggedIn, navigate]);
-
+  //todo : add currency
   const { data: bookingsData, loading: bookingsLoading } = useDataApi(
-    `${import.meta.env.VITE_APP_API_URL}proeprty-bookings?filters[users_permissions_user][id][$eq]=${userInfo?.id}&populate=*`,
+    `${import.meta.env.VITE_APP_API_URL}proeprty-bookings?filters[users_permissions_user][id][$eq]=${userInfo?.id}&populate[property][populate]=currency`,
     import.meta.env.VITE_APP_API_TOKEN,
     10,
     'proeprty-bookings',
@@ -61,7 +61,7 @@ const AgentBookingPage = () => {
             TotalPaid,
             property,
           } = booking;
-
+          const currencySymbol = property?.currency?.symbol; // fallback to INR
           return (
             <div
               key={id}
@@ -79,7 +79,10 @@ const AgentBookingPage = () => {
               <p>👥 Guests: {Guests}</p>
               <p>🛏 Rooms: {Rooms}</p>
               <p>💳 Paid via: {PaidBy}</p>
-              <p>💰 Total Paid: ₹{TotalPaid}</p>
+              <p>
+                💰 Total Paidd: {currencySymbol}
+                {TotalPaid}
+              </p>
 
               <div style={{ marginTop: '12px', display: 'flex', gap: '10px' }}>
                 <button
