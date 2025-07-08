@@ -5,9 +5,9 @@ import useDataApi from 'library/hooks/useDataApi';
 import { SINGLE_POST_PAGE } from 'settings/constant';
 
 const AgentFavItemLists = () => {
-  const { data, loadMoreData, loading } = useDataApi('/data/agent.json');
-  const favourite_post =
-    data[0] && data[0].favourite_post ? data[0].favourite_post : [];
+  // const { data, loadMoreData, loading } = useDataApi('/data/agent.json');
+  // const favourite_post =
+  //  data[0] && data[0].favourite_post ? data[0].favourite_post : [];
 
   return (
     <SectionGrid

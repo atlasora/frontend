@@ -5,19 +5,23 @@ import useDataApi from 'library/hooks/useDataApi';
 import { SINGLE_POST_PAGE } from 'settings/constant';
 
 const AgentItemLists = () => {
-  const { data, loadMoreData, loading, total } = useDataApi('/data/agent.json');
-  const listed_post = data[0] && data[0].listed_post ? data[0].listed_post : [];
+  //const { data, loadMoreData, loading, total } = useDataApi('/data/agent.json');
+  // const listed_post = data[0] && data[0].listed_post ? data[0].listed_post : [];
 
   return (
     <SectionGrid
       link={SINGLE_POST_PAGE}
-      data={listed_post}
-      loading={loading}
+      //data={listed_post}
+      data={[]}
+      loading={false}
+      //loading={loading}
       limit={8}
-      totalItem={total.length}
+      //totalItem={total.length}
+      totalItem={0}
       columnWidth={[1 / 1, 1 / 2, 1 / 3, 1 / 4, 1 / 5, 1 / 6]}
       placeholder={<PostPlaceholder />}
-      handleLoadMore={loadMoreData}
+      handleLoadMore={false}
+      //handleLoadMore={loadMoreData}
     />
   );
 };
