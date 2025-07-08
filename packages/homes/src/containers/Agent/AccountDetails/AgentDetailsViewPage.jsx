@@ -1,6 +1,7 @@
 import React, { useContext, Fragment } from 'react';
 import { Outlet, NavLink, Link } from 'react-router-dom';
 import isEmpty from 'lodash/isEmpty';
+import { useNavigate } from 'react-router-dom';
 
 import {
   IoLogoTwitter,
@@ -38,7 +39,11 @@ import AgentDetailsPage, {
 const ProfileNavigation = (props) => {
   const { path, className } = props;
   const { loggedIn } = useContext(AuthContext);
-
+  if (!loggedIn) {
+    let navigate = useNavigate();
+    navigate('/sign-in');
+    return;
+  }
   //todo : get a list of listings
   //todo : get a lost of favorite
   //todo : add a propety

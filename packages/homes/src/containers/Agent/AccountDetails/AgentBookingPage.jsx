@@ -1,13 +1,21 @@
-import React, { useContext } from 'react';
+import React, { useContext, useEffect } from 'react';
 import { AuthContext } from 'context/AuthProvider';
 import useDataApi from 'library/hooks/useDataApi';
 import Container from 'components/UI/Container/Container';
 import Heading from 'components/UI/Heading/Heading';
 import Loader from 'components/Loader/Loader';
 import Text from 'components/UI/Text/Text';
+import { useNavigate } from 'react-router-dom';
 
 const AgentBookingPage = () => {
-  const { user: userInfo } = useContext(AuthContext);
+  const { loggedIn, user: userInfo } = useContext(AuthContext);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!loggedIn) {
+      navigate('/sign-in');
+    }
+  }, [loggedIn, navigate]);
 
   const { data: bookingsData, loading: bookingsLoading } = useDataApi(
     `${import.meta.env.VITE_APP_API_URL}proeprty-bookings?filters[users_permissions_user][id][$eq]=${userInfo?.id}&populate=*`,
@@ -33,6 +41,8 @@ const AgentBookingPage = () => {
     console.log('Message host for property:', property);
     // TODO: Open contact modal or messaging system
   };
+
+  if (!loggedIn) return null; // Or <Loader />
 
   if (bookingsLoading) return <Loader />;
 
