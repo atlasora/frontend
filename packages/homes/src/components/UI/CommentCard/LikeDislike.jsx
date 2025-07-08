@@ -1,4 +1,4 @@
-import React, { useState, Fragment } from 'react';
+import React, { useState, Fragment, useContext } from 'react';
 import { Tooltip, message } from 'antd';
 import {
   LikeOutlined,
@@ -6,6 +6,7 @@ import {
   DislikeOutlined,
   DislikeFilled,
 } from '@ant-design/icons';
+import { AuthContext } from 'context/AuthProvider'; // ✅ Import Auth Context
 
 const LikeDislike = ({ singleReview }) => {
   const initialLikes = singleReview?.LikeCounter || 0;
@@ -16,11 +17,12 @@ const LikeDislike = ({ singleReview }) => {
     action: null,
   });
 
+  const { loggedIn } = useContext(AuthContext); // ✅ Access login state
+
   const API_URL = import.meta.env.VITE_APP_API_URL;
   const API_TOKEN = import.meta.env.VITE_APP_API_TOKEN;
 
   const updateReview = async (documentId, likeCount, dislikeCount) => {
-    // Step 1: Lookup by documentId
     const lookupRes = await fetch(
       `${API_URL}property-reviews?filters[documentId][$eq]=${documentId}`,
       {
@@ -39,8 +41,7 @@ const LikeDislike = ({ singleReview }) => {
 
     const reviewId = review.id;
 
-    // Step 2: Update review
-    const updateRes = await fetch(`${API_URL}property-reviews/${documentId}`, {
+    const updateRes = await fetch(`${API_URL}property-reviews/${reviewId}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -65,6 +66,11 @@ const LikeDislike = ({ singleReview }) => {
   };
 
   const handleLike = async () => {
+    if (!loggedIn) {
+      alert('You need to log in to like a review.');
+      return;
+    }
+
     const newLikes = state.action === 'liked' ? initialLikes : initialLikes + 1;
     const newDislikes = initialDislikes;
 
@@ -82,6 +88,11 @@ const LikeDislike = ({ singleReview }) => {
   };
 
   const handleDislike = async () => {
+    if (!loggedIn) {
+      alert('You need to log in to dislike a review.');
+      return;
+    }
+
     const newLikes = initialLikes;
     const newDislikes =
       state.action === 'disliked' ? initialDislikes : initialDislikes + 1;
