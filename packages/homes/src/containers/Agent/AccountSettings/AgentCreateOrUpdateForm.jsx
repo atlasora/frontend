@@ -1,15 +1,17 @@
-import React, { Fragment } from 'react';
+import React, { useContext, Fragment } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { Row, Col, Input, Select, Button, DatePicker } from 'antd';
 import FormControl from 'components/UI/FormControl/FormControl';
-// import DatePicker from 'components/UI/AntdDatePicker/AntdDatePicker';
 import { FormTitle } from './AccountSettings.style';
+import { AuthContext } from 'context/AuthProvider';
+import dayjs from 'dayjs';
 
 const genderOptions = [
   { label: 'Male', value: 'male' },
   { label: 'Female', value: 'female' },
   { label: 'Other', value: 'Other' },
 ];
+
 const languageOptions = [
   { label: 'English', value: 'english' },
   { label: 'Spanish', value: 'spanish' },
@@ -18,12 +20,52 @@ const languageOptions = [
 ];
 
 const AgentCreateOrUpdateForm = () => {
+  const { user: userInfo } = useContext(AuthContext);
+
   const {
     control,
     formState: { errors },
     handleSubmit,
   } = useForm();
-  const onSubmit = (data) => console.log(data);
+
+  const onSubmit = async (data) => {
+    try {
+      const payload = {
+        FirstName: data.firstName,
+        SecondName: data.lastName,
+        DateOfBirth: dayjs(data.dateOfBirthday).format('YYYY-MM-DD'),
+        Gender: data.agentGender,
+        PreferredLanguage: data.preferredLanguage,
+        email: data.email,
+        PhoneNumber: data.phoneNumber,
+        Location: data.address,
+        Bio: data.describeYourself,
+      };
+
+      const response = await fetch(
+        `${import.meta.env.VITE_APP_API_URL}users/${userInfo.id}`,
+        {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${import.meta.env.VITE_APP_API_TOKEN}`,
+          },
+          body: JSON.stringify(payload),
+        },
+      );
+
+      if (!response.ok) throw new Error('Failed to update user');
+      const result = await response.json();
+      result.avatar = userInfo.avatar;
+      localStorage.setItem('user', JSON.stringify(result));
+
+      console.log('✅ Update successful:', result);
+      // Optionally: show a toast or update AuthContext
+    } catch (error) {
+      console.error('❌ Error updating user:', error);
+    }
+  };
+
   return (
     <Fragment>
       <FormTitle>Basic Information</FormTitle>
@@ -37,12 +79,10 @@ const AgentCreateOrUpdateForm = () => {
             >
               <Controller
                 name="firstName"
-                defaultValue=""
+                defaultValue={userInfo?.FirstName || ''}
                 control={control}
                 rules={{ required: true }}
-                render={({ field: { onChange, onBlur, value } }) => (
-                  <Input onChange={onChange} onBlur={onBlur} value={value} />
-                )}
+                render={({ field }) => <Input {...field} />}
               />
             </FormControl>
           </Col>
@@ -54,16 +94,15 @@ const AgentCreateOrUpdateForm = () => {
             >
               <Controller
                 name="lastName"
-                defaultValue=""
+                defaultValue={userInfo?.SecondName || ''}
                 control={control}
                 rules={{ required: true }}
-                render={({ field: { onChange, onBlur, value } }) => (
-                  <Input onChange={onChange} onBlur={onBlur} value={value} />
-                )}
+                render={({ field }) => <Input {...field} />}
               />
             </FormControl>
           </Col>
         </Row>
+
         <Row gutter={30}>
           <Col lg={12} xs={24}>
             <FormControl
@@ -75,19 +114,22 @@ const AgentCreateOrUpdateForm = () => {
             >
               <Controller
                 name="dateOfBirthday"
-                defaultValue=""
+                defaultValue={
+                  userInfo?.DateOfBirth ? dayjs(userInfo.DateOfBirth) : null
+                }
                 control={control}
                 rules={{ required: true }}
-                render={({ field: { onChange, onBlur, value } }) => (
+                render={({ field: { onChange, value } }) => (
                   <DatePicker
                     onChange={onChange}
-                    onBlur={onBlur}
-                    value={value}
+                    value={value ? dayjs(value) : null}
+                    format="YYYY-MM-DD"
                   />
                 )}
               />
             </FormControl>
           </Col>
+
           <Col lg={12} xs={24}>
             <Row gutter={30}>
               <Col sm={12} xs={24}>
@@ -100,20 +142,20 @@ const AgentCreateOrUpdateForm = () => {
                 >
                   <Controller
                     name="agentGender"
-                    defaultValue=""
+                    defaultValue={userInfo?.Gender || ''}
                     control={control}
                     rules={{ required: true }}
-                    render={({ field: { onChange, onBlur, value } }) => (
+                    render={({ field }) => (
                       <Select
                         options={genderOptions}
-                        onChange={onChange}
-                        onBlur={onBlur}
-                        defaultValue={value || 'male'}
+                        {...field}
+                        defaultValue={userInfo?.Gender || 'male'}
                       />
                     )}
                   />
                 </FormControl>
               </Col>
+
               <Col sm={12} xs={24}>
                 <FormControl
                   label="Preferred Language"
@@ -126,15 +168,14 @@ const AgentCreateOrUpdateForm = () => {
                 >
                   <Controller
                     name="preferredLanguage"
-                    defaultValue=""
+                    defaultValue={userInfo?.PreferredLanguage || ''}
                     control={control}
                     rules={{ required: true }}
-                    render={({ field: { onChange, onBlur, value } }) => (
+                    render={({ field }) => (
                       <Select
                         options={languageOptions}
-                        onChange={onChange}
-                        onBlur={onBlur}
-                        defaultValue={value || 'english'}
+                        {...field}
+                        defaultValue={userInfo?.PreferredLanguage || 'english'}
                       />
                     )}
                   />
@@ -143,6 +184,7 @@ const AgentCreateOrUpdateForm = () => {
             </Row>
           </Col>
         </Row>
+
         <Row gutter={30}>
           <Col lg={12} xs={24}>
             <FormControl
@@ -163,23 +205,17 @@ const AgentCreateOrUpdateForm = () => {
             >
               <Controller
                 name="email"
-                defaultValue=""
+                defaultValue={userInfo?.email || ''}
                 control={control}
                 rules={{
                   required: true,
                   pattern: /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
                 }}
-                render={({ field: { onChange, onBlur, value } }) => (
-                  <Input
-                    type="email"
-                    onChange={onChange}
-                    onBlur={onBlur}
-                    value={value}
-                  />
-                )}
+                render={({ field }) => <Input type="email" {...field} />}
               />
             </FormControl>
           </Col>
+
           <Col lg={12} xs={24}>
             <FormControl
               label="Phone number"
@@ -199,18 +235,17 @@ const AgentCreateOrUpdateForm = () => {
             >
               <Controller
                 name="phoneNumber"
-                defaultValue=""
+                defaultValue={userInfo?.PhoneNumber || ''}
                 control={control}
                 rules={{
                   required: true,
                   pattern: /^[0-9]*$/,
                 }}
-                render={({ field: { onChange, onBlur, value } }) => (
-                  <Input onChange={onChange} onBlur={onBlur} value={value} />
-                )}
+                render={({ field }) => <Input {...field} />}
               />
             </FormControl>
           </Col>
+
           <Col lg={24} xs={24}>
             <FormControl
               label="Where you live"
@@ -219,17 +254,14 @@ const AgentCreateOrUpdateForm = () => {
             >
               <Controller
                 name="address"
-                defaultValue=""
+                defaultValue={userInfo?.Location || ''}
                 control={control}
-                rules={{
-                  required: true,
-                }}
-                render={({ field: { onChange, onBlur, value } }) => (
-                  <Input onChange={onChange} onBlur={onBlur} value={value} />
-                )}
+                rules={{ required: true }}
+                render={({ field }) => <Input {...field} />}
               />
             </FormControl>
           </Col>
+
           <Col lg={24} xs={24}>
             <FormControl
               label="Describe Yourself (Optional)"
@@ -237,23 +269,15 @@ const AgentCreateOrUpdateForm = () => {
             >
               <Controller
                 name="describeYourself"
-                defaultValue=""
+                defaultValue={userInfo?.Bio || ''}
                 control={control}
-                rules={{
-                  required: true,
-                }}
-                render={({ field: { onChange, onBlur, value } }) => (
-                  <Input.TextArea
-                    rows={5}
-                    onChange={onChange}
-                    onBlur={onBlur}
-                    value={value}
-                  />
-                )}
+                rules={{ required: true }}
+                render={({ field }) => <Input.TextArea rows={5} {...field} />}
               />
             </FormControl>
           </Col>
         </Row>
+
         <div className="submit-container">
           <Button htmlType="submit" type="primary">
             Save Changes

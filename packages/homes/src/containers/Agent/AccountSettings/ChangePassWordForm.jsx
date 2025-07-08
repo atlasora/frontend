@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useContext, useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
-import { Input, Button, Row, Col } from 'antd';
+import { Input, Button, Row, Col, message } from 'antd';
 import FormControl from 'components/UI/FormControl/FormControl';
 import { FormTitle } from './AccountSettings.style';
+import { AuthContext } from 'context/AuthProvider';
 
 export default function ChangePassWord() {
   const {
@@ -10,12 +11,50 @@ export default function ChangePassWord() {
     formState: { errors },
     watch,
     handleSubmit,
-  } = useForm({
-    mode: 'onChange',
-  });
+  } = useForm({ mode: 'onChange' });
+
+  const { token } = useContext(AuthContext);
+  const [serverError, setServerError] = useState(null); // ✅ Add server error state
+
   const newPassword = watch('newPassword');
   const confirmPassword = watch('confirmPassword');
-  const onSubmit = (data) => console.log(data);
+
+  const onSubmit = async (data) => {
+    if (data.newPassword !== data.confirmPassword) {
+      message.error('Passwords do not match.');
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_APP_API_URL}auth/change-password`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            currentPassword: data.oldPassword,
+            password: data.newPassword,
+            passwordConfirmation: data.confirmPassword,
+          }),
+        },
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result?.error?.message || 'Password update failed');
+      }
+      alert('Password updated successfully!');
+      //message.success('Password updated successfully!');
+      setServerError(null); // ✅ Clear error on success
+    } catch (error) {
+      console.error(error);
+      setServerError(error.message); // ✅ Store error message
+    }
+  };
 
   return (
     <>
@@ -26,20 +65,20 @@ export default function ChangePassWord() {
             <FormControl
               label="Enter old password"
               htmlFor="oldPassword"
-              error={errors.oldPassword && <span>This field is required!</span>}
+              error={
+                errors.oldPassword ? (
+                  <span>This field is required!</span>
+                ) : serverError ? (
+                  <span>{serverError}</span> //  Display server error
+                ) : null
+              }
             >
               <Controller
                 name="oldPassword"
                 defaultValue=""
                 control={control}
                 rules={{ required: true }}
-                render={({ field: { onChange, onBlur, value } }) => (
-                  <Input.Password
-                    onChange={onChange}
-                    onBlur={onBlur}
-                    value={value}
-                  />
-                )}
+                render={({ field }) => <Input.Password {...field} />}
               />
             </FormControl>
           </Col>
@@ -54,7 +93,7 @@ export default function ChangePassWord() {
                       <span>This field is required!</span>
                     )}
                     {errors.newPassword?.type === 'minLength' && (
-                      <span>New password must be at lest 6 characters!</span>
+                      <span>New password must be at least 6 characters!</span>
                     )}
                     {errors.newPassword?.type === 'maxLength' && (
                       <span>
@@ -70,13 +109,7 @@ export default function ChangePassWord() {
                 defaultValue=""
                 control={control}
                 rules={{ required: true, minLength: 6, maxLength: 20 }}
-                render={({ field: { onChange, onBlur, value } }) => (
-                  <Input.Password
-                    onChange={onChange}
-                    onBlur={onBlur}
-                    value={value}
-                  />
-                )}
+                render={({ field }) => <Input.Password {...field} />}
               />
             </FormControl>
           </Col>
@@ -87,7 +120,7 @@ export default function ChangePassWord() {
               error={
                 confirmPassword &&
                 newPassword !== confirmPassword && (
-                  <span>Confirm password must be the same!</span>
+                  <span>Confirm password must match new password!</span>
                 )
               }
             >
@@ -95,13 +128,8 @@ export default function ChangePassWord() {
                 name="confirmPassword"
                 defaultValue=""
                 control={control}
-                render={({ field: { onChange, onBlur, value } }) => (
-                  <Input.Password
-                    onChange={onChange}
-                    onBlur={onBlur}
-                    value={value}
-                  />
-                )}
+                rules={{ required: true }}
+                render={({ field }) => <Input.Password {...field} />}
               />
             </FormControl>
           </Col>
