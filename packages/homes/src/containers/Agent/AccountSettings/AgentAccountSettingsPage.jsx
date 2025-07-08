@@ -24,10 +24,11 @@ const navigations = [
     label: <NavLink to={AGENT_ACCOUNT_SETTINGS_PAGE}>Edit Profile</NavLink>,
     key: 'edit_profile',
   },
-  {
-    label: <NavLink to={AGENT_IMAGE_EDIT_PAGE}>Change Photos</NavLink>,
-    key: 'change_photos',
-  },
+  //todo : post mvp image fixer
+  //{
+  //  label: <NavLink to={AGENT_IMAGE_EDIT_PAGE}>Change Photos</NavLink>,
+  //  key: 'change_photos',
+  // },
   {
     label: <NavLink to={AGENT_PASSWORD_CHANGE_PAGE}>Change Password</NavLink>,
     key: 'change_password',
@@ -56,17 +57,7 @@ export default function AgentAccountSettingsPage() {
   }
 
   const { user: userInfo } = useContext(AuthContext);
-  /*
-  const { data: bookingsData, loading: bookingsLoading } = useDataApi(
-    //todo get the user info
-    `${import.meta.env.VITE_APP_API_URL}users?filters[id][$eq]=${userInfo?.id}`,
-    import.meta.env.VITE_APP_API_TOKEN,
-    10,
-    'users',
-    [],
-  );
-  console.log('bookingsData', bookingsData);
-  */
+
   if (!userInfo) return <Loader />;
 
   const { FirstName, SecondName, avatar, Twitter, Facebook, Instagram, Bio } =

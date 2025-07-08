@@ -56,6 +56,7 @@ const AgentCreateOrUpdateForm = () => {
 
       if (!response.ok) throw new Error('Failed to update user');
       const result = await response.json();
+      result.avatar = userInfo.avatar;
       localStorage.setItem('user', JSON.stringify(result));
 
       console.log('✅ Update successful:', result);
