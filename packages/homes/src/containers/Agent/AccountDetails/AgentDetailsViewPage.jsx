@@ -48,7 +48,7 @@ const ProfileNavigation = (props) => {
     {
       label: (
         <NavLink to={`${AGENT_PROFILE_PAGE}/${AGENT_PROFILE_BOOKING}`}>
-          Booking
+          Booking(s)
         </NavLink>
       ),
       key: 'booking',
@@ -56,7 +56,7 @@ const ProfileNavigation = (props) => {
     {
       label: (
         <NavLink to={`${AGENT_PROFILE_PAGE}/${AGENT_PROFILE_LISTING}`}>
-          Listing
+          Listing(s)
         </NavLink>
       ),
       key: 'listing',
@@ -64,7 +64,7 @@ const ProfileNavigation = (props) => {
     {
       label: (
         <NavLink to={`${AGENT_PROFILE_PAGE}/${AGENT_PROFILE_FAVORITE}`}>
-          Favorite
+          Favorite(s)
         </NavLink>
       ),
       key: 'favorite',
