@@ -15,7 +15,7 @@ import Text from 'components/UI/Text/Text';
 import { ProfilePicLoader } from 'components/UI/ContentLoader/ContentLoader';
 import Loader from 'components/Loader/Loader';
 import AuthProvider, { AuthContext } from 'context/AuthProvider';
-import useDataApi from 'library/hooks/useSearchApi';
+import useDataApi from 'library/hooks/useDataApi';
 import {
   ADD_HOTEL_PAGE,
   AGENT_PROFILE_PAGE,
@@ -133,13 +133,11 @@ const AgentProfileInfo = () => {
 export default function AgentDetailsViewPage(props) {
   return (
     <AgentDetailsPage>
-      <AuthProvider>
-        <AgentProfileInfo />
-        <ProfileNavigation path={AGENT_PROFILE_PAGE} {...props} />
-        <Container fluid={true}>
-          <Outlet />
-        </Container>
-      </AuthProvider>
+      <AgentProfileInfo />
+      <ProfileNavigation path={AGENT_PROFILE_PAGE} {...props} />
+      <Container fluid={true}>
+        <Outlet />
+      </Container>
     </AgentDetailsPage>
   );
 }

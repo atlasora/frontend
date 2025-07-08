@@ -5,7 +5,7 @@ export const HOME_PAGE = '/';
 export const LISTING_POSTS_PAGE = '/listing';
 export const SINGLE_POST_PAGE = '/post';
 
-// Agent Profile Page Section
+// User Profile Page Section
 export const AGENT_PROFILE_PAGE = '/profile';
 export const AGENT_PROFILE_FAVORITE = 'favorite-post';
 export const AGENT_PROFILE_CONTACT = 'contact';
