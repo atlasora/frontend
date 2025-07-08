@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { Outlet, NavLink, Link } from 'react-router-dom';
 import { Row, Col, Menu, Avatar } from 'antd';
 import Container from 'components/UI/Container/Container.style';
@@ -16,6 +16,8 @@ import AccountSettingWrapper, {
   AgentName,
   FromWrapper,
 } from './AccountSettings.style';
+import AuthProvider, { AuthContext } from 'context/AuthProvider';
+import useDataApi from 'library/hooks/useDataApi';
 
 const navigations = [
   {
@@ -46,6 +48,30 @@ function AccountSettingNavLink() {
 }
 
 export default function AgentAccountSettingsPage() {
+  const { loggedIn } = useContext(AuthContext);
+  if (!loggedIn) {
+    let navigate = useNavigate();
+    navigate('/sign-in');
+    return;
+  }
+
+  const { user: userInfo } = useContext(AuthContext);
+  /*
+  const { data: bookingsData, loading: bookingsLoading } = useDataApi(
+    //todo get the user info
+    `${import.meta.env.VITE_APP_API_URL}users?filters[id][$eq]=${userInfo?.id}`,
+    import.meta.env.VITE_APP_API_TOKEN,
+    10,
+    'users',
+    [],
+  );
+  console.log('bookingsData', bookingsData);
+  */
+  if (!userInfo) return <Loader />;
+
+  const { FirstName, SecondName, avatar, Twitter, Facebook, Instagram, Bio } =
+    userInfo;
+  console.log('avatar', avatar);
   return (
     <AccountSettingWrapper>
       <Container fullWidth={true}>
@@ -53,12 +79,11 @@ export default function AgentAccountSettingsPage() {
           <Col xs={24} sm={12} md={9} lg={6}>
             <AccountSidebar>
               <AgentAvatar>
-                <Avatar
-                  src="http://s3.amazonaws.com/redqteam.com/isomorphic-reloaded-image/profilepic.png"
-                  alt="avatar"
-                />
+                <Avatar src={avatar} alt="avatar" />
                 <ContentWrapper>
-                  <AgentName>Aziz Acharki Ahmedh</AgentName>
+                  <AgentName>
+                    {FirstName} {SecondName}
+                  </AgentName>
                   <Link to={AGENT_PROFILE_PAGE}>View profile</Link>
                 </ContentWrapper>
               </AgentAvatar>

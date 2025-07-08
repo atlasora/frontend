@@ -1,9 +1,11 @@
-import React, { Fragment } from 'react';
+import React, { useContext, Fragment } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { Row, Col, Input, Select, Button, DatePicker } from 'antd';
 import FormControl from 'components/UI/FormControl/FormControl';
 // import DatePicker from 'components/UI/AntdDatePicker/AntdDatePicker';
 import { FormTitle } from './AccountSettings.style';
+import { AuthContext } from 'context/AuthProvider';
+import dayjs from 'dayjs';
 
 const genderOptions = [
   { label: 'Male', value: 'male' },
@@ -16,8 +18,9 @@ const languageOptions = [
   { label: 'French', value: 'french' },
   { label: 'Russian', value: 'russian' },
 ];
-
+//{"id":3,"documentId":"hqcktcs1thyuh501hf9n6qpg","username":"333","email":"chrisjmccreadie3@protonmail.com","provider":"local","confirmed":true,"blocked":false,"createdAt":"2025-07-02T18:17:33.951Z","updatedAt":"2025-07-08T17:55:42.033Z","publishedAt":"2025-07-08T17:55:42.017Z","FirstName":"Chris","SecondName":"McC","Twitter":"tw","Facebook":"fb","Instagram":"i","Bio":"This a bio","DateOfBirth":"2025-07-11","Gender":"Male","PreferredLanguage":"English","PhoneNUmber":"07400034168","Location":"London","avatar":"http://localhost:1337/uploads/thumbnail_favicon_15c376b1a2.png"}
 const AgentCreateOrUpdateForm = () => {
+  const { user: userInfo } = useContext(AuthContext); // 👈 This is missing
   const {
     control,
     formState: { errors },
@@ -37,7 +40,7 @@ const AgentCreateOrUpdateForm = () => {
             >
               <Controller
                 name="firstName"
-                defaultValue=""
+                defaultValue={userInfo?.FirstName || ''}
                 control={control}
                 rules={{ required: true }}
                 render={({ field: { onChange, onBlur, value } }) => (
@@ -54,7 +57,7 @@ const AgentCreateOrUpdateForm = () => {
             >
               <Controller
                 name="lastName"
-                defaultValue=""
+                defaultValue={userInfo?.SecondName || ''}
                 control={control}
                 rules={{ required: true }}
                 render={({ field: { onChange, onBlur, value } }) => (
@@ -75,14 +78,17 @@ const AgentCreateOrUpdateForm = () => {
             >
               <Controller
                 name="dateOfBirthday"
-                defaultValue=""
+                defaultValue={
+                  userInfo?.DateOfBirth ? dayjs(userInfo.DateOfBirth) : null
+                }
                 control={control}
                 rules={{ required: true }}
                 render={({ field: { onChange, onBlur, value } }) => (
                   <DatePicker
                     onChange={onChange}
                     onBlur={onBlur}
-                    value={value}
+                    value={value ? dayjs(value) : null}
+                    format="YYYY-MM-DD"
                   />
                 )}
               />
@@ -100,7 +106,7 @@ const AgentCreateOrUpdateForm = () => {
                 >
                   <Controller
                     name="agentGender"
-                    defaultValue=""
+                    defaultValue={userInfo?.Gender || ''}
                     control={control}
                     rules={{ required: true }}
                     render={({ field: { onChange, onBlur, value } }) => (
@@ -126,7 +132,7 @@ const AgentCreateOrUpdateForm = () => {
                 >
                   <Controller
                     name="preferredLanguage"
-                    defaultValue=""
+                    defaultValue={userInfo?.PreferredLanguage || ''}
                     control={control}
                     rules={{ required: true }}
                     render={({ field: { onChange, onBlur, value } }) => (
@@ -163,7 +169,7 @@ const AgentCreateOrUpdateForm = () => {
             >
               <Controller
                 name="email"
-                defaultValue=""
+                defaultValue={userInfo?.email || ''}
                 control={control}
                 rules={{
                   required: true,
@@ -199,7 +205,7 @@ const AgentCreateOrUpdateForm = () => {
             >
               <Controller
                 name="phoneNumber"
-                defaultValue=""
+                defaultValue={userInfo?.PhoneNumber || ''}
                 control={control}
                 rules={{
                   required: true,
@@ -219,7 +225,7 @@ const AgentCreateOrUpdateForm = () => {
             >
               <Controller
                 name="address"
-                defaultValue=""
+                defaultValue={userInfo?.Location || ''}
                 control={control}
                 rules={{
                   required: true,
@@ -237,7 +243,7 @@ const AgentCreateOrUpdateForm = () => {
             >
               <Controller
                 name="describeYourself"
-                defaultValue=""
+                defaultValue={userInfo?.Bio || ''}
                 control={control}
                 rules={{
                   required: true,
