@@ -69,7 +69,7 @@ export default function ChangePassWord() {
                 errors.oldPassword ? (
                   <span>This field is required!</span>
                 ) : serverError ? (
-                  <span>{serverError}</span> // ✅ Display server error
+                  <span>{serverError}</span> //  Display server error
                 ) : null
               }
             >
