@@ -59,6 +59,7 @@ const AgentBookingPage = () => {
             Rooms,
             PaidBy,
             TotalPaid,
+            BookingStatus,
             property,
           } = booking;
           const currencySymbol = property?.currency?.symbol; // fallback to INR
@@ -80,9 +81,10 @@ const AgentBookingPage = () => {
               <p>🛏 Rooms: {Rooms}</p>
               <p>💳 Paid via: {PaidBy}</p>
               <p>
-                💰 Total Paidd: {currencySymbol}
+                💰 Total Paid: {currencySymbol}
                 {TotalPaid}
               </p>
+              <p>BookingStatus: {BookingStatus}</p>
 
               <div style={{ marginTop: '12px', display: 'flex', gap: '10px' }}>
                 <button
