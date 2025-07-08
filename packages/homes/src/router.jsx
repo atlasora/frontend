@@ -9,7 +9,9 @@ import {
   LISTING_POSTS_PAGE,
   SINGLE_POST_PAGE,
   AGENT_PROFILE_PAGE,
+  AGENT_PROFILE_BOOKING,
   AGENT_PROFILE_FAVORITE,
+  AGENT_PROFILE_LISTING,
   PRIVACY_PAGE,
   LOGIN_PAGE,
   REGISTRATION_PAGE,
@@ -18,7 +20,6 @@ import {
   AGENT_ACCOUNT_SETTINGS_PAGE,
   AGENT_IMAGE_EDIT_PAGE,
   AGENT_PASSWORD_CHANGE_PAGE,
-  AGENT_PROFILE_BOOKING,
 } from './settings/constant';
 
 // 🔐 Protected route wrapper
@@ -49,6 +50,7 @@ const NotFound = React.lazy(() => import('containers/404/404'));
 const AddListingPage = React.lazy(
   () => import('containers/AddListing/AddListing'),
 );
+
 const AgentAccountSettingsPage = React.lazy(
   () => import('containers/Agent/AccountSettings/AgentAccountSettingsPage'),
 );
@@ -61,10 +63,6 @@ const AgentPictureChangeForm = React.lazy(
 const ChangePassWord = React.lazy(
   () => import('containers/Agent/AccountSettings/ChangePassWordForm'),
 );
-const PaymentPage = React.lazy(() => import('containers/Payment/Payment'));
-const ThankYouPage = React.lazy(
-  () => import('containers/ThankYou/ThankYouPage'),
-);
 
 const AgentDetailsViewPage = React.lazy(
   () => import('containers/Agent/AccountDetails/AgentDetailsViewPage'),
@@ -75,14 +73,13 @@ const AgentItemLists = React.lazy(
 const AgentFavItemLists = React.lazy(
   () => import('containers/Agent/AccountDetails/AgentFavItemLists'),
 );
-const AgentContact = React.lazy(
-  () => import('containers/Agent/AccountDetails/AgentContact'),
+const AgentBookingPage = React.lazy(
+  () => import('containers/Agent/AccountDetails/AgentBookingPage'),
 );
 
 export default function AppRoutes() {
   return (
     <Routes>
-      {/* Layout Routes */}
       <Route path={HOME_PAGE} element={<Layout />}>
         {/* Public Routes */}
         <Route
@@ -106,22 +103,6 @@ export default function AppRoutes() {
           element={
             <React.Suspense fallback={<Loader />}>
               <SinglePageView />
-            </React.Suspense>
-          }
-        />
-        <Route
-          path="/payment"
-          element={
-            <React.Suspense fallback={<Loader />}>
-              <PaymentPage />
-            </React.Suspense>
-          }
-        />
-        <Route
-          path="/thank-you"
-          element={
-            <React.Suspense fallback={<Loader />}>
-              <ThankYouPage />
             </React.Suspense>
           }
         />
@@ -158,7 +139,7 @@ export default function AppRoutes() {
           }
         />
 
-        {/* Protected routes */}
+        {/* Protected Routes */}
         <Route
           path={ADD_HOTEL_PAGE}
           element={
@@ -169,6 +150,7 @@ export default function AppRoutes() {
             </React.Suspense>
           }
         />
+
         <Route
           path={AGENT_ACCOUNT_SETTINGS_PAGE}
           element={
@@ -180,7 +162,7 @@ export default function AppRoutes() {
           }
         >
           <Route
-            path={AGENT_ACCOUNT_SETTINGS_PAGE}
+            index
             element={
               <React.Suspense fallback={<Loader />}>
                 <AgentCreateOrUpdateForm />
@@ -204,10 +186,8 @@ export default function AppRoutes() {
             }
           />
         </Route>
-        {/* end of Protected routes*/}
 
-        {/* ✅ Nested Protected Profile Routes */}
-
+        {/* ✅ Profile with Nested Tabs */}
         <Route
           path={AGENT_PROFILE_PAGE}
           element={
@@ -216,22 +196,30 @@ export default function AppRoutes() {
             </React.Suspense>
           }
         >
+          {/* Redirect /profile to /profile/booking */}
           <Route
-            path={AGENT_PROFILE_PAGE}
+            index
+            element={<Navigate to={AGENT_PROFILE_BOOKING} replace />}
+          />
+
+          <Route
+            path={AGENT_PROFILE_BOOKING}
+            element={
+              <React.Suspense fallback={<Loader />}>
+                <AgentBookingPage />
+              </React.Suspense>
+            }
+          />
+
+          <Route
+            path={AGENT_PROFILE_LISTING}
             element={
               <React.Suspense fallback={<Loader />}>
                 <AgentItemLists />
               </React.Suspense>
             }
           />
-          <Route
-            path={AGENT_PROFILE_BOOKING}
-            element={
-              <React.Suspense fallback={<Loader />}>
-                <AgentFavItemLists />
-              </React.Suspense>
-            }
-          />
+
           <Route
             path={AGENT_PROFILE_FAVORITE}
             element={
@@ -241,6 +229,7 @@ export default function AppRoutes() {
             }
           />
         </Route>
+
         {/* Fallback */}
         <Route
           path="*"

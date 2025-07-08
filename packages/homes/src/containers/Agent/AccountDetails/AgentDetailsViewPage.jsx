@@ -22,6 +22,7 @@ import {
   AGENT_PROFILE_PAGE,
   AGENT_PROFILE_BOOKING,
   AGENT_PROFILE_FAVORITE,
+  AGENT_PROFILE_LISTING,
 } from 'settings/constant';
 import AgentDetailsPage, {
   BannerSection,
@@ -38,17 +39,34 @@ const ProfileNavigation = (props) => {
   const { path, className } = props;
   const { loggedIn } = useContext(AuthContext);
 
-  //todo : get a list of bookings for the user
   //todo : get a list of listings
   //todo : get a lost of favorite
   //todo : add a propety
   //todo : account settings
 
   const navigations = [
-    { label: <NavLink to={path}>Booking</NavLink>, key: 'booking' },
-    { label: <NavLink to={path}>Listing</NavLink>, key: 'listing' },
     {
-      label: <NavLink to={AGENT_PROFILE_FAVORITE}>Favorite</NavLink>,
+      label: (
+        <NavLink to={`${AGENT_PROFILE_PAGE}/${AGENT_PROFILE_BOOKING}`}>
+          Booking
+        </NavLink>
+      ),
+      key: 'booking',
+    },
+    {
+      label: (
+        <NavLink to={`${AGENT_PROFILE_PAGE}/${AGENT_PROFILE_LISTING}`}>
+          Listing
+        </NavLink>
+      ),
+      key: 'listing',
+    },
+    {
+      label: (
+        <NavLink to={`${AGENT_PROFILE_PAGE}/${AGENT_PROFILE_FAVORITE}`}>
+          Favorite
+        </NavLink>
+      ),
       key: 'favorite',
     },
   ];
@@ -69,6 +87,15 @@ const ProfileNavigation = (props) => {
 
 const AgentProfileInfo = () => {
   const { user: userInfo } = useContext(AuthContext);
+
+  //todo : get a list of bookings for the user
+  const { data: bookingsData, loading: bookingsLoading } = useDataApi(
+    `${import.meta.env.VITE_APP_API_URL}proeprty-bookings?filters[users_permissions_user][id][$eq]=${userInfo?.id}&populate=property&populate=users_permissions_user`,
+    import.meta.env.VITE_APP_API_TOKEN,
+    10,
+    'proeprty-bookings',
+    [],
+  );
 
   if (!userInfo) return <Loader />;
 
