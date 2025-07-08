@@ -150,10 +150,7 @@ export default function Header() {
                   </AvatarImage>
                   <AvatarInfo>
                     <Text as="h3" content="Nova Scotia" />
-                    <TextLink
-                      link={AGENT_PROFILE_PAGE}
-                      content="View Profile"
-                    />
+                    <TextLink link={USER_PROFILE_PAGE} content="View Profile" />
                   </AvatarInfo>
                 </AvatarWrapper>
               ) : (

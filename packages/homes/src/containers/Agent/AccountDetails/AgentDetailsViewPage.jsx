@@ -1,6 +1,8 @@
 import React, { useContext, Fragment } from 'react';
 import { Outlet, NavLink, Link } from 'react-router-dom';
 import isEmpty from 'lodash/isEmpty';
+import { useNavigate } from 'react-router-dom';
+
 import {
   IoLogoTwitter,
   IoLogoFacebook,
@@ -15,12 +17,13 @@ import Text from 'components/UI/Text/Text';
 import { ProfilePicLoader } from 'components/UI/ContentLoader/ContentLoader';
 import Loader from 'components/Loader/Loader';
 import AuthProvider, { AuthContext } from 'context/AuthProvider';
-import useDataApi from 'library/hooks/useSearchApi';
+import useDataApi from 'library/hooks/useDataApi';
 import {
   ADD_HOTEL_PAGE,
   AGENT_PROFILE_PAGE,
+  AGENT_PROFILE_BOOKING,
   AGENT_PROFILE_FAVORITE,
-  AGENT_PROFILE_CONTACT,
+  AGENT_PROFILE_LISTING,
 } from 'settings/constant';
 import AgentDetailsPage, {
   BannerSection,
@@ -35,16 +38,36 @@ import AgentDetailsPage, {
 const ProfileNavigation = (props) => {
   const { path, className } = props;
   const { loggedIn } = useContext(AuthContext);
+  if (!loggedIn) {
+    let navigate = useNavigate();
+    navigate('/sign-in');
+    return;
+  }
 
   const navigations = [
-    { label: <NavLink to={path}>Listing</NavLink>, key: 'listing' },
     {
-      label: <NavLink to={AGENT_PROFILE_FAVORITE}>Favorite</NavLink>,
-      key: 'favorite',
+      label: (
+        <NavLink to={`${AGENT_PROFILE_PAGE}/${AGENT_PROFILE_BOOKING}`}>
+          Booking(s)
+        </NavLink>
+      ),
+      key: 'booking',
     },
     {
-      label: <NavLink to={AGENT_PROFILE_CONTACT}>Contact</NavLink>,
-      key: 'contact',
+      label: (
+        <NavLink to={`${AGENT_PROFILE_PAGE}/${AGENT_PROFILE_LISTING}`}>
+          Listing(s)
+        </NavLink>
+      ),
+      key: 'listing',
+    },
+    {
+      label: (
+        <NavLink to={`${AGENT_PROFILE_PAGE}/${AGENT_PROFILE_FAVORITE}`}>
+          Favorite(s)
+        </NavLink>
+      ),
+      key: 'favorite',
     },
   ];
 
@@ -54,7 +77,7 @@ const ProfileNavigation = (props) => {
         <Menu className={className} items={navigations} />
         {loggedIn && (
           <Link className="add_card" to={ADD_HOTEL_PAGE}>
-            <IoIosAdd /> Add Hotel
+            <IoIosAdd /> Add Property
           </Link>
         )}
       </Container>
@@ -63,83 +86,81 @@ const ProfileNavigation = (props) => {
 };
 
 const AgentProfileInfo = () => {
-  const { data, loading } = useDataApi('/data/agent.json');
-  if (isEmpty(data) || loading) return <Loader />;
-  const {
-    first_name,
-    last_name,
-    content,
-    profile_pic,
-    cover_pic,
-    social_profile,
-  } = data[0];
-  const username = `${first_name} ${last_name}`;
+  const { user: userInfo } = useContext(AuthContext);
+
+  const { data: bookingsData, loading: bookingsLoading } = useDataApi(
+    //todo get the currency
+    `${import.meta.env.VITE_APP_API_URL}proeprty-bookings?filters[users_permissions_user][id][$eq]=${userInfo?.id}&populate=property&populate=users_permissions_user`,
+    import.meta.env.VITE_APP_API_TOKEN,
+    10,
+    'proeprty-bookings',
+    [],
+  );
+
+  if (!userInfo) return <Loader />;
+
+  const { FirstName, SecondName, avatar, Twitter, Facebook, Instagram, Bio } =
+    userInfo;
+
+  const username = `${FirstName || ''} ${SecondName || ''}`.trim();
 
   return (
-    <Fragment>
+    <>
       <BannerSection>
-        <Image className="absolute" src={cover_pic.url} alt="Profile cover" />
+        <Image
+          className="absolute"
+          src="/images/coverpic2.png"
+          alt="Profile cover"
+        />
       </BannerSection>
       <UserInfoArea>
-        <Container fluid={true}>
+        <Container fluid>
           <ProfileImage>
-            {profile_pic ? (
-              <Image src={profile_pic.url} alt="Profile" />
-            ) : (
-              <ProfilePicLoader />
-            )}
+            <Image src={avatar} alt="Profile" />
           </ProfileImage>
           <ProfileInformationArea>
             <ProfileInformation>
-              <Heading content={username} />
-              <Text content={content} />
+              <Heading content={username || 'Anonymous'} />
+              <Text content={Bio || 'No bio available'} />
             </ProfileInformation>
             <SocialAccount>
-              <Popover content="Twitter">
-                <a
-                  href={social_profile.twitter}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <IoLogoTwitter className="twitter" />
-                </a>
-              </Popover>
-              <Popover content="Facebook">
-                <a
-                  href={social_profile.facebook}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <IoLogoFacebook className="facebook" />
-                </a>
-              </Popover>
-              <Popover content="Instagram">
-                <a
-                  href={social_profile.instagram}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <IoLogoInstagram className="instagram" />
-                </a>
-              </Popover>
+              {Twitter && (
+                <Popover content="Twitter">
+                  <a href={Twitter} target="_blank" rel="noopener noreferrer">
+                    <IoLogoTwitter className="twitter" />
+                  </a>
+                </Popover>
+              )}
+              {Facebook && (
+                <Popover content="Facebook">
+                  <a href={Facebook} target="_blank" rel="noopener noreferrer">
+                    <IoLogoFacebook className="facebook" />
+                  </a>
+                </Popover>
+              )}
+              {Instagram && (
+                <Popover content="Instagram">
+                  <a href={Instagram} target="_blank" rel="noopener noreferrer">
+                    <IoLogoInstagram className="instagram" />
+                  </a>
+                </Popover>
+              )}
             </SocialAccount>
           </ProfileInformationArea>
         </Container>
       </UserInfoArea>
-    </Fragment>
+    </>
   );
 };
 
 export default function AgentDetailsViewPage(props) {
   return (
     <AgentDetailsPage>
-      <AuthProvider>
-        <AgentProfileInfo />
-        <ProfileNavigation path={AGENT_PROFILE_PAGE} {...props} />
-        <Container fluid={true}>
-          <Outlet />
-        </Container>
-      </AuthProvider>
+      <AgentProfileInfo />
+      <ProfileNavigation path={AGENT_PROFILE_PAGE} {...props} />
+      <Container fluid={true}>
+        <Outlet />
+      </Container>
     </AgentDetailsPage>
   );
 }

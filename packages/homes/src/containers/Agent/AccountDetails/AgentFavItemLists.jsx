@@ -1,21 +1,65 @@
-import React from 'react';
+import React, { useContext, useEffect, useMemo } from 'react';
 import SectionGrid from 'components/SectionGrid/SectionGrid';
 import { PostPlaceholder } from 'components/UI/ContentLoader/ContentLoader';
-import useDataApi from 'library/hooks/useSearchApi';
+import useDataApi from 'library/hooks/useDataApi';
 import { SINGLE_POST_PAGE } from 'settings/constant';
+import { useNavigate } from 'react-router-dom';
+import { AuthContext } from 'context/AuthProvider';
+import Text from 'components/UI/Text/Text'; // ✅ Import text component for message
 
-const AgentFavItemLists = () => {
-  const { data, loadMoreData, loading } = useDataApi('/data/agent.json');
-  const favourite_post =
-    data[0] && data[0].favourite_post ? data[0].favourite_post : [];
+const AgentItemLists = () => {
+  const { loggedIn } = useContext(AuthContext);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!loggedIn) {
+      navigate('/sign-in');
+    }
+  }, [loggedIn, navigate]);
+
+  const favoriteTitles = useMemo(() => {
+    try {
+      const stored = localStorage.getItem('favorites');
+      console.log(stored);
+      const slugs = stored ? JSON.parse(stored) : [];
+
+      return slugs.map((slug) =>
+        slug.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()),
+      );
+    } catch (err) {
+      console.error('Failed to parse favorites from localStorage', err);
+      return [];
+    }
+  }, []);
+
+  // ✅ Show fallback if no favorites exist
+  if (favoriteTitles.length === 0) {
+    return <Text content="You have no favorites yet." />;
+  }
+
+  const filterQuery = `filters[Title][$in]=${favoriteTitles
+    .map(encodeURIComponent)
+    .join(',')}`;
+
+  const {
+    data: listingsData,
+    loading: listingsLoading,
+    loadMoreData,
+    total,
+  } = useDataApi(
+    `${import.meta.env.VITE_APP_API_URL}properties?${filterQuery}&populate[Images]=true&populate[property_reviews]=true`,
+    import.meta.env.VITE_APP_API_TOKEN,
+    10,
+    'properties',
+    [],
+  );
 
   return (
     <SectionGrid
       link={SINGLE_POST_PAGE}
-      data={favourite_post}
-      loading={loading}
-      limit={6}
-      totalItem={favourite_post.length}
+      data={listingsData}
+      loading={listingsLoading}
+      totalItem={total}
       columnWidth={[1 / 1, 1 / 2, 1 / 3, 1 / 4, 1 / 5, 1 / 6]}
       placeholder={<PostPlaceholder />}
       handleLoadMore={loadMoreData}
@@ -23,4 +67,4 @@ const AgentFavItemLists = () => {
   );
 };
 
-export default AgentFavItemLists;
+export default AgentItemLists;
