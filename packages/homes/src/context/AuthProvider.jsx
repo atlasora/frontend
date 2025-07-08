@@ -38,8 +38,21 @@ const AuthProvider = (props) => {
     }
   }, [token]);
 
-  const signIn = async (params) => {
-    const { identifier, password } = params;
+  // ✅ Move redirect logic here
+  useEffect(() => {
+    if (loggedIn) {
+      const returnTo = localStorage.getItem('returnTo');
+      if (returnTo && returnTo !== '/login') {
+        console.log('🔁 Redirecting to returnTo:', returnTo);
+        localStorage.removeItem('returnTo');
+        navigate(returnTo, { replace: true });
+      } else {
+        navigate('/', { replace: true });
+      }
+    }
+  }, [loggedIn]);
+
+  const signIn = async ({ identifier, password }) => {
     try {
       const response = await fetch(
         `${import.meta.env.VITE_APP_API_URL}auth/local`,
@@ -62,6 +75,8 @@ const AuthProvider = (props) => {
 
       setUser(data.user);
       setToken(data.jwt);
+
+      // ✅ Do not navigate here
       return { success: true };
     } catch (error) {
       console.error('Sign-in error:', error);
@@ -69,8 +84,7 @@ const AuthProvider = (props) => {
     }
   };
 
-  const signUp = async (params) => {
-    const { username, email, password, ...rest } = params;
+  const signUp = async ({ username, email, password }) => {
     try {
       const response = await fetch(
         `${import.meta.env.VITE_APP_API_URL}auth/local/register`,
@@ -98,38 +112,13 @@ const AuthProvider = (props) => {
       throw error;
     }
   };
-  /*
-  const forgotPassword = async (email) => {
-    try {
-      const response = await fetch(
-        `${import.meta.env.VITE_APP_API_URL}auth/forgot-password`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            email,
-            URL: `${window.location.origin}/reset-password`,
-          }),
-        },
-      );
-      console.log(`${window.location.origin}/reset-password`);
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data?.error?.message || 'Something went wrong');
-      }
 
-      return { success: true, message: 'Reset email sent successfully' };
-    } catch (error) {
-      console.error('Forgot password error:', error);
-      return { success: false, message: error.message };
-    }
-  };
-*/
   const logOut = () => {
     setUser(null);
     setToken(null);
     localStorage.removeItem('user');
     localStorage.removeItem('token');
+    localStorage.removeItem('returnTo');
     navigate('/login', { replace: true });
   };
 
