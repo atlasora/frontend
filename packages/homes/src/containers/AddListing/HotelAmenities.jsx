@@ -17,6 +17,18 @@ import AuthProvider, { AuthContext } from 'context/AuthProvider';
 import useDataApi from 'library/hooks/useDataApi';
 import { useNavigate } from 'react-router-dom';
 
+const makeSlateBlock = (text = '') => [
+  {
+    type: 'paragraph',
+    children: [
+      {
+        type: 'text',
+        text: text,
+      },
+    ],
+  },
+];
+
 const HotelAmenities = ({ setStep }) => {
   const { loggedIn, user: userInfo } = useContext(AuthContext);
   const navigate = useNavigate();
@@ -43,27 +55,17 @@ const HotelAmenities = ({ setStep }) => {
     try {
       const formData = { ...state.data, ...data };
 
-      // ✅ Extract selected amenities
+      // Extract selected amenities
       const selectedAmenityIds = Object.entries(data)
         .filter(([key, value]) => key.startsWith('amenity_') && value === true)
         .map(([key]) => parseInt(key.replace('amenity_', ''), 10));
-
-      // ✅ Prepare payload for Strapi
+      console.log(formData);
+      // Prepare payload for Strapi
       const payload = {
         data: {
           Title: formData.hotelName,
-          Description: [
-            {
-              type: 'paragraph',
-              children: [{ text: formData.hotelDescription || '' }],
-            },
-          ],
-          Location: [
-            {
-              type: 'paragraph',
-              children: [{ text: formData.locationDescription || '' }],
-            },
-          ],
+          Description: makeSlateBlock(formData.hotelDescription),
+          Location: makeSlateBlock(formData.locationDescription),
           PricePerNight: parseFloat(formData.pricePerNight),
           MaxGuests: parseInt(formData.guest || 1, 10),
           Rooms: parseInt(formData.bed || 1, 10),
@@ -74,14 +76,15 @@ const HotelAmenities = ({ setStep }) => {
           FormattedAddress: formData.locationDescription,
           Latitude: formData.locationData?.[0]?.geometry?.location?.lat,
           Longitude: formData.locationData?.[0]?.geometry?.location?.lng,
-          ContactNumber: formData.contactNumber || '',
+          PhoneNumber: formData.contactNumber || '',
           Images: (formData.hotelPhotos || []).map((img) => img.id),
           property_amenities: selectedAmenityIds,
+          users_permissions_user: userInfo?.id,
           // Add location, currency, property_type relations if needed
         },
       };
 
-      // ✅ Send to Strapi
+      //  Send to Strapi
       const res = await fetch(`${import.meta.env.VITE_APP_API_URL}properties`, {
         method: 'POST',
         headers: {
@@ -98,13 +101,13 @@ const HotelAmenities = ({ setStep }) => {
       }
 
       // ✅ Success
-      message.success('Property created successfully!');
+      alert('Property created successfully!');
       actions.addListingResetAction();
       // Optionally redirect
       navigate('/profile/listing');
     } catch (error) {
       console.error(error);
-      //message.error(`Submission failed: ${error.message}`);
+      alert(`Submission failed: ${error.message}`);
     }
   };
 
