@@ -25,7 +25,8 @@ const HotelLocation = ({ setStep }) => {
   });
 
   useEffect(() => {
-    register('locationData', { required: true });
+    // register('locationData', { required: true });
+    register('locationData');
   }, [register]);
 
   const onSubmit = (data) => {

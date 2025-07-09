@@ -1,17 +1,17 @@
 export const hotelAmenities = [
   {
     id: 1,
-    label: 'Wi-fi Availability',
-    name: 'wifiAvailability',
+    label: 'Air Conditioning',
+    name: 'Air Conditioning',
     options: [
-      { label: 'Free', value: 'free' },
-      { label: 'Paid', value: 'paid' },
+      { label: 'Yes', value: 'yes' },
+      { label: 'No', value: 'no' },
     ],
   },
   {
     id: 2,
-    label: 'Parking Availability',
-    name: 'parking',
+    label: 'Breakfast included',
+    name: 'Breakfast included',
     options: [
       { label: 'Yes', value: 'yes' },
       { label: 'No', value: 'no' },
