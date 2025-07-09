@@ -115,6 +115,7 @@ const HotelPhotos = ({ setStep }) => {
               beforeUpload={() => false}
               onChange={handleUploadChange}
               listType="picture-card"
+              accept="image/*"
             >
               <div className="image-drag-area">
                 <FaCamera />
