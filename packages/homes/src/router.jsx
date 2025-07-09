@@ -77,6 +77,11 @@ const AgentBookingPage = React.lazy(
   () => import('containers/Agent/AccountDetails/AgentBookingPage'),
 );
 
+const PaymentPage = React.lazy(() => import('containers/Payment/Payment'));
+const ThankYouPage = React.lazy(
+  () => import('containers/ThankYou/ThankYouPage'),
+);
+
 export default function AppRoutes() {
   return (
     <Routes>
@@ -103,6 +108,22 @@ export default function AppRoutes() {
           element={
             <React.Suspense fallback={<Loader />}>
               <SinglePageView />
+            </React.Suspense>
+          }
+        />
+        <Route
+          path="/payment"
+          element={
+            <React.Suspense fallback={<Loader />}>
+              <PaymentPage />
+            </React.Suspense>
+          }
+        />
+        <Route
+          path="/thank-you"
+          element={
+            <React.Suspense fallback={<Loader />}>
+              <ThankYouPage />
             </React.Suspense>
           }
         />
