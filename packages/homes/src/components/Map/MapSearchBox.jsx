@@ -111,35 +111,33 @@ const MapWithSearchBox = (props) => {
       zoom={15}
       center={locationDetails.center}
     >
-      <StandaloneSearchBox
-        onLoad={onLoad}
-        controlPosition={window.google.maps.ControlPosition.TOP_LEFT}
-        onPlacesChanged={onPlacesChanged}
-      >
-        <Input
-          type="text"
-          name={name}
-          placeholder="Enter your hotel location"
-          style={{
-            boxSizing: `border-box`,
-            border: `1px solid transparent`,
-            width: `260px`,
-            height: `40px`,
-            marginTop: `10px`,
-            marginLeft: `10px`,
-            padding: `0 12px`,
-            borderRadius: `2px`,
-            boxShadow: `0 3px 6px rgba(0, 0, 0, 0.16)`,
-            fontSize: `15px`,
-            outline: `none`,
-            textOverflow: `ellipses`,
-          }}
-          defaultValue=""
-          value={locationInput ? locationInput.searchedLocation : ''}
-          onChange={handleOnChange}
-          onPressEnter={handleOnPressEnter}
-        />
-      </StandaloneSearchBox>
+      {window.google && (
+        <StandaloneSearchBox onLoad={onLoad} onPlacesChanged={onPlacesChanged}>
+          <Input
+            type="text"
+            name={name}
+            placeholder="Enter your hotel location"
+            style={{
+              boxSizing: `border-box`,
+              border: `1px solid transparent`,
+              width: `260px`,
+              height: `40px`,
+              marginTop: `10px`,
+              marginLeft: `10px`,
+              padding: `0 12px`,
+              borderRadius: `2px`,
+              boxShadow: `0 3px 6px rgba(0, 0, 0, 0.16)`,
+              fontSize: `15px`,
+              outline: `none`,
+              textOverflow: `ellipses`,
+            }}
+            defaultValue=""
+            value={locationInput ? locationInput.searchedLocation : ''}
+            onChange={handleOnChange}
+            onPressEnter={handleOnPressEnter}
+          />
+        </StandaloneSearchBox>
+      )}
       {locationDetails.markers.map((marker, index) => {
         return (
           <Marker

@@ -17,7 +17,6 @@ import AccountSettingWrapper, {
   FromWrapper,
 } from './AccountSettings.style';
 import AuthProvider, { AuthContext } from 'context/AuthProvider';
-import useDataApi from 'library/hooks/useDataApi';
 
 const navigations = [
   {
