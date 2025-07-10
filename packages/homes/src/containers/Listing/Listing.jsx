@@ -28,7 +28,7 @@ export default function Listing() {
   const strapiUrl = useStrapiPropertySearchUrl(location.search);
   const hasQuery = location.search && location.search.length > 1;
 
-  // Fallback to stored filters only on initial load
+  // 1. On first load, fallback to stored filters if no query
   useEffect(() => {
     const storedParams = localStorage.getItem(PARAMS_KEY);
     if (!hasQuery && storedParams) {
@@ -36,24 +36,37 @@ export default function Listing() {
     } else {
       setSearchReady(true);
     }
-  }, []); // run once
+  }, []); // Run only once on mount
 
-  // Whenever location.search changes (new navbar search), update localStorage and fetch
+  // 2. On query param change (e.g., nav search), update all stored filters
   useEffect(() => {
+    //debug code
+    // location.search =
+    //'?startDate=07-11-2025&endDate=07-12-2025&room=1&guest=1&address=great&amenities=free-wifi&property=Villa&date_range=07-11-2025,07-12-2025';
+    //console.log('location.search', location.search);
     if (!location.search) return;
 
     const currentParams = new URLSearchParams(location.search);
-    const newAddress = currentParams.get('address');
-    if (!newAddress) return;
-    const storedParamsRaw = localStorage.getItem(PARAMS_KEY);
-    const storedParams = new URLSearchParams(storedParamsRaw || '');
-    // Update only the `address` param in stored filters
-    storedParams.set('address', newAddress);
-    const updatedSearch = `?${storedParams.toString()}`;
+    const storedParams = new URLSearchParams(
+      localStorage.getItem(PARAMS_KEY) || '',
+    );
+
+    // Merge all current query params into stored
+    for (const [key, value] of currentParams.entries()) {
+      storedParams.set(key, value);
+    }
+
+    let updatedSearch = `?${storedParams.toString()}`;
+    console.log(updatedSearch);
+    //note : this is an example so we can test filter rendering
+    //updatedSearch =
+    //  '?startDate=07-11-2025&endDate=07-12-2025&room=1&guest=1&address=great&amenities=free-wifi&property=Villa&date_range=2025-07-11,2025-07-12';
+
     localStorage.setItem(PARAMS_KEY, updatedSearch);
     setSearchReady(true);
   }, [location.search]);
 
+  // 3. Data fetching
   const { data, total, loading, error, loadMoreData, doFetch } = useDataApi(
     null,
     import.meta.env.VITE_APP_API_TOKEN,

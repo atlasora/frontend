@@ -83,6 +83,10 @@ export default function SearchForm() {
     const query = {
       startDate: searchDate.setStartDate,
       endDate: searchDate.setEndDate,
+      date_range:
+        searchDate.setStartDate && searchDate.setEndDate
+          ? `${moment(searchDate.setStartDate, 'MM-DD-YYYY').format('YYYY-MM-DD')},${moment(searchDate.setEndDate, 'MM-DD-YYYY').format('YYYY-MM-DD')}`
+          : null,
       room: roomGuest.room,
       guest: roomGuest.guest,
       address: searchInput,
