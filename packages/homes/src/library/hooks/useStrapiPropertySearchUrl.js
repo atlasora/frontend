@@ -7,7 +7,6 @@
     location filter
     description filter
     address filter
-    amentitis filter
     property type filter
     price per night filter
     start date filter
@@ -72,8 +71,11 @@ export default function useStrapiPropertySearchUrl(search) {
         );
       });
     }
-
+  */
     if (amenities) {
+      // http://localhost:1337/api/properties?filters[Title][$containsi]=grea&
+      //filters[property_amenities][Name][$in][0] = Free % 20Wifi & filters[property_amenities][Name][$in][1]=Free % 20Parking & filters[CurrentlyRented][$eq]=false & populate[currency]=true & populate[Images]=true & populate[property_amenities]=true & populate[property_type]=true
+
       const items = amenities.split(',');
       items.forEach((slug, i) => {
         filterParams.push(
@@ -81,9 +83,8 @@ export default function useStrapiPropertySearchUrl(search) {
         );
       });
     }
-   
+
     filterParams.push(`filters[CurrentlyRented][$eq]=false`);
- */
 
     const populate = [
       'populate[currency]=true',

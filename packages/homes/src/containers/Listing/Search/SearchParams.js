@@ -19,7 +19,7 @@ export const getAmenities = {
     { label: 'Free Parking', value: 'free-parking' },
     { label: 'Breakfast included', value: 'breakfast' },
     { label: 'Pool', value: 'pool' },
-    { label: 'Air Conditioning', value: 'air-condition' },
+    { label: 'Air Conditioning', value: 'air-conditioning' },
     { label: 'Hot Shower', value: 'hot-shower' },
     { label: 'Cable TV', value: 'cable-tv' },
   ],
