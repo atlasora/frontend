@@ -57,7 +57,7 @@ export default function Listing() {
     }
 
     let updatedSearch = `?${storedParams.toString()}`;
-    console.log(updatedSearch);
+    // console.log(updatedSearch);
     //note : this is an example so we can test filter rendering
     //updatedSearch =
     //  '?startDate=07-11-2025&endDate=07-12-2025&room=1&guest=1&address=great&amenities=free-wifi&property=Villa&date_range=2025-07-11,2025-07-12';
@@ -93,7 +93,7 @@ export default function Listing() {
         <Toolbar
           left={
             width > 991 ? (
-              <CategorySearch key={location.search} location={location} />
+              <CategorySearch location={location} />
             ) : (
               <FilterDrawer location={location} />
             )

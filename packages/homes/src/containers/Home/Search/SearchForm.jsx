@@ -79,14 +79,10 @@ export default function SearchForm() {
 
   const goToSearchPage = () => {
     if (!validate()) return;
-
     const query = {
       startDate: searchDate.setStartDate,
       endDate: searchDate.setEndDate,
-      date_range:
-        searchDate.setStartDate && searchDate.setEndDate
-          ? `${moment(searchDate.setStartDate, 'MM-DD-YYYY').format('YYYY-MM-DD')},${moment(searchDate.setEndDate, 'MM-DD-YYYY').format('YYYY-MM-DD')}`
-          : null,
+      date_range: `${searchDate.setStartDate}|${searchDate.setEndDate}`,
       room: roomGuest.room,
       guest: roomGuest.guest,
       address: searchInput,
@@ -95,7 +91,6 @@ export default function SearchForm() {
     const cleanedQuery = Object.fromEntries(
       Object.entries(query).filter(([_, v]) => v !== null && v !== ''),
     );
-
     const search = setStateToUrl(cleanedQuery);
 
     // Save to localStorage
@@ -103,7 +98,7 @@ export default function SearchForm() {
 
     navigate({
       pathname: LISTING_POSTS_PAGE,
-      search: `?${createSearchParams(search)}`,
+      search: setStateToUrl(cleanedQuery),
     });
   };
 

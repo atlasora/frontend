@@ -29,11 +29,18 @@ export function setStateToUrl(state) {
     if (state.hasOwnProperty(key)) {
       switch (key) {
         case 'date_range':
-          let data = Object.values(state[key]);
-          if (data[0] === null && data[1] === null) {
-            data = '';
+          if (typeof state[key] === 'string') {
+            urlData[key] = state[key];
+          } else if (
+            state[key] &&
+            state[key].setStartDate &&
+            state[key].setEndDate
+          ) {
+            urlData[key] =
+              `${state[key].setStartDate}|${state[key].setEndDate}`;
+          } else {
+            urlData[key] = '';
           }
-          urlData[key] = data && data.length ? data.join() : null;
           break;
         case 'amenities':
           urlData[key] =
@@ -100,14 +107,13 @@ export function getStateFromUrl(location) {
         //   break;
 
         case 'date_range':
-          const date = urlData[key] ? urlData[key] : null;
-          if (date) {
-            let splitDate = date ? date.split(',') : null;
-            let setStartDate = splitDate ? splitDate[0] : null;
-            let setEndDate = splitDate ? splitDate[1] : null;
-            state[key] = date
-              ? { setStartDate: setStartDate, setEndDate: setEndDate }
-              : null;
+          const date = urlData[key];
+          if (typeof date === 'string') {
+            const [setStartDate, setEndDate] = date.split('|');
+            state[key] = {
+              setStartDate: setStartDate || null,
+              setEndDate: setEndDate || null,
+            };
           }
           break;
 

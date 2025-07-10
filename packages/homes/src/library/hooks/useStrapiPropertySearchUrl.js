@@ -1,8 +1,8 @@
 //todo : reject if address search is under 3
-//todo : start date / end date filter setting on load
-//todo : amenities filter setting on load
-//todo : propety type filter setting on load
-//todo : price per night filter setting on load
+//todo : start date / end date filter does strapi call
+//todo : amenities filter setting  does strapi call
+//todo : propety type filter setting  does strapi call
+//todo : price per night filter setting  does strapi call
 /* todo
     location filter
     description filter
