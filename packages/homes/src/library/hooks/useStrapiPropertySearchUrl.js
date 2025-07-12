@@ -1,4 +1,3 @@
-//todo : reject if address search is under 3
 //todo : start date / end date filter does strapi call
 //todo : amenities filter setting  does strapi call
 //todo : propety type filter setting  does strapi call
@@ -10,7 +9,7 @@
     price per night filter
     start date filter
     end date filter
-
+    formatted address filter
 */
 
 import { useMemo } from 'react';
@@ -48,7 +47,7 @@ export default function useStrapiPropertySearchUrl(search) {
     } else {
       filterParams.push(`filters[$or][0][Title][$containsi]=${address}`);
     }
-
+    //room and guest filter
     if (room) filterParams.push(`filters[Rooms][$gte]=${room}`);
     if (guest) filterParams.push(`filters[MaxGuests][$gte]=${guest}`);
     /*
@@ -80,7 +79,7 @@ export default function useStrapiPropertySearchUrl(search) {
     }
 
     filterParams.push(`filters[CurrentlyRented][$eq]=false`);
-
+    //todo : maybe it is smart to pass these in one level up, but it works for now
     const populate = [
       'populate[currency]=true',
       'populate[Images]=true',
