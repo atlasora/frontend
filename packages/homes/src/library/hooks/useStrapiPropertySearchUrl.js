@@ -6,14 +6,10 @@
 /* todo
     location filter
     description filter
-    address filter
     property type filter
     price per night filter
     start date filter
     end date filter
-    room filter
-    guest filter
-    
 
 */
 
@@ -40,23 +36,22 @@ export default function useStrapiPropertySearchUrl(search) {
     const amenities = queryParams.get('amenities');
     const property = queryParams.get('property');
 
-    filterParams.push(`filters[Title][$containsi]=${address}`);
+    //check title and address or just title if too little for address
     if (address && address.length >= 4) {
-      //why are we encoding it it?
-      //const encoded = encodeURIComponent(address);
-      /*
+      filterParams.push(`filters[$or][0][Title][$containsi]=${address}`);
       filterParams.push(`filters[$or][1][FormattedAddress][$eq]=${address}`);
       filterParams.push(`filters[$or][2][Address1][$eq]=${address}`);
       filterParams.push(`filters[$or][3][Address2][$eq]=${address}`);
       filterParams.push(`filters[$or][4][Address3][$eq]=${address}`);
       filterParams.push(`filters[$or][5][Address4][$eq]=${address}`);
       filterParams.push(`filters[$or][6][Address5][$eq]=${address}`);
-      */
+    } else {
+      filterParams.push(`filters[$or][0][Title][$containsi]=${address}`);
     }
 
-    /*if (room) filterParams.push(`filters[Rooms][$gte]=${room}`);
+    if (room) filterParams.push(`filters[Rooms][$gte]=${room}`);
     if (guest) filterParams.push(`filters[MaxGuests][$gte]=${guest}`);
-
+    /*
     if (price) {
       const [min, max] = price.split(',');
       if (min) filterParams.push(`filters[PricePerNight][$gte]=${min}`);
