@@ -20,11 +20,11 @@ import CategorySearchWrapper, {
   ActionWrapper,
 } from './CategorySearch.style';
 
-const CategorySearch = ({ location }) => {
+const CategorySearch = ({ location, maxPrice = 500 }) => {
   const navigate = useNavigate();
   const searchParams = getStateFromUrl(location);
 
-  // 🔥 Fallback to saved localStorage params
+  // Fallback to saved localStorage params
   const savedParams = localStorage.getItem('listing_search_params') || '';
   const savedSearchParams = new URLSearchParams(savedParams);
   const fallbackAddress = savedSearchParams.get('address') || '';
@@ -40,15 +40,15 @@ const CategorySearch = ({ location }) => {
     },
     price: searchParams.price || {
       min: 0,
-      max: 100,
+      max: maxPrice,
       defaultMin: 0,
-      defaultMax: 100,
+      defaultMax: maxPrice,
     },
     location: searchParams.location || {
       lat: null,
       lng: null,
     },
-    address: address, // ✅ Ensure it's always there
+    address: address, // Ensure it's always there
     room: parseInt(searchParams.room) || 0,
     guest: parseInt(searchParams.guest) || 0,
   };
@@ -118,9 +118,9 @@ const CategorySearch = ({ location }) => {
       },
       price: {
         min: 0,
-        max: 100,
+        max: 500,
         defaultMin: 0,
-        defaultMax: 100,
+        defaultMax: 500,
       },
       location: {
         lat: null,
@@ -218,7 +218,7 @@ const CategorySearch = ({ location }) => {
         noView
         view={
           <Button type="default">
-            {price.min > 0 || price.max < 100
+            {price.min > 0 || price.max < 500
               ? `Price: ${price.min}, ${price.max}`
               : `Price per night`}
           </Button>
@@ -226,9 +226,9 @@ const CategorySearch = ({ location }) => {
         popup={
           <Slider
             range
-            marks={priceInit}
-            min={price.defaultMin}
-            max={price.defaultMax}
+            marks={{ 0: '$0', [maxPrice]: `$${maxPrice}` }}
+            min={0}
+            max={maxPrice}
             defaultValue={[price.min, price.max]}
             onAfterChange={(value) => onChange(value, 'price')}
           />

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, Fragment } from 'react';
+import React, { useState, useEffect, Fragment, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Sticky from 'react-stickynode';
 import { Checkbox } from 'antd';
@@ -73,6 +73,11 @@ export default function Listing() {
     10,
   );
 
+  const maxPriceFromData = useMemo(() => {
+    if (!data || data.length === 0) return 500; // fallback
+    return Math.max(...data.map((item) => item.PricePerNight * 2 || 0));
+  }, [data]);
+
   useEffect(() => {
     if (!searchReady || !strapiUrl) return;
     doFetch(strapiUrl);
@@ -93,7 +98,7 @@ export default function Listing() {
         <Toolbar
           left={
             width > 991 ? (
-              <CategorySearch location={location} />
+              <CategorySearch location={location} maxPrice={maxPriceFromData} />
             ) : (
               <FilterDrawer location={location} />
             )

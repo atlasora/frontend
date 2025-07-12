@@ -50,13 +50,13 @@ export default function useStrapiPropertySearchUrl(search) {
     //room and guest filter
     if (room) filterParams.push(`filters[Rooms][$gte]=${room}`);
     if (guest) filterParams.push(`filters[MaxGuests][$gte]=${guest}`);
-    /*
+
     if (price) {
       const [min, max] = price.split(',');
       if (min) filterParams.push(`filters[PricePerNight][$gte]=${min}`);
       if (max) filterParams.push(`filters[PricePerNight][$lte]=${max}`);
     }
-
+    /*
     if (property) {
       const types = property.split(',');
       types.forEach((type, i) => {

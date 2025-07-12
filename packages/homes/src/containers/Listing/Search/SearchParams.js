@@ -1,7 +1,7 @@
 // default data for filter elements
 export const priceInit = {
   0: '$0',
-  100: '$100',
+  500: '$500',
 };
 
 export const calenderItem = {
