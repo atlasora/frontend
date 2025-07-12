@@ -50,9 +50,11 @@ export default function useStrapiPropertySearchUrl(search) {
     //room and guest filter
     if (room) filterParams.push(`filters[Rooms][$gte]=${room}`);
     if (guest) filterParams.push(`filters[MaxGuests][$gte]=${guest}`);
-
+    //localhost:5173/listing?startDate=07-11-2025&endDate=07-15-2025&date_range=07-11-2025%7C07-15-2025&room=1&guest=1&address=great&price=604%2C2000
+    //http:
     if (price) {
       const [min, max] = price.split(',');
+      //console.log(min, max);
       if (min) filterParams.push(`filters[PricePerNight][$gte]=${min}`);
       if (max) filterParams.push(`filters[PricePerNight][$lte]=${max}`);
     }
