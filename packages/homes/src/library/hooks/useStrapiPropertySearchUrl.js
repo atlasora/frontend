@@ -1,12 +1,10 @@
 //todo : start date / end date filter does strapi call
 //todo : amenities filter setting  does strapi call
 //todo : propety type filter setting  does strapi call
-//todo : price per night filter setting  does strapi call
 /* todo
     location filter
     description filter
     property type filter
-    price per night filter
     start date filter
     end date filter
     formatted address filter
