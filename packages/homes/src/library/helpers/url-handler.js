@@ -29,11 +29,18 @@ export function setStateToUrl(state) {
     if (state.hasOwnProperty(key)) {
       switch (key) {
         case 'date_range':
-          let data = Object.values(state[key]);
-          if (data[0] === null && data[1] === null) {
-            data = '';
+          if (typeof state[key] === 'string') {
+            urlData[key] = state[key];
+          } else if (
+            state[key] &&
+            state[key].setStartDate &&
+            state[key].setEndDate
+          ) {
+            urlData[key] =
+              `${state[key].setStartDate}|${state[key].setEndDate}`;
+          } else {
+            urlData[key] = '';
           }
-          urlData[key] = data && data.length ? data.join() : null;
           break;
         case 'amenities':
           urlData[key] =
@@ -58,8 +65,12 @@ export function setStateToUrl(state) {
             state[key] && state[key].length ? state[key].join() : null;
           break;
         case 'price':
-          urlData[key] =
-            state[key] && state[key].length ? state[key].join() : null;
+          if (state[key] && typeof state[key] === 'object') {
+            const { min, max } = state[key];
+            if (min != null && max != null) {
+              urlData[key] = `${min},${max}`;
+            }
+          }
           break;
         case 'location':
           if (state[key] && state[key].lat) {
@@ -82,7 +93,8 @@ export function setStateToUrl(state) {
   return createUrl(urlData);
 }
 
-export function getStateFromUrl(location) {
+export function getStateFromUrl(location, maxPrice = 500) {
+  //console.log(maxPrice);
   const urlData = getUrl(location);
   const state = {};
   for (const key in urlData) {
@@ -100,14 +112,13 @@ export function getStateFromUrl(location) {
         //   break;
 
         case 'date_range':
-          const date = urlData[key] ? urlData[key] : null;
-          if (date) {
-            let splitDate = date ? date.split(',') : null;
-            let setStartDate = splitDate ? splitDate[0] : null;
-            let setEndDate = splitDate ? splitDate[1] : null;
-            state[key] = date
-              ? { setStartDate: setStartDate, setEndDate: setEndDate }
-              : null;
+          const date = urlData[key];
+          if (typeof date === 'string') {
+            const [setStartDate, setEndDate] = date.split('|');
+            state[key] = {
+              setStartDate: setStartDate || null,
+              setEndDate: setEndDate || null,
+            };
           }
           break;
 
@@ -143,27 +154,16 @@ export function getStateFromUrl(location) {
           break;
 
         case 'price':
-          const defaultPrice = {
-            min: 0,
-            max: 100,
-            defaultMin: 0,
-            defaultMax: 100,
-          };
-          const price = urlData[key] ? urlData[key].split(',') : defaultPrice;
-          if (price) {
-            let min, max;
-            min = price ? Number(price[0]) : 0;
-            max = price ? Number(price[1]) : 100;
-            if (min > 0 || max < 100) {
-              state[key] = {
-                min: min,
-                max: max,
-                defaultMin: 0,
-                defaultMax: 100,
-              };
-            } else {
-              state[key] = '';
-            }
+          const [minStr, maxStr] = (urlData[key] || '').split(',');
+          const min = Number(minStr);
+          const max = Number(maxStr);
+          if (!isNaN(min) && !isNaN(max)) {
+            state[key] = {
+              min,
+              max,
+              defaultMin: 0,
+              defaultMax: Math.max(max, maxPrice || 500), // Don't clip max
+            };
           }
           break;
 

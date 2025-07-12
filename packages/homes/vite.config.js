@@ -15,7 +15,10 @@ export default defineConfig({
     },
   },
   server: {
-    historyApiFallback: true, // 👈 Add this
+    // 👇 This is correct Vite usage (from Connect middleware under the hood)
+    fs: {
+      allow: ['.'],
+    },
   },
   build: {
     outDir: 'build',

@@ -5,25 +5,27 @@ import { Button, Slider, Checkbox } from 'antd';
 import ViewWithPopup from 'components/UI/ViewWithPopup/ViewWithPopup';
 import InputIncDec from 'components/UI/InputIncDec/InputIncDec';
 import DateRangePicker from 'components/UI/DatePicker/ReactDates';
-//import { setStateToUrl, getStateFromUrl } from '../url-handler';
 import { setStateToUrl, getStateFromUrl } from 'library/helpers/url-handler';
 
 import { LISTING_POSTS_PAGE } from 'settings/constant';
-import {
-  priceInit,
-  calenderItem,
-  getAmenities,
-  getPropertyType,
-} from '../SearchParams';
+import { calenderItem, getAmenities, getPropertyType } from '../SearchParams';
 import CategorySearchWrapper, {
   RoomGuestWrapper,
   ItemWrapper,
   ActionWrapper,
 } from './CategorySearch.style';
 
-const CategorySearch = ({ location }) => {
-  let navigate = useNavigate();
-  const searchParams = getStateFromUrl(location);
+const CategorySearch = ({ location, maxPrice = 500 }) => {
+  const navigate = useNavigate();
+  const searchParams = getStateFromUrl(location, maxPrice);
+
+  // Load from localStorage if needed
+  const savedParams = localStorage.getItem('listing_search_params') || '';
+  const savedSearchParams = new URLSearchParams(savedParams);
+  const fallbackAddress = savedSearchParams.get('address') || '';
+
+  const address = searchParams.address || fallbackAddress;
+
   const state = {
     amenities: searchParams.amenities || [],
     property: searchParams.property || [],
@@ -33,40 +35,44 @@ const CategorySearch = ({ location }) => {
     },
     price: searchParams.price || {
       min: 0,
-      max: 100,
+      max: maxPrice,
       defaultMin: 0,
-      defaultMax: 100,
+      defaultMax: maxPrice,
     },
     location: searchParams.location || {
       lat: null,
       lng: null,
     },
+    address,
     room: parseInt(searchParams.room) || 0,
     guest: parseInt(searchParams.guest) || 0,
   };
+
   const { amenities, property, date_range, price, room, guest } = state;
   const [countRoom, setRoom] = useState(room);
   const [countGuest, setGuest] = useState(guest);
 
   const onChange = (value, type) => {
-    // Get the current state from the URL
-    const currentState = getStateFromUrl(location);
+    const currentState = getStateFromUrl(location, maxPrice);
 
-    // Update the current state with the new filter value
     const updatedState = {
       ...currentState,
       [type]: value,
+      address: currentState.address || address,
     };
 
-    // If the filter is price, make sure it's in the correct format
     if (type === 'price') {
-      updatedState.price = { min: value[0], max: value[1] };
+      const [min, max] = value;
+      updatedState.price = {
+        min,
+        max,
+        defaultMin: 0,
+        defaultMax: Math.max(max, maxPrice),
+      };
     }
 
-    // Create a new query string using the updated state
     const search = setStateToUrl(updatedState, location);
 
-    // Update the URL with the new query string
     navigate({
       pathname: LISTING_POSTS_PAGE,
       search: `?${createSearchParams(search)}`,
@@ -79,8 +85,8 @@ const CategorySearch = ({ location }) => {
       room: countRoom,
       guest: countGuest,
     };
-    const search = setStateToUrl(query, location);
 
+    const search = setStateToUrl(query, location);
     navigate({
       pathname: LISTING_POSTS_PAGE,
       search: `?${createSearchParams(search)}`,
@@ -90,11 +96,8 @@ const CategorySearch = ({ location }) => {
   const handleRoomGuestCancel = () => {
     setRoom(0);
     setGuest(0);
-    const query = {
-      ...state,
-      room: 0,
-      guest: 0,
-    };
+
+    const query = { ...state, room: 0, guest: 0 };
     const search = setStateToUrl(query, location);
     navigate({
       pathname: LISTING_POSTS_PAGE,
@@ -103,7 +106,6 @@ const CategorySearch = ({ location }) => {
   };
 
   const onSearchReset = () => {
-    // Reset all filters to their default values
     const resetState = {
       amenities: [],
       property: [],
@@ -113,21 +115,17 @@ const CategorySearch = ({ location }) => {
       },
       price: {
         min: 0,
-        max: 100,
+        max: maxPrice,
         defaultMin: 0,
-        defaultMax: 100,
+        defaultMax: maxPrice,
       },
-      location: {
-        lat: null,
-        lng: null,
-      },
+      location: { lat: null, lng: null },
+      address: '',
       room: 0,
       guest: 0,
     };
 
     const search = setStateToUrl(resetState, location);
-
-    // Navigate to the same page but with cleared filters
     navigate({
       pathname: LISTING_POSTS_PAGE,
       search: `?${createSearchParams(search)}`,
@@ -136,10 +134,11 @@ const CategorySearch = ({ location }) => {
 
   return (
     <CategorySearchWrapper>
+      {/* Amenities */}
       <ViewWithPopup
         className={amenities.length ? 'activated' : ''}
         key={getAmenities.id}
-        noView={true}
+        noView
         view={
           <Button type="default">
             {getAmenities.name}
@@ -155,10 +154,11 @@ const CategorySearch = ({ location }) => {
         }
       />
 
+      {/* Property Type */}
       <ViewWithPopup
         className={property.length ? 'activated' : ''}
         key={getPropertyType.id}
-        noView={true}
+        noView
         view={
           <Button type="default">
             {getPropertyType.name}
@@ -174,15 +174,13 @@ const CategorySearch = ({ location }) => {
         }
       />
 
+      {/* Date Picker */}
       <ViewWithPopup
         className={
-          Object.keys('date_range').length !== null &&
-          date_range.setStartDate !== null
-            ? 'activated'
-            : ''
+          date_range.setStartDate && date_range.setEndDate ? 'activated' : ''
         }
         key={400}
-        noView={true}
+        noView
         view={<Button type="default">Choose Date</Button>}
         popup={
           <DateRangePicker
@@ -199,24 +197,25 @@ const CategorySearch = ({ location }) => {
                 : null
             }
             numberOfMonths={1}
-            small={true}
+            small
             item={calenderItem}
             updateSearchData={(value) => onChange(value, 'date_range')}
           />
         }
       />
 
+      {/* Price Slider */}
       <ViewWithPopup
         className={
-          price.min === price.defaultMin && price.max === price.defaultMax
-            ? ''
-            : 'activated'
+          price.min !== price.defaultMin || price.max !== price.defaultMax
+            ? 'activated'
+            : ''
         }
         key={300}
-        noView={true}
+        noView
         view={
           <Button type="default">
-            {price.min > 0 || price.max < 100
+            {price.min > 0 || price.max < maxPrice
               ? `Price: ${price.min}, ${price.max}`
               : `Price per night`}
           </Button>
@@ -224,7 +223,7 @@ const CategorySearch = ({ location }) => {
         popup={
           <Slider
             range
-            marks={priceInit}
+            marks={{ 0: '$0', [price.defaultMax]: `$${price.defaultMax}` }}
             min={price.defaultMin}
             max={price.defaultMax}
             defaultValue={[price.min, price.max]}
@@ -233,13 +232,14 @@ const CategorySearch = ({ location }) => {
         }
       />
 
+      {/* Room & Guest */}
       <ViewWithPopup
         key={200}
-        noView={true}
+        noView
         className={countRoom || countGuest ? 'activated' : ''}
         view={
           <Button type="default">
-            Room {countRoom > 0 && `: ${countRoom}`}, Guest
+            Room {countRoom > 0 && `: ${countRoom}`}, Guest{' '}
             {countGuest > 0 && `: ${countGuest}`}
           </Button>
         }
@@ -249,35 +249,27 @@ const CategorySearch = ({ location }) => {
               <strong>Room</strong>
               <InputIncDec
                 id="room"
-                increment={() => setRoom((countRoom) => countRoom + 1)}
-                decrement={() =>
-                  setRoom((countRoom) => countRoom > 0 && countRoom - 1)
-                }
-                onChange={(e) => setRoom(e.target.value)}
+                increment={() => setRoom((c) => c + 1)}
+                decrement={() => setRoom((c) => Math.max(0, c - 1))}
+                onChange={(e) => setRoom(Number(e.target.value))}
                 value={countRoom}
               />
             </ItemWrapper>
-
             <ItemWrapper>
               <strong>Guest</strong>
               <InputIncDec
                 id="guest"
-                increment={() => setGuest((countGuest) => countGuest + 1)}
-                decrement={() =>
-                  setGuest((countGuest) => countGuest > 0 && countGuest - 1)
-                }
-                onChange={(e) => setGuest(e.target.value)}
+                increment={() => setGuest((c) => c + 1)}
+                decrement={() => setGuest((c) => Math.max(0, c - 1))}
+                onChange={(e) => setGuest(Number(e.target.value))}
                 value={countGuest}
               />
             </ItemWrapper>
-
             <ActionWrapper>
-              {countRoom || countGuest ? (
+              {(countRoom || countGuest) && (
                 <Button type="default" onClick={handleRoomGuestCancel}>
                   Clear
                 </Button>
-              ) : (
-                ''
               )}
               <Button type="primary" onClick={handleRoomGuestApply}>
                 Apply
@@ -286,6 +278,8 @@ const CategorySearch = ({ location }) => {
           </RoomGuestWrapper>
         }
       />
+
+      {/* Reset */}
       <div className="view_with__popup">
         <div className="popup_handler">
           <Button type="default" onClick={onSearchReset}>

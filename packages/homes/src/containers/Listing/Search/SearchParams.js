@@ -1,7 +1,7 @@
 // default data for filter elements
 export const priceInit = {
   0: '$0',
-  100: '$100',
+  500: '$500',
 };
 
 export const calenderItem = {
@@ -19,7 +19,7 @@ export const getAmenities = {
     { label: 'Free Parking', value: 'free-parking' },
     { label: 'Breakfast included', value: 'breakfast' },
     { label: 'Pool', value: 'pool' },
-    { label: 'Air Conditioning', value: 'air-condition' },
+    { label: 'Air Conditioning', value: 'air-conditioning' },
     { label: 'Hot Shower', value: 'hot-shower' },
     { label: 'Cable TV', value: 'cable-tv' },
   ],

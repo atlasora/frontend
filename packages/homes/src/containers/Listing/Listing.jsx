@@ -1,16 +1,19 @@
-// Listing.jsx
-import React, { useState, useEffect, Fragment } from 'react';
+import React, { useState, useEffect, Fragment, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Sticky from 'react-stickynode';
 import { Checkbox } from 'antd';
+
 import useWindowSize from 'library/hooks/useWindowSize';
 import useDataApi from 'library/hooks/useDataApi';
+import useStrapiPropertySearchUrl from 'library/hooks/useStrapiPropertySearchUrl';
+
 import Toolbar from 'components/UI/Toolbar/Toolbar';
 import { PostPlaceholder } from 'components/UI/ContentLoader/ContentLoader';
 import SectionGrid from 'components/SectionGrid/SectionGrid';
 import FilterDrawer from './Search/MobileSearchView';
 import CategorySearch from './Search/CategorySearch/CategorySearch';
 import ListingMap from './ListingMap';
+
 import { SINGLE_POST_PAGE } from 'settings/constant';
 import ListingWrapper, { PostsWrapper, ShowMapCheckbox } from './Listing.style';
 
@@ -21,36 +24,71 @@ export default function Listing() {
   const navigate = useNavigate();
   const { width } = useWindowSize();
   const [showMap, setShowMap] = useState(false);
+  const [searchReady, setSearchReady] = useState(false);
+  const strapiUrl = useStrapiPropertySearchUrl(location.search);
+  const hasQuery = location.search && location.search.length > 1;
 
+  // 1. On first load, fallback to stored filters if no query
   useEffect(() => {
-    if (!location.search) {
-      const storedParams = localStorage.getItem(PARAMS_KEY);
-      if (storedParams) {
-        navigate(`/listing${storedParams}`, { replace: true });
-      }
+    const storedParams = localStorage.getItem(PARAMS_KEY);
+    if (!hasQuery && storedParams) {
+      navigate(`/listing${storedParams}`, { replace: true });
     } else {
-      localStorage.setItem(PARAMS_KEY, location.search);
+      setSearchReady(true);
     }
-  }, [location.search, navigate]);
+  }, []); // Run only once on mount
 
-  const baseFilters = location.search
-    ? location.search.replace(/^\?/, '')
-    : 'populate=*';
+  // 2. On query param change (e.g., nav search), update all stored filters
+  useEffect(() => {
+    //debug code
+    // location.search =
+    //'?startDate=07-11-2025&endDate=07-12-2025&room=1&guest=1&address=great&amenities=free-wifi&property=Villa&date_range=07-11-2025,07-12-2025';
+    //console.log('location.search', location.search);
+    if (!location.search) return;
 
-  const { data, total, pagination, loading, error, doFetch, loadMoreData } =
-    useDataApi(
-      `${import.meta.env.VITE_APP_API_URL}properties?${baseFilters}`,
-      import.meta.env.VITE_APP_API_TOKEN,
-      10,
-      'properties',
+    const currentParams = new URLSearchParams(location.search);
+    const storedParams = new URLSearchParams(
+      localStorage.getItem(PARAMS_KEY) || '',
     );
 
+    // Merge all current query params into stored
+    for (const [key, value] of currentParams.entries()) {
+      storedParams.set(key, value);
+    }
+
+    let updatedSearch = `?${storedParams.toString()}`;
+    // console.log(updatedSearch);
+    //note : this is an example so we can test filter rendering
+    //updatedSearch =
+    //  '?startDate=07-11-2025&endDate=07-12-2025&room=1&guest=1&address=great&amenities=free-wifi&property=Villa&date_range=2025-07-11,2025-07-12';
+
+    localStorage.setItem(PARAMS_KEY, updatedSearch);
+    setSearchReady(true);
+  }, [location.search]);
+
+  // 3. Data fetching
+  const { data, total, loading, error, loadMoreData, doFetch } = useDataApi(
+    null,
+    import.meta.env.VITE_APP_API_TOKEN,
+    10,
+  );
+
+  const maxPriceFromData = useMemo(() => {
+    if (!data || data.length === 0) return 500; // fallback
+    return Math.max(...data.map((item) => item.PricePerNight * 2 || 0));
+  }, [data]);
+
+  useEffect(() => {
+    if (!searchReady || !strapiUrl) return;
+    doFetch(strapiUrl);
+  }, [searchReady, strapiUrl, doFetch]);
+
   const limit = 100;
-  let columnWidth = [1 / 1, 1 / 2, 1 / 3, 1 / 4, 1 / 5];
-  if (showMap) columnWidth = [1 / 1, 1 / 2, 1 / 2, 1 / 2, 1 / 3];
+  const columnWidth = showMap
+    ? [1 / 1, 1 / 2, 1 / 2, 1 / 2, 1 / 3]
+    : [1 / 1, 1 / 2, 1 / 3, 1 / 4, 1 / 5];
 
   const handleMapToggle = () => setShowMap((prev) => !prev);
-
   const isEmpty = !loading && data.length === 0;
   const isLoadMoreVisible = data.length < (total?.length || 0);
 
@@ -60,7 +98,7 @@ export default function Listing() {
         <Toolbar
           left={
             width > 991 ? (
-              <CategorySearch key={location.search} location={location} />
+              <CategorySearch location={location} maxPrice={maxPriceFromData} />
             ) : (
               <FilterDrawer location={location} />
             )
