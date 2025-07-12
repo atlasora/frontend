@@ -1,9 +1,6 @@
-//todo : start date / end date filter does strapi call
 /* todo
     location filter
     description filter
-    start date filter
-    end date filter
     formatted address filter
 */
 
