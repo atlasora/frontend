@@ -23,6 +23,7 @@ export default function useStrapiPropertySearchUrl(search) {
     const filterParams = [];
 
     const address = queryParams.get('address');
+    //todo: add the date range later when the booking engine is in place
     const dateRange = queryParams.get('date_range');
     const room = queryParams.get('room');
     const guest = queryParams.get('guest');
