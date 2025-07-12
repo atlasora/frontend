@@ -1,10 +1,8 @@
 //todo : start date / end date filter does strapi call
 //todo : amenities filter setting  does strapi call
-//todo : propety type filter setting  does strapi call
 /* todo
     location filter
     description filter
-    property type filter
     start date filter
     end date filter
     formatted address filter
@@ -48,15 +46,13 @@ export default function useStrapiPropertySearchUrl(search) {
     //room and guest filter
     if (room) filterParams.push(`filters[Rooms][$gte]=${room}`);
     if (guest) filterParams.push(`filters[MaxGuests][$gte]=${guest}`);
-    //localhost:5173/listing?startDate=07-11-2025&endDate=07-15-2025&date_range=07-11-2025%7C07-15-2025&room=1&guest=1&address=great&price=604%2C2000
-    //http:
+
     if (price) {
       const [min, max] = price.split(',');
-      //console.log(min, max);
       if (min) filterParams.push(`filters[PricePerNight][$gte]=${min}`);
       if (max) filterParams.push(`filters[PricePerNight][$lte]=${max}`);
     }
-    /*
+
     if (property) {
       const types = property.split(',');
       types.forEach((type, i) => {
@@ -65,11 +61,8 @@ export default function useStrapiPropertySearchUrl(search) {
         );
       });
     }
-  */
-    if (amenities) {
-      // http://localhost:1337/api/properties?filters[Title][$containsi]=grea&
-      //filters[property_amenities][Name][$in][0] = Free % 20Wifi & filters[property_amenities][Name][$in][1]=Free % 20Parking & filters[CurrentlyRented][$eq]=false & populate[currency]=true & populate[Images]=true & populate[property_amenities]=true & populate[property_type]=true
 
+    if (amenities) {
       const items = amenities.split(',');
       items.forEach((slug, i) => {
         filterParams.push(
