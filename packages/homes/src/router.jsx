@@ -12,6 +12,7 @@ import {
   AGENT_PROFILE_BOOKING,
   AGENT_PROFILE_FAVORITE,
   AGENT_PROFILE_LISTING,
+  AGENT_PROFILE_CHAT,
   PRIVACY_PAGE,
   LOGIN_PAGE,
   REGISTRATION_PAGE,
@@ -75,6 +76,9 @@ const AgentFavItemLists = React.lazy(
 );
 const AgentBookingPage = React.lazy(
   () => import('containers/Agent/AccountDetails/AgentBookingPage'),
+);
+const AgentChatPage = React.lazy(
+  () => import('containers/Agent/AccountDetails/AgentChatPage'),
 );
 
 const PaymentPage = React.lazy(() => import('containers/Payment/Payment'));
@@ -246,6 +250,15 @@ export default function AppRoutes() {
             element={
               <React.Suspense fallback={<Loader />}>
                 <AgentFavItemLists />
+              </React.Suspense>
+            }
+          />
+
+          <Route
+            path={AGENT_PROFILE_CHAT}
+            element={
+              <React.Suspense fallback={<Loader />}>
+                <AgentChatPage />
               </React.Suspense>
             }
           />

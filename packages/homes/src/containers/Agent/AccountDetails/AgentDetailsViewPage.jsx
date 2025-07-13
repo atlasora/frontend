@@ -24,6 +24,7 @@ import {
   AGENT_PROFILE_BOOKING,
   AGENT_PROFILE_FAVORITE,
   AGENT_PROFILE_LISTING,
+  AGENT_PROFILE_CHAT,
 } from 'settings/constant';
 import AgentDetailsPage, {
   BannerSection,
@@ -68,6 +69,14 @@ const ProfileNavigation = (props) => {
         </NavLink>
       ),
       key: 'favorite',
+    },
+    {
+      label: (
+        <NavLink to={`${AGENT_PROFILE_PAGE}/${AGENT_PROFILE_CHAT}`}>
+          Chat
+        </NavLink>
+      ),
+      key: 'chat',
     },
   ];
 
