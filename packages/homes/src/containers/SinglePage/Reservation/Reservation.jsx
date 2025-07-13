@@ -37,7 +37,7 @@ const CardHeader = ({
 };
 
 // Accept propertyId and slug as props
-export default function Reservation({ price, propertyId, slug }) {
+export default function Reservation({ price, propertyId, title }) {
   return (
     <Card
       className="reservation_sidebar"
@@ -45,7 +45,7 @@ export default function Reservation({ price, propertyId, slug }) {
       content={
         <RenderReservationForm
           propertyId={propertyId}
-          slug={slug}
+          title={title}
           price={price}
         />
       }

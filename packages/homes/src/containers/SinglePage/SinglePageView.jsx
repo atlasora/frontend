@@ -148,8 +148,11 @@ const SinglePage = () => {
               <BottomReservation
                 title={title}
                 price={`${currency}${price}`}
+                currency={currency}
                 rating={rating}
                 ratingCount={ratingCount}
+                propertyId={raw.id}
+                slug={slug} // from URL params or generate from title
               />
             )}
           </Col>
