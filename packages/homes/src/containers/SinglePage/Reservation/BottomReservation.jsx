@@ -7,7 +7,6 @@ import Reservation from './Reservation';
 
 const BottomReservation = ({ title, price, rating, ratingCount }) => {
   const [visible, setVisible] = useState(false);
-
   return (
     <>
       <StickyBooking
@@ -34,7 +33,7 @@ const BottomReservation = ({ title, price, rating, ratingCount }) => {
         wrapClassName="reservation_modal"
         closable={false}
       >
-        <Reservation />
+        <Reservation price={price} />
         <Button onClick={() => setVisible(false)} className="close">
           <IoIosClose />
         </Button>

@@ -91,7 +91,7 @@ const PaymentPage = () => {
   const handlePayment = async (paymentMethod) => {
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_APP_API_URL}proeprty-bookings`,
+        `${import.meta.env.VITE_APP_API_URL}property-bookings`,
         {
           method: 'POST',
           headers: {

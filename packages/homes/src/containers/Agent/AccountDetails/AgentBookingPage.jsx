@@ -20,13 +20,11 @@ const AgentBookingPage = () => {
   }, [loggedIn, navigate]);
   //todo : add currency
   const { data: bookingsData, loading: bookingsLoading } = useDataApi(
-    `${import.meta.env.VITE_APP_API_URL}proeprty-bookings?filters[users_permissions_user][id][$eq]=${userInfo?.id}&populate[property][populate]=currency`,
+    `${import.meta.env.VITE_APP_API_URL}property-bookings?filters[users_permissions_user][id][$eq]=${userInfo?.id}&populate[property][populate]=currency`,
     import.meta.env.VITE_APP_API_TOKEN,
     10,
-    'proeprty-bookings',
-    [],
   );
-
+  console.log(bookingsData);
   const handleCancelBooking = (bookingId) => {
     if (confirm('Are you sure you want to cancel this booking?')) {
       console.log(`Cancel booking ID: ${bookingId}`);
@@ -46,6 +44,7 @@ const AgentBookingPage = () => {
   if (!loggedIn) return null; // Or <Loader />
 
   if (bookingsLoading) return <Loader />;
+  console.log('bookingsData:', bookingsData);
 
   return (
     <Container>

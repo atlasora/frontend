@@ -9,12 +9,18 @@ import ChatModal from './ChatModal';
 const AgentChatPage = () => {
   const { user } = useContext(AuthContext);
   const { data: bookingsData, loading } = useDataApi(
-    `${import.meta.env.VITE_APP_API_URL}proeprty-bookings?filters[users_permissions_user][id][$eq]=${user?.id}&populate=property`,
+    `${import.meta.env.VITE_APP_API_URL}property-bookings?filters[users_permissions_user][id][$eq]=${user?.id}&populate=property`,
     import.meta.env.VITE_APP_API_TOKEN,
     10,
-    'proeprty-bookings',
-    [],
   );
+
+  http: console.log('User ID:', user?.id);
+  console.log(
+    'API URL:',
+    `${import.meta.env.VITE_APP_API_URL}property-bookings?filters[users_permissions_user][id][$eq]=${user?.id}&populate=property`,
+  );
+  console.log('Bookings Data:', bookingsData);
+
   const [activeBookingId, setActiveBookingId] = useState(null);
 
   if (loading) return <Loader />;

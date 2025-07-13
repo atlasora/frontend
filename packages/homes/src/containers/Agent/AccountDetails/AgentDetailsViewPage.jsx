@@ -99,11 +99,9 @@ const AgentProfileInfo = () => {
 
   const { data: bookingsData, loading: bookingsLoading } = useDataApi(
     //todo get the currency
-    `${import.meta.env.VITE_APP_API_URL}proeprty-bookings?filters[users_permissions_user][id][$eq]=${userInfo?.id}&populate=property&populate=users_permissions_user`,
+    `${import.meta.env.VITE_APP_API_URL}property-bookings?filters[users_permissions_user][id][$eq]=${userInfo?.id}&populate=property&populate=users_permissions_user`,
     import.meta.env.VITE_APP_API_TOKEN,
     10,
-    'proeprty-bookings',
-    [],
   );
 
   if (!userInfo) return <Loader />;

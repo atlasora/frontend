@@ -55,6 +55,7 @@ const SinglePage = () => {
   const raw = data[0];
 
   // Extract data
+
   const title = raw.Title;
   const price = raw.PricePerNight;
   const gallery = raw.Images || [];
