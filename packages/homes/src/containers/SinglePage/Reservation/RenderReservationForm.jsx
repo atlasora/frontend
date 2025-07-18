@@ -17,9 +17,17 @@ import ReservationFormWrapper, {
 
 const PARAMS_KEY = 'listing_search_params';
 
-// ✅ Accept props
-const RenderReservationForm = ({ propertyId, slug }) => {
+// ✅ Slugify helper
+const slugify = (text) =>
+  text
+    ?.toLowerCase()
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/[^\w-]+/g, '') || '';
+
+const RenderReservationForm = ({ propertyId, title }) => {
   const navigate = useNavigate();
+  const slug = slugify(title);
 
   const [formState, setFormState] = useState({
     startDate: null,
@@ -94,7 +102,6 @@ const RenderReservationForm = ({ propertyId, slug }) => {
       return;
     }
 
-    // ✅ Add id and slug to query
     const queryParams = new URLSearchParams({
       startDate: startDate.format('MM-DD-YYYY'),
       endDate: endDate.format('MM-DD-YYYY'),

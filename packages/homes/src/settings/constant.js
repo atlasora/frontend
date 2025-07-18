@@ -15,6 +15,7 @@ export const AGENT_IMAGE_EDIT_PAGE = 'change-image';
 export const AGENT_PASSWORD_CHANGE_PAGE = 'change-password';
 export const AGENT_PROFILE_DELETE = '/delete';
 export const AGENT_PROFILE_LISTING = 'listing';
+export const AGENT_PROFILE_CHAT = 'chat';
 // Other Pages
 export const PRICING_PLAN_PAGE = '/pricing-plan';
 export const PRIVACY_PAGE = '/privacy';

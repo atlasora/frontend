@@ -24,6 +24,7 @@ import {
   AGENT_PROFILE_BOOKING,
   AGENT_PROFILE_FAVORITE,
   AGENT_PROFILE_LISTING,
+  AGENT_PROFILE_CHAT,
 } from 'settings/constant';
 import AgentDetailsPage, {
   BannerSection,
@@ -69,6 +70,14 @@ const ProfileNavigation = (props) => {
       ),
       key: 'favorite',
     },
+    {
+      label: (
+        <NavLink to={`${AGENT_PROFILE_PAGE}/${AGENT_PROFILE_CHAT}`}>
+          Chat
+        </NavLink>
+      ),
+      key: 'chat',
+    },
   ];
 
   return (
@@ -90,11 +99,9 @@ const AgentProfileInfo = () => {
 
   const { data: bookingsData, loading: bookingsLoading } = useDataApi(
     //todo get the currency
-    `${import.meta.env.VITE_APP_API_URL}proeprty-bookings?filters[users_permissions_user][id][$eq]=${userInfo?.id}&populate=property&populate=users_permissions_user`,
+    `${import.meta.env.VITE_APP_API_URL}property-bookings?filters[users_permissions_user][id][$eq]=${userInfo?.id}&populate=property&populate=users_permissions_user`,
     import.meta.env.VITE_APP_API_TOKEN,
     10,
-    'proeprty-bookings',
-    [],
   );
 
   if (!userInfo) return <Loader />;
