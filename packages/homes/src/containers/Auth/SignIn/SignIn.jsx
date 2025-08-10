@@ -1,9 +1,10 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Divider } from 'antd';
 import Logo from 'components/UI/Logo/Logo';
 import { REGISTRATION_PAGE } from 'settings/constant';
 import SignInForm from './SignInForm';
+import WalletConnectButton from 'components/WalletConnect/WalletConnectButton';
 import Wrapper, {
   Title,
   TitleInfo,
@@ -13,6 +14,28 @@ import Wrapper, {
 } from '../Auth.style';
 
 const SignIn = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // Capture the current location when user visits sign-in page
+  useEffect(() => {
+    // If user came from within the app, store the path
+    if (location.state?.from) {
+      // Already has redirect info, no need to do anything
+      return;
+    }
+
+    // If user came from external source or direct URL, set default redirect
+    const currentPath = location.pathname;
+    if (currentPath === '/sign-in' || currentPath === '/login') {
+      // User came directly to sign-in page, redirect to homepage after login
+      navigate(currentPath, { 
+        state: { from: '/' },
+        replace: true 
+      });
+    }
+  }, [location, navigate]);
+
   return (
     <Wrapper>
       <FormWrapper>
@@ -24,6 +47,13 @@ const SignIn = () => {
         />
         <Title>Welcome Back</Title>
         <TitleInfo>Please log into your account</TitleInfo>
+        
+        {/* Wallet Connect Button */}
+        <WalletConnectButton label="Connect with Wallet" />
+        
+        <Divider>or</Divider>
+        
+        {/* Normal Email/Password Login */}
         <SignInForm />
         <Divider> </Divider>
 
