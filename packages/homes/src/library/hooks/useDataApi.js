@@ -9,7 +9,7 @@ async function SuperFetch(
   customHeaders = {},
 ) {
   const headers = {
-    'Content-Type': 'application/json',
+    ...(method !== 'GET' ? { 'Content-Type': 'application/json' } : {}),
     ...(token && { Authorization: `Bearer ${token}` }),
     ...customHeaders,
   };
@@ -22,9 +22,37 @@ async function SuperFetch(
       : {}),
   };
 
-  const res = await fetch(url, options);
-  if (!res.ok) throw new Error(`HTTP error ${res.status}`);
-  return res.json();
+  try {
+    // Debug: request summary
+    if (import.meta?.env?.MODE !== 'production') {
+      console.debug('[useDataApi] →', method, url, token ? '(auth)' : '(no auth)');
+    }
+
+    const res = await fetch(url, options);
+    const text = await res.text();
+
+    if (!res.ok) {
+      let details = text;
+      try {
+        const json = JSON.parse(text);
+        details = json?.error?.message || JSON.stringify(json);
+      } catch {}
+      const errMsg = `HTTP error ${res.status}: ${details}`;
+      console.error('[useDataApi] ✖', errMsg);
+      throw new Error(errMsg);
+    }
+
+    // Parse JSON after ok
+    const json = text ? JSON.parse(text) : {};
+    if (import.meta?.env?.MODE !== 'production') {
+      const count = Array.isArray(json?.data) ? json.data.length : 0;
+      console.debug('[useDataApi] ✓', url, `items=${count}`);
+    }
+    return json;
+  } catch (e) {
+    console.error('[useDataApi] fetch failed:', e.message);
+    throw e;
+  }
 }
 
 function dataFetchReducer(state, action) {
@@ -88,7 +116,7 @@ const useDataApi = (
         if (!cancelled) {
           dispatch({ type: 'FETCH_SUCCESS', payload: result });
         }
-      } catch {
+      } catch (e) {
         if (!cancelled) {
           dispatch({ type: 'FETCH_FAILURE' });
         }

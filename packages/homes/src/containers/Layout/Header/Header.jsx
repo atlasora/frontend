@@ -82,7 +82,7 @@ export default function Header() {
     <HeaderWrapper>
       <Sticky
         top={headerType === 'transparent' ? -1 : 0}
-        innerZ={10001}
+        innerZ={500}
         activeClass="isHeaderSticky"
       >
         {width > 991 ? (
@@ -150,7 +150,7 @@ export default function Header() {
                   </AvatarImage>
                   <AvatarInfo>
                     <Text as="h3" content="Nova Scotia" />
-                    <TextLink link={USER_PROFILE_PAGE} content="View Profile" />
+                    <TextLink link={AGENT_PROFILE_PAGE} content="View Profile" />
                   </AvatarInfo>
                 </AvatarWrapper>
               ) : (

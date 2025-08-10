@@ -20,6 +20,7 @@ import {
   AGENT_ACCOUNT_SETTINGS_PAGE,
   AGENT_IMAGE_EDIT_PAGE,
   AGENT_PASSWORD_CHANGE_PAGE,
+  SMART_CONTRACT_DEMO_PAGE,
 } from './settings/constant';
 
 // 🔐 Protected route wrapper
@@ -81,6 +82,9 @@ const PaymentPage = React.lazy(() => import('containers/Payment/Payment'));
 const ThankYouPage = React.lazy(
   () => import('containers/ThankYou/ThankYouPage'),
 );
+const SmartContractDemoPage = React.lazy(
+  () => import('containers/SmartContractDemo/SmartContractDemo'),
+);
 
 export default function AppRoutes() {
   return (
@@ -132,6 +136,14 @@ export default function AppRoutes() {
           element={
             <React.Suspense fallback={<Loader />}>
               <PrivacyPage />
+            </React.Suspense>
+          }
+        />
+        <Route
+          path={SMART_CONTRACT_DEMO_PAGE}
+          element={
+            <React.Suspense fallback={<Loader />}>
+              <SmartContractDemoPage />
             </React.Suspense>
           }
         />
