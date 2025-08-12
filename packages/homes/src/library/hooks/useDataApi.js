@@ -28,7 +28,7 @@ async function SuperFetch(
       console.debug('[useDataApi] →', method, url, token ? '(auth)' : '(no auth)');
     }
 
-    const res = await fetch(url, options);
+  const res = await fetch(url, options);
     const text = await res.text();
 
     if (!res.ok) {

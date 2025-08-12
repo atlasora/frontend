@@ -18,7 +18,7 @@ const AgentBookingPage = () => {
   }, [loggedIn, navigate]);
   //todo : add currency
   const { data: bookingsData, loading: bookingsLoading } = useDataApi(
-    `${import.meta.env.VITE_APP_API_URL}proeprty-bookings?filters[users_permissions_user][id][$eq]=${userInfo?.id}&populate[property][populate]=currency`,
+    `${import.meta.env.VITE_APP_API_URL}proeprty-bookings?filters[users_permissions_user][id][$eq]=${userInfo?.id}&populate=property`,
     import.meta.env.VITE_APP_API_TOKEN,
     10,
     'proeprty-bookings',
@@ -49,7 +49,7 @@ const AgentBookingPage = () => {
   return (
     <Container>
       <Heading as="h3" content="Your Bookings" />
-      {bookingsData?.length ? (
+      {Array.isArray(bookingsData) && bookingsData.length ? (
         bookingsData.map((booking) => {
           const {
             id,
@@ -62,7 +62,7 @@ const AgentBookingPage = () => {
             BookingStatus,
             property,
           } = booking;
-          const currencySymbol = property?.currency?.symbol; // fallback to INR
+          const currencySymbol = property?.currency?.symbol;
           return (
             <div
               key={id}

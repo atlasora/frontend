@@ -3,12 +3,13 @@ pragma solidity ^0.8.28;
 
 import "./PropertyToken.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/metatx/ERC2771Context.sol";
 
 /**
  * @title PropertyMarketplace
  * @dev Manages property listings and token creation
  */
-contract PropertyMarketplace is Ownable {
+contract PropertyMarketplace is Ownable, ERC2771Context {
 	// Platform fee percentage (3%) - represented with 1 decimal place (30 = 3.0%)
 	uint16 public platformFeePercentage = 30;
 	
@@ -42,9 +43,12 @@ contract PropertyMarketplace is Ownable {
 	event FeeRecipientUpdated(address newFeeRecipient);
 	
 	/**
-	 * @dev Constructor sets the platform fee recipient
+	 * @dev Constructor sets the platform fee recipient and trusted forwarder
 	 */
-	constructor(address payable _feeRecipient) Ownable(msg.sender) {
+	constructor(address payable _feeRecipient, address _trustedForwarder)
+		Ownable(_msgSender())
+		ERC2771Context(_trustedForwarder)
+	{
 		feeRecipient = _feeRecipient;
 	}
 	
@@ -61,6 +65,9 @@ contract PropertyMarketplace is Ownable {
 		string memory _tokenName,
 		string memory _tokenSymbol
 	) external returns (string memory) {
+		// Resolve sender (original user if via forwarder)
+		address sender = _msgSender();
+
 		// Generate a unique property ID
 		_propertyIdCounter++;
 		string memory propertyId = string(abi.encodePacked("PROP", _toString(_propertyIdCounter)));
@@ -71,14 +78,14 @@ contract PropertyMarketplace is Ownable {
 			_propertyURI,
 			_tokenName,
 			_tokenSymbol,
-			msg.sender
+			sender
 		);
 		
 		// Store property details
 		properties[propertyId] = Property({
 			propertyId: propertyId,
 			propertyTokenAddress: address(propertyToken),
-			owner: msg.sender,
+			owner: sender,
 			pricePerNight: _pricePerNight,
 			isActive: true,
 			propertyURI: _propertyURI
@@ -88,7 +95,7 @@ contract PropertyMarketplace is Ownable {
 		propertyIds.push(propertyId);
 		
 		// Emit event
-		emit PropertyListed(propertyId, address(propertyToken), msg.sender);
+		emit PropertyListed(propertyId, address(propertyToken), sender);
 		
 		return propertyId;
 	}
@@ -105,7 +112,7 @@ contract PropertyMarketplace is Ownable {
 		bool _isActive
 	) external {
 		// Verify property exists and caller is the owner
-		require(properties[_propertyId].owner == msg.sender, "Not property owner");
+		require(properties[_propertyId].owner == _msgSender(), "Not property owner");
 		
 		// Update property details
 		properties[_propertyId].pricePerNight = _pricePerNight;
@@ -121,7 +128,7 @@ contract PropertyMarketplace is Ownable {
 	 */
 	function removeProperty(string memory _propertyId) external {
 		// Verify property exists and caller is the owner
-		require(properties[_propertyId].owner == msg.sender, "Not property owner");
+		require(properties[_propertyId].owner == _msgSender(), "Not property owner");
 		
 		// Set property as inactive
 		properties[_propertyId].isActive = false;
@@ -213,5 +220,18 @@ contract PropertyMarketplace is Ownable {
 		}
 		
 		return string(buffer);
+	}
+
+	// Ensure the correct sender is used by both Ownable and ERC2771Context
+	function _msgSender() internal view override(Context, ERC2771Context) returns (address) {
+		return ERC2771Context._msgSender();
+	}
+
+	function _msgData() internal view override(Context, ERC2771Context) returns (bytes calldata) {
+		return ERC2771Context._msgData();
+	}
+
+	function _contextSuffixLength() internal view override(Context, ERC2771Context) returns (uint256) {
+		return ERC2771Context._contextSuffixLength();
 	}
 } 
