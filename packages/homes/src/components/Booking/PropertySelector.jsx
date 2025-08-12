@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { useContracts } from 'context/ContractProvider';
 import { useAccount } from 'wagmi';
-import { parsePropertyData, parseBookingData, formatPrice, formatDate, getBookingStatusLabel, getBookingStatusColor } from 'library/helpers/contractHelpers';
+import { parsePropertyData, parseBookingData, formatPrice, formatDate, getBookingStatusLabel, getBookingStatusColor, etherToWei } from 'library/helpers/contractHelpers';
 import styled from 'styled-components';
+import { ethers } from 'ethers';
 
 const PropertySelectorContainer = styled.div`
 	background: white;
@@ -155,9 +155,9 @@ const NoBookingsMessage = styled.div`
 	font-style: italic;
 `;
 
-const PropertySelector = ({ onPropertySelected }) => {
+const PropertySelector = ({ onPropertySelected, cmsUsersByAddress = {}, useStrapi = false, adminBaseUrl = '', adminToken = '' }) => {
 	const { address, isConnected } = useAccount();
-	const { getProperty, getPropertyBookings, getBooking, getActivePropertyIds } = useContracts();
+	const backendBaseUrl = (import.meta.env.VITE_BACKEND_BASE_URL || 'http://localhost:3000');
 	
 	const [properties, setProperties] = useState([]);
 	const [selectedProperty, setSelectedProperty] = useState(null);
@@ -165,6 +165,9 @@ const PropertySelector = ({ onPropertySelected }) => {
 	const [loading, setLoading] = useState(true);
 	const [loadingBookings, setLoadingBookings] = useState(false);
 	const [error, setError] = useState('');
+	const [debug, setDebug] = useState(false);
+	const [rawStrapi, setRawStrapi] = useState([]);
+ 
 
 	// Fetch all properties when component mounts
 	useEffect(() => {
@@ -178,40 +181,54 @@ const PropertySelector = ({ onPropertySelected }) => {
 				setLoading(true);
 				setError('');
 
-				// Get active property IDs from the marketplace
-				const activePropertyIds = await getActivePropertyIds();
-				
-				console.log('Active property IDs:', activePropertyIds);
-				
-				if (!activePropertyIds || activePropertyIds.length === 0) {
-					setProperties([]);
-					setLoading(false);
-					return;
+				let list = [];
+				if (useStrapi && adminBaseUrl) {
+					// Load from Strapi (published + drafts)
+					const apiBase = adminBaseUrl.endsWith('/') ? adminBaseUrl : `${adminBaseUrl}/`;
+					const previewParam = adminToken ? 'publicationState=preview&' : '';
+					const url = `${apiBase}properties?${previewParam}pagination[pageSize]=100&populate=*`;
+					const res = await fetch(url, { headers: adminToken ? { Authorization: `Bearer ${adminToken}` } : {} });
+					if (!res.ok) {
+						const errBody = await res.text().catch(() => '');
+						throw new Error(`Strapi properties request failed: ${res.status} ${res.statusText} ${errBody}`);
+					}
+					const json = await res.json();
+					const data = Array.isArray(json?.data) ? json.data : [];
+					setRawStrapi(data);
+					list = data.map((item) => {
+						const node = item.attributes || item;
+						const title = node.Title || '';
+						const propId = title.split(' ').slice(-1)[0] || title;
+						const rawPrice = node.PricePerNight ?? 0;
+						const priceStr = typeof rawPrice === 'number' ? String(rawPrice) : (rawPrice || '0');
+						let priceWei = 0n;
+						try { priceWei = ethers.parseEther(priceStr); } catch (_) { priceWei = 0n; }
+						const ownerName = (node?.users_permissions_user?.data?.attributes?.username)
+							|| (node?.users_permissions_user?.username)
+							|| '';
+						return {
+							propertyId: propId,
+							propertyTokenAddress: '',
+							owner: '',
+							ownerName,
+							pricePerNight: priceWei.toString(),
+							isActive: node.CurrentlyRented === undefined ? true : !node.CurrentlyRented,
+							propertyURI: '',
+							strapiId: item.id,
+							strapiDocumentId: node.documentId || item.documentId || null,
+						};
+					});
+				} else {
+					// Load from backend (chain)
+					const res = await fetch(`${backendBaseUrl}/api/properties`);
+					if (!res.ok) throw new Error('Failed to load properties');
+					const chainList = await res.json();
+					list = (Array.isArray(chainList) ? chainList : []).filter(p => p && p.propertyId);
 				}
 
-				// Fetch details for each property
-				const propertyPromises = activePropertyIds.map(async (propertyId) => {
-					try {
-						const propertyData = await getProperty(propertyId);
-						console.log(`Property data for ${propertyId}:`, propertyData);
-						const parsedProperty = parsePropertyData(propertyData);
-						console.log(`Parsed property for ${propertyId}:`, parsedProperty);
-						return parsedProperty;
-					} catch (error) {
-						console.error(`Error fetching property ${propertyId}:`, error);
-						return null;
-					}
-				});
-
-				const propertyResults = await Promise.all(propertyPromises);
-				const validProperties = propertyResults.filter(property => 
-					property !== null && 
-					property.propertyId && 
-					property.owner && 
-					property.propertyTokenAddress
-				);
+				setProperties(list);
+				console.log('[PropertySelector] Loaded properties:', list);
 				
-				setProperties(validProperties);
 			} catch (error) {
 				console.error('Error fetching properties:', error);
 				setError('Failed to load properties. Please try again.');
@@ -221,41 +238,86 @@ const PropertySelector = ({ onPropertySelected }) => {
 		};
 
 		fetchProperties();
-	}, [isConnected, getActivePropertyIds, getProperty]);
-
-	// Fetch bookings for a property
-	const fetchPropertyBookings = async (propertyId) => {
-		if (!propertyId) return;
-		
+	}, [isConnected, backendBaseUrl, useStrapi, adminBaseUrl, adminToken]);
+ 
+	// Fetch bookings for a property (now via Strapi CMS)
+	const fetchPropertyBookings = async (property) => {
+		if (!property) return;
 		try {
 			setLoadingBookings(true);
-			const bookingIds = await getPropertyBookings(propertyId);
-			
-			console.log(`Booking IDs for property ${propertyId}:`, bookingIds);
-			
-			if (bookingIds && bookingIds.length > 0) {
-				// Fetch details for each booking
-				const bookingPromises = bookingIds.map(async (bookingId) => {
-					try {
-						const bookingData = await getBooking(bookingId);
-						console.log(`Booking data for ${bookingId}:`, bookingData);
-						const parsedBooking = parseBookingData(bookingData);
-						console.log(`Parsed booking for ${bookingId}:`, parsedBooking);
-						return parsedBooking;
-					} catch (error) {
-						console.error(`Error fetching booking ${bookingId}:`, error);
-						return null;
-					}
-				});
-				
-				const bookingResults = await Promise.all(bookingPromises);
-				const validBookings = bookingResults.filter(booking => booking !== null);
-				setPropertyBookings(validBookings);
-			} else {
+			const base = adminBaseUrl && adminBaseUrl.endsWith('/') ? adminBaseUrl : `${adminBaseUrl || ''}/`;
+			if (!useStrapi || !base) {
 				setPropertyBookings([]);
+				return;
 			}
+			const previewParam = adminToken ? 'publicationState=preview&' : '';
+			// Prefer filtering by numeric id; fall back to documentId if available
+			const filter = property.strapiId
+				? `filters[property][id][$eq]=${encodeURIComponent(property.strapiId)}`
+				: (property.strapiDocumentId ? `filters[property][documentId][$eq]=${encodeURIComponent(property.strapiDocumentId)}` : '');
+			const url = `${base}proeprty-bookings?${previewParam}pagination[pageSize]=100&populate[users_permissions_user]=true&populate[property]=true${filter ? `&${filter}` : ''}`;
+			const res = await fetch(url, { headers: adminToken ? { Authorization: `Bearer ${adminToken}` } : {} });
+			if (!res.ok) {
+				setPropertyBookings([]);
+				return;
+			}
+			const json = await res.json();
+			const data = Array.isArray(json?.data) ? json.data : [];
+			const mapStatus = (s) => {
+				switch ((s || '').toLowerCase()) {
+					case 'upcoming':
+					case 'active':
+						return 0; // Active
+					case 'complete':
+						return 3; // Completed
+					case 'cancelled':
+						return 5; // Cancelled
+					default:
+						return 0;
+				}
+			};
+			const bookings = data.map((item) => {
+				const node = item.attributes || item;
+				const userNode = node?.users_permissions_user?.data?.attributes || node?.users_permissions_user || {};
+				const start = node.StartDate ? new Date(node.StartDate) : null;
+				const end = node.EndDate ? new Date(node.EndDate) : null;
+				const nightsCalc = (start && end) ? Math.max(0, Math.round((end - start) / (1000 * 60 * 60 * 24))) : Number(node.NumberOfNights || 0);
+				const toNum = (v) => {
+					const n = Number(v);
+					return Number.isFinite(n) ? n : 0;
+				};
+				const totalPaidMicro = toNum(node.TotalPaid);
+				const priceMicro = toNum(node.PriceperNight);
+				const atlasMicro = toNum(node.AtlasFee);
+				const cleaningMicro = toNum(node.CleaningFee);
+				let totalWei = 0n;
+				if ((node.PaidBy || '').toUpperCase() === 'ETH') {
+					if (totalPaidMicro > 0) {
+						totalWei = BigInt(Math.round(totalPaidMicro)) * 1000000000000n; // micro-ETH → wei
+					} else if (priceMicro > 0 || atlasMicro > 0 || cleaningMicro > 0) {
+						const nights = nightsCalc || toNum(node.NumberOfNights) || 1;
+						const micro = Math.round(priceMicro * nights + atlasMicro + cleaningMicro);
+						totalWei = BigInt(micro) * 1000000000000n;
+					}
+				}
+				// Fallback: derive from property wei price if nothing else available
+				if (totalWei === 0n && property?.pricePerNight) {
+					const nights = Math.max(1, nightsCalc || 1);
+					try { totalWei = BigInt(property.pricePerNight) * BigInt(nights); } catch (_) {}
+				}
+				return {
+					bookingId: item.id || node.documentId || 'N/A',
+					propertyId: property.propertyId,
+					guest: userNode.walletAddress || '',
+					checkInDate: node.StartDate || '',
+					checkOutDate: node.EndDate || '',
+					totalAmount: totalWei.toString(),
+					status: mapStatus(node.BookingStatus),
+				};
+			});
+			setPropertyBookings(bookings);
 		} catch (error) {
-			console.error('Error fetching property bookings:', error);
+			console.error('Error fetching property bookings (Strapi):', error);
 			setPropertyBookings([]);
 		} finally {
 			setLoadingBookings(false);
@@ -268,8 +330,8 @@ const PropertySelector = ({ onPropertySelected }) => {
 		setPropertyBookings([]); // Clear previous bookings
 		
 		// Fetch bookings for the selected property
-		if (property && property.propertyId) {
-			fetchPropertyBookings(property.propertyId);
+		if (property) {
+			fetchPropertyBookings(property);
 		}
 		
 		if (onPropertySelected) {
@@ -323,7 +385,12 @@ const PropertySelector = ({ onPropertySelected }) => {
 
 	return (
 		<PropertySelectorContainer>
-			<Title>Available Properties ({properties.length})</Title>
+			<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+				<Title style={{ margin: 0 }}>Available Properties ({properties.length})</Title>
+				<button type="button" onClick={() => setDebug(d => !d)} style={{ padding: '6px 10px', borderRadius: 6, border: '1px solid #e2e8f0', background: debug ? '#e6fffa' : '#f8fafc', fontSize: 12 }}>
+					{debug ? 'Hide Debug' : 'Show Debug'}
+				</button>
+			</div>
 			
 			<PropertyGrid>
 				{properties.map((property) => (
@@ -334,10 +401,14 @@ const PropertySelector = ({ onPropertySelected }) => {
 					>
 						<PropertyId>{property.propertyId}</PropertyId>
 						<PropertyDetails>
-							<strong>Owner:</strong> {property.owner ? `${property.owner.slice(0, 6)}...${property.owner.slice(-4)}` : 'Unknown'}
+							<strong>Owner:</strong> {property.ownerName || (() => {
+								const ownerAddr = property.owner || '';
+								const name = ownerAddr ? cmsUsersByAddress[ownerAddr.toLowerCase()] : '';
+								return name || (ownerAddr ? `${ownerAddr.slice(0, 6)}...${ownerAddr.slice(-4)}` : 'Unknown');
+							})()}
 						</PropertyDetails>
 						<PropertyDetails>
-							<strong>Token:</strong> {property.propertyTokenAddress ? `${property.propertyTokenAddress.slice(0, 6)}...${property.propertyTokenAddress.slice(-4)}` : 'Unknown'}
+							<strong>Token:</strong> {property.propertyTokenAddress ? `${property.propertyTokenAddress.slice(0, 6)}...${property.propertyTokenAddress.slice(-4)}` : '—'}
 						</PropertyDetails>
 						<PropertyPrice>
 							{formatPrice(property.pricePerNight)} per night
@@ -345,9 +416,22 @@ const PropertySelector = ({ onPropertySelected }) => {
 						<PropertyStatus active={property.isActive}>
 							{property.isActive ? 'Available' : 'Not Available'}
 						</PropertyStatus>
+						{debug && useStrapi && (
+							<div style={{ marginTop: 8, background: '#f7fafc', padding: 8, borderRadius: 6 }}>
+								<div style={{ fontSize: 12 }}>
+									<strong>Debug:</strong> PricePerNight(raw) = {String((rawStrapi.find(x => (((x.attributes?.Title) || x.Title || '')).includes(property.propertyId))?.attributes?.PricePerNight ?? rawStrapi.find(x => (((x.attributes?.Title) || x.Title || '')).includes(property.propertyId))?.PricePerNight ?? 'N/A'))}, ownerName = {property.ownerName || 'N/A'}
+								</div>
+							</div>
+						)}
 					</PropertyCard>
 				))}
 			</PropertyGrid>
+
+			{debug && useStrapi && (
+				<div style={{ marginTop: 12, background: '#f9fafb', padding: 12, borderRadius: 6 }}>
+					<pre style={{ fontSize: 12, whiteSpace: 'pre-wrap' }}>{JSON.stringify(rawStrapi.map(i => ({ id: i.id, Title: i.attributes?.Title || i.Title, PricePerNight: i.attributes?.PricePerNight || i.PricePerNight, user: i.attributes?.users_permissions_user?.data?.attributes?.username || i.users_permissions_user?.username })), null, 2)}</pre>
+				</div>
+			)}
 
 			{selectedProperty && (
 				<div style={{ marginTop: '20px', padding: '16px', background: '#f8f9ff', borderRadius: '8px' }}>
@@ -376,7 +460,11 @@ const PropertySelector = ({ onPropertySelected }) => {
 											</BookingStatus>
 										</BookingHeader>
 										<BookingDetails>
-											<strong>Guest:</strong> {booking.guest ? `${booking.guest.slice(0, 6)}...${booking.guest.slice(-4)}` : 'Unknown'}
+											<strong>Guest:</strong> {(() => {
+												const guestAddr = booking.guest || '';
+												const name = cmsUsersByAddress[guestAddr.toLowerCase()];
+												return name || (guestAddr ? `${guestAddr.slice(0, 6)}...${guestAddr.slice(-4)}` : 'Unknown');
+											})()}
 											<br />
 											<strong>Check-in:</strong> {formatDate(booking.checkInDate)}
 											<br />

@@ -4,7 +4,7 @@ import { Divider } from 'antd';
 import Logo from 'components/UI/Logo/Logo';
 import { REGISTRATION_PAGE } from 'settings/constant';
 import SignInForm from './SignInForm';
-import WalletConnectButton from 'components/WalletConnect/WalletConnectButton';
+// import WalletConnectButton from 'components/WalletConnect/WalletConnectButton';
 import Wrapper, {
   Title,
   TitleInfo,
@@ -48,10 +48,7 @@ const SignIn = () => {
         <Title>Welcome Back</Title>
         <TitleInfo>Please log into your account</TitleInfo>
         
-        {/* Wallet Connect Button */}
-        <WalletConnectButton label="Connect with Wallet" />
-        
-        <Divider>or</Divider>
+        {/* Wallet connect removed; email/password only */}
         
         {/* Normal Email/Password Login */}
         <SignInForm />

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useMemo } from 'react';
+import React, { createContext, useContext, useMemo, useEffect, useState } from 'react';
 import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt, usePublicClient } from 'wagmi';
 
 // Define Viction Testnet chain
@@ -25,8 +25,8 @@ import BookingManagerABI from '../../public/abis/BookingManager.sol/BookingManag
 import PropertyMarketplaceABI from '../../public/abis/PropertyMarketplace.sol/PropertyMarketplace.json';
 import PropertyTokenABI from '../../public/abis/PropertyToken.sol/PropertyToken.json';
 
-// Contract addresses (these should be environment variables in production)
-const CONTRACT_ADDRESSES = {
+// Contract addresses defaults (env)
+const DEFAULT_ADDRESSES = {
 	victionTestnet: {
 		bookingManager: import.meta.env.VITE_BOOKING_MANAGER_ADDRESS || '0x54c3160A6d4238e3C6a2bD2BF386DDBc7722d0FB',
 		propertyMarketplace: import.meta.env.VITE_PROPERTY_MARKETPLACE_ADDRESS || '0x19641331663866894b69CD893b629ef405e11f8d',
@@ -48,18 +48,42 @@ export const useContracts = () => {
 export const ContractProvider = ({ children }) => {
 	const { address, isConnected } = useAccount();
 	const publicClient = usePublicClient();
+	const backendBaseUrl = import.meta.env.VITE_BACKEND_BASE_URL || 'http://localhost:3000';
+	const [addr, setAddr] = useState(DEFAULT_ADDRESSES);
+
+	// Fetch addresses from backend /health to ensure frontend matches backend deployments
+	useEffect(() => {
+		(async () => {
+			try {
+				const res = await fetch(`${backendBaseUrl}/health`);
+				if (!res.ok) return; // keep defaults
+				const json = await res.json();
+				const c = json?.contracts || {};
+				if (c.PropertyMarketplace && c.BookingManager) {
+					setAddr({
+						victionTestnet: {
+							bookingManager: c.BookingManager,
+							propertyMarketplace: c.PropertyMarketplace,
+						},
+					});
+				}
+			} catch (_) {
+				// ignore; fallback to defaults
+			}
+		})();
+	}, [backendBaseUrl]);
 
 	// Contract configurations
 	const contracts = useMemo(() => ({
 		bookingManager: {
-			address: CONTRACT_ADDRESSES.victionTestnet.bookingManager,
+			address: addr.victionTestnet.bookingManager,
 			abi: BookingManagerABI.abi,
 		},
 		propertyMarketplace: {
-			address: CONTRACT_ADDRESSES.victionTestnet.propertyMarketplace,
+			address: addr.victionTestnet.propertyMarketplace,
 			abi: PropertyMarketplaceABI.abi,
 		},
-	}), []);
+	}), [addr]);
 
 	// Booking Manager Functions
 	const {
@@ -339,7 +363,7 @@ export const ContractProvider = ({ children }) => {
 	const value = {
 		// Contract configurations
 		contracts,
-		contractAddresses: CONTRACT_ADDRESSES,
+		contractAddresses: addr,
 		
 		// State
 		isConnected,

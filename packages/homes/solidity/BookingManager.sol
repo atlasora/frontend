@@ -3,12 +3,13 @@ pragma solidity ^0.8.28;
 
 import "./PropertyMarketplace.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/metatx/ERC2771Context.sol";
 
 /**
  * @title BookingManager
  * @dev Manages bookings, check-ins, and dispute resolution for properties
  */
-contract BookingManager is Ownable {
+contract BookingManager is Ownable, ERC2771Context {
 	// Reference to the property marketplace
 	PropertyMarketplace public propertyMarketplace;
 	
@@ -69,9 +70,12 @@ contract BookingManager is Ownable {
 	event BookingRefunded(uint256 bookingId, uint256 amount);
 	
 	/**
-	 * @dev Constructor sets the property marketplace contract address
+	 * @dev Constructor sets the property marketplace contract address and trusted forwarder
 	 */
-	constructor(address _propertyMarketplaceAddress) Ownable(msg.sender) {
+	constructor(address _propertyMarketplaceAddress, address _trustedForwarder)
+		Ownable(_msgSender())
+		ERC2771Context(_trustedForwarder)
+	{
 		propertyMarketplace = PropertyMarketplace(_propertyMarketplaceAddress);
 	}
 	
@@ -152,10 +156,11 @@ contract BookingManager is Ownable {
 		_bookingIdCounter++;
 		uint256 bookingId = _bookingIdCounter;
 		
+		address sender = _msgSender();
 		bookings[bookingId] = Booking({
 			bookingId: bookingId,
 			propertyId: _propertyId,
-			guest: msg.sender,
+			guest: sender,
 			checkInDate: _checkInDate,
 			checkOutDate: _checkOutDate,
 			totalAmount: totalAmount,
@@ -173,7 +178,7 @@ contract BookingManager is Ownable {
 		
 		// Add booking to property and guest mappings
 		propertyBookings[_propertyId].push(bookingId);
-		guestBookings[msg.sender].push(bookingId);
+		guestBookings[sender].push(bookingId);
 		
 		// Send platform fee to fee recipient
 		address payable feeRecipient = propertyMarketplace.feeRecipient();
@@ -182,12 +187,12 @@ contract BookingManager is Ownable {
 		
 		// Refund excess payment
 		if (msg.value > totalAmount) {
-			(bool refundSuccess, ) = msg.sender.call{value: msg.value - totalAmount}("");
+			(bool refundSuccess, ) = sender.call{value: msg.value - totalAmount}("");
 			require(refundSuccess, "Refund transfer failed");
 		}
 		
 		// Emit event
-		emit BookingCreated(bookingId, _propertyId, msg.sender, _checkInDate, totalAmount);
+		emit BookingCreated(bookingId, _propertyId, sender, _checkInDate, totalAmount);
 		
 		return bookingId;
 	}
@@ -218,7 +223,7 @@ contract BookingManager is Ownable {
 	 */
 	function checkIn(uint256 _bookingId) external {
 		Booking storage booking = bookings[_bookingId];
-		require(booking.guest == msg.sender, "Not the guest");
+		require(booking.guest == _msgSender(), "Not the guest");
 		require(booking.status == BookingStatus.CheckInReady, "Not ready for check-in");
 		require(block.timestamp <= booking.checkInDeadline, "Check-in window expired");
 		
@@ -227,7 +232,7 @@ contract BookingManager is Ownable {
 		booking.isCheckInComplete = true;
 		
 		// Emit event
-		emit CheckedIn(_bookingId, msg.sender);
+		emit CheckedIn(_bookingId, _msgSender());
 	}
 	
 	/**
@@ -259,7 +264,7 @@ contract BookingManager is Ownable {
 		// Get property info to verify owner
 		(string memory propId, address tokenAddr, address owner, uint256 pricePerNight, bool isActive, string memory propURI) = propertyMarketplace.properties(booking.propertyId);
 		
-		require(owner == msg.sender, "Not the property owner");
+		require(owner == _msgSender(), "Not the property owner");
 		require(booking.status == BookingStatus.Disputed, "Not in dispute");
 		require(block.timestamp <= booking.disputeDeadline, "Dispute window expired");
 		
@@ -279,7 +284,7 @@ contract BookingManager is Ownable {
 	 */
 	function guestResolveDispute(uint256 _bookingId) external {
 		Booking storage booking = bookings[_bookingId];
-		require(booking.guest == msg.sender, "Not the guest");
+		require(booking.guest == _msgSender(), "Not the guest");
 		require(booking.status == BookingStatus.Disputed, "Not in dispute");
 		require(block.timestamp <= booking.disputeDeadline, "Dispute window expired");
 		
@@ -369,7 +374,7 @@ contract BookingManager is Ownable {
 	 */
 	function cancelBooking(uint256 _bookingId) external {
 		Booking storage booking = bookings[_bookingId];
-		require(booking.guest == msg.sender, "Not the guest");
+		require(booking.guest == _msgSender(), "Not the guest");
 		require(booking.status == BookingStatus.Active, "Cannot cancel booking");
 		require(block.timestamp < booking.checkInDate, "Past check-in date");
 		
@@ -400,5 +405,18 @@ contract BookingManager is Ownable {
 	 */
 	function getPropertyBookings(string memory _propertyId) external view returns (uint256[] memory) {
 		return propertyBookings[_propertyId];
+	}
+
+	// Ensure the correct sender is used by both Ownable and ERC2771Context
+	function _msgSender() internal view override(Context, ERC2771Context) returns (address) {
+		return ERC2771Context._msgSender();
+	}
+
+	function _msgData() internal view override(Context, ERC2771Context) returns (bytes calldata) {
+		return ERC2771Context._msgData();
+	}
+
+	function _contextSuffixLength() internal view override(Context, ERC2771Context) returns (uint256) {
+		return ERC2771Context._contextSuffixLength();
 	}
 } 

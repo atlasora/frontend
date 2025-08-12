@@ -48,6 +48,15 @@ export const dateToTimestamp = (date) => {
 export const formatDate = (date) => {
 	if (typeof date === 'number') {
 		date = timestampToDate(date);
+	} else if (typeof date === 'string') {
+		// If it's a numeric string, treat as unix seconds
+		const maybeNum = Number(date);
+		if (!Number.isNaN(maybeNum)) {
+			date = timestampToDate(maybeNum);
+		} else {
+			// Try parse as ISO/date string
+			date = new Date(date);
+		}
 	}
 	return date.toLocaleDateString('en-US', {
 		year: 'numeric',
@@ -60,6 +69,13 @@ export const formatDate = (date) => {
 export const formatDateTime = (date) => {
 	if (typeof date === 'number') {
 		date = timestampToDate(date);
+	} else if (typeof date === 'string') {
+		const maybeNum = Number(date);
+		if (!Number.isNaN(maybeNum)) {
+			date = timestampToDate(maybeNum);
+		} else {
+			date = new Date(date);
+		}
 	}
 	return date.toLocaleString('en-US', {
 		year: 'numeric',
