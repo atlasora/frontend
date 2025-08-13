@@ -4,7 +4,7 @@ import { themeGet } from '@styled-system/theme-get';
 const NavbarWrapper = styled.nav`
   display: none;
   width: 100%;
-  padding: 0 25px;
+  padding: 2px 25px;
   min-height: 82px;
   align-items: center;
   justify-content: space-between;
@@ -86,7 +86,8 @@ export const AvatarWrapper = styled.div`
     position: relative;
 
     .dropdown-handler {
-      width: 40px;
+    border: 2px solid #000000;  
+    width: 40px;
       height: 40px;
       overflow: hidden;
       border-radius: 50%;

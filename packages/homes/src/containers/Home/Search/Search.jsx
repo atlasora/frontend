@@ -25,21 +25,10 @@ const SearchArea = ({
 }) => {
   return (
     <BannerWrapper>
-      <GlideCarousel
-        controls={false}
-        options={{ gap: 0, autoplay: 5000, animationDuration: 1000 }}
-        bullets={true}
-        numberOfBullets={3}
-      >
+      <GlideCarousel>
         <>
           <GlideSlide>
-            <img src="/images/banner/1.jpg" alt="Banner 1" />
-          </GlideSlide>
-          <GlideSlide>
-            <img src="/images/banner/2.jpg" alt="Banner 2" />
-          </GlideSlide>
-          <GlideSlide>
-            <img src="/images/banner/3.jpg" alt="Banner 3" />
+            <img src="/images/banner/hero1-b.jpg" alt="AtlasOra" />
           </GlideSlide>
         </>
       </GlideCarousel>

@@ -67,13 +67,7 @@ const PostGrid = ({
       title={<TextLink link={`/post/${slugify(title)}`} content={title} />}
       price={`${currency}${price}/Night - Free Cancellation`}
       rating={<Rating rating={rating} ratingCount={ratingCount} type="bulk" />}
-      viewDetailsBtn={
-        <TextLink
-          link={`/post/${slugify(title)}`}
-          icon={<FiExternalLink />}
-          content="View Details"
-        />
-      }
+
     >
       <Carousel
         additionalTransfrom={0}

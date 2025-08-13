@@ -15,6 +15,7 @@ const HeaderWrapper = styled.header`
   @media (max-width: 667px) {
     nav {
       &:not(.transparent) {
+      background: linear-gradient(to top, transparent, white);
         a {
           > h3 {
             display: none;
@@ -24,12 +25,17 @@ const HeaderWrapper = styled.header`
     }
   }
 
+  .logoscrollbar {
+    height: 32.5px !important;
+  }
+
   .sticky-outer-wrapper {
     nav {
       &.is_transparent {
+      
         > div > div {
           > svg {
-            width: 200px;
+            width: 140px;
             position: absolute;
           }
 
@@ -39,7 +45,7 @@ const HeaderWrapper = styled.header`
             }
 
             h3 {
-              color: ${themeGet('color.1', '#ffffff')};
+              color: ${themeGet('color.0', '#000000')};
             }
           }
         }
@@ -48,10 +54,10 @@ const HeaderWrapper = styled.header`
           li {
             a {
               &.active {
-                color: ${themeGet('color.1', '#ffffff')};
+                color: ${themeGet('color.0', '#000000')};
               }
               &:hover {
-                color: ${themeGet('color.1', '#ffffff')};
+                color: ${themeGet('color.0', '#000000')};
               }
             }
           }
@@ -71,7 +77,7 @@ const HeaderWrapper = styled.header`
             }
 
             h3 {
-              color: ${themeGet('color.1', '#ffffff')};
+              color: ${themeGet('color.0', '#000000')};
             }
           }
         }
@@ -92,6 +98,7 @@ const HeaderWrapper = styled.header`
             a {
               img {
                 opacity: 1;
+                height: 32.5px;
               }
 
               h3 {
@@ -103,13 +110,13 @@ const HeaderWrapper = styled.header`
           .ant-menu {
             li {
               a {
-                color: ${themeGet('text.0', '#2C2C2C')};
+                color: ${themeGet('text.1', '#2C2C2C')};
                 &:hover {
-                  color: ${themeGet('primary.0', '#008489')};
+                  color: ${themeGet('primary.1', '#008489')};
                 }
                 &.active {
-                  color: ${themeGet('primary.0', '#008489')};
-                  border-bottom: 3px solid ${themeGet('primary.0', '#008489')};
+                  color: ${themeGet('primary.1', '#008489')};
+                  border-bottom: 3px solid ${themeGet('primary.1', '#008489')};
                 }
               }
             }
@@ -120,7 +127,7 @@ const HeaderWrapper = styled.header`
               li {
                 &:last-child {
                   a {
-                    color: ${themeGet('color.1', '#ffffff')};
+                    color: ${themeGet('color.0', '#000000')};
                   }
                 }
               }
@@ -161,7 +168,7 @@ const HeaderWrapper = styled.header`
 
 export const MobileNavbar = styled.nav`
   display: flex;
-  padding: 0 25px;
+  padding: 4px 25px;
   align-items: center;
   justify-content: space-between;
   min-height: 82px;
@@ -169,7 +176,7 @@ export const MobileNavbar = styled.nav`
 
   &.default {
     border-bottom: 1px solid ${themeGet('border.3', '#E6E6E6')};
-    background-color: ${themeGet('color.1', '#ffffff')};
+    background-color: ${themeGet('color.0', '#000000')};
   }
 
   .hamburg-btn {
@@ -211,7 +218,7 @@ export const MobileNavbar = styled.nav`
 
     .hamburg-btn {
       > span {
-        background-color: ${themeGet('color.1', '#ffffff')};
+        background-color: ${themeGet('color.0', '#000000')};
       }
     }
   }

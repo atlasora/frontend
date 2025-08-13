@@ -3,7 +3,8 @@ import { themeGet } from '@styled-system/theme-get';
 
 const BannerWrapper = styled.div`
   width: 100%;
-  min-height: 100vh;
+  min-height: 50vh;
+  max-height: 50vh;
   position: relative;
   background-color: ${themeGet('color.1', '#ffffff')};
 
@@ -14,7 +15,8 @@ const BannerWrapper = styled.div`
   }
 
   @media (max-width: 480px) {
-    min-height: 76vh;
+    min-height: 50vh;
+    max-height: 50vh;
   }
 
   .glide,
@@ -33,8 +35,20 @@ const BannerWrapper = styled.div`
       width: 100%;
       height: 100%;
       object-fit: cover;
+      transform: translateY(-40px);
     }
   }
+
+  @media (max-width: 480px) {  
+  .glide__slide {
+    img {
+      width: auto;
+      height: 120%;
+      object-fit: cover;
+      transform: translateY(-90px);
+    }
+  }
+}
 
   .glide__bullets {
     position: absolute;
@@ -61,10 +75,12 @@ const BannerWrapper = styled.div`
 
   > div {
     position: relative;
-    min-height: 100vh;
+    min-height: 50vh;
+    max-height: 50vh;
 
     @media (max-width: 480px) {
-      min-height: 76vh;
+      min-height: 50vh;
+      max-height: 50vh;
     }
   }
 
@@ -88,7 +104,7 @@ export const SearchWrapper = styled.div`
   background-color: ${themeGet('color.1', '#ffffff')};
   box-shadow: 0 1px 20px rgba(0, 0, 0, 0.08);
   position: absolute;
-  bottom: 81px;
+  bottom: -90px;
   z-index: 1;
 
   @media (min-width: 569px) and (max-width: 991px) {

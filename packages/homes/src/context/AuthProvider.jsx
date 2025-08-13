@@ -70,7 +70,7 @@ const AuthProvider = (props) => {
 
       const data = await response.json();
       data.user.avatar = resolveUrl(
-        '/uploads/thumbnail_favicon_15c376b1a2.png',
+        '/uploads/favicon.png',
       );
 
       setUser(data.user);

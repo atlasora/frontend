@@ -7,7 +7,13 @@ const Footer = () => {
   return (
     <Footers
       logo={
-        <Logo withLink linkTo="/" src="/images/logo-ao.svg" title="Atlasora" />
+        <Logo 
+          withLink 
+          linkTo="/" 
+          src="/images/logo-ao.svg" 
+          title="Atlasora" 
+          className="footer-logo"
+        />
       }
       menu={<FooterMenu />}
       copyright={`Copyright @ ${new Date().getFullYear()} Atlasora, Inc.`}
