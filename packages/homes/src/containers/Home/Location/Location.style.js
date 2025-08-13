@@ -2,9 +2,9 @@ import styled from 'styled-components';
 import { themeGet } from '@styled-system/theme-get';
 
 const LocationWrapper = styled.div`
-  padding: 52px 0;
+  padding: 122px 0 52px 0;
   @media (max-width: 480px) {
-    padding: 30px 0;
+    padding: 130px 0 45px 0;
   }
 `;
 

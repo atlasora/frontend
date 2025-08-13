@@ -5,7 +5,7 @@ import footerBg from './footer-bg.svg';
 const FooterWrapper = styled.footer`
   width: 100%;
   background-color: ${themeGet('color.1', '#ffffff')};
-  background-image: url(${(props) => (props.bgSrc ? props.bgSrc : footerBg)});
+  */background-image: url(${(props) => (props.bgSrc ? props.bgSrc : footerBg)});*/
   background-repeat: no-repeat;
   background-position: bottom;
   background-size: 100%;
@@ -14,6 +14,11 @@ const FooterWrapper = styled.footer`
   flex-direction: column;
   align-items: center;
   justify-content: center;
+
+  .footer-logo {
+    width: 140px;
+    height: auto;
+  }
 
   @media (max-width: 480px) {
     padding: 60px 0 50px;

@@ -25,13 +25,17 @@ const HeaderWrapper = styled.header`
     }
   }
 
+  .logoscrollbar {
+    height: 32.5px !important;
+  }
+
   .sticky-outer-wrapper {
     nav {
       &.is_transparent {
-      background: linear-gradient(to top, transparent, white);
+      
         > div > div {
           > svg {
-            width: 180px;
+            width: 140px;
             position: absolute;
           }
 
@@ -94,6 +98,7 @@ const HeaderWrapper = styled.header`
             a {
               img {
                 opacity: 1;
+                height: 32.5px;
               }
 
               h3 {

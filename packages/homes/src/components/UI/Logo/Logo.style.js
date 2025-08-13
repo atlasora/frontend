@@ -11,7 +11,7 @@ const LogoArea = styled.div`
   }
 
   img {
-    width: 180px;
+    /*height: 33px;*/
   }
 
   h3 {
