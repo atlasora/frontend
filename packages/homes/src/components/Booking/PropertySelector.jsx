@@ -198,7 +198,7 @@ const PropertySelector = ({ onPropertySelected, cmsUsersByAddress = {}, useStrap
 					list = data.map((item) => {
 						const node = item.attributes || item;
 						const title = node.Title || '';
-						const propId = title.split(' ').slice(-1)[0] || title;
+						const propId = node.BlockchainPropertyId || node.blockchainPropertyId || title.split(' ').slice(-1)[0] || title;
 						const rawPrice = node.PricePerNight ?? 0;
 						const priceStr = typeof rawPrice === 'number' ? String(rawPrice) : (rawPrice || '0');
 						let priceWei = 0n;

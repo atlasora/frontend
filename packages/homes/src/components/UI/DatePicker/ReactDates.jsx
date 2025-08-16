@@ -57,6 +57,8 @@ class DateRangePickerBox extends Component {
       this.props.updateSearchData?.({
         setStartDate: startDate.format(dateFormat),
         setEndDate: endDate.format(dateFormat),
+        startMoment: startDate,
+        endMoment: endDate,
       });
     }
   };
