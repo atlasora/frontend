@@ -55,19 +55,37 @@ async function SuperFetch(
   }
 }
 
+function normalizeStrapiData(arr) {
+  if (!Array.isArray(arr)) return [];
+  return arr.map((item) => {
+    if (item && typeof item === 'object' && item.attributes) {
+      // Flatten attributes to top-level; preserve id/documentId
+      return {
+        id: item.id,
+        documentId: item.documentId,
+        ...item.attributes,
+      };
+    }
+    return item;
+  });
+}
+
 function dataFetchReducer(state, action) {
   switch (action.type) {
     case 'FETCH_INIT':
       return { ...state, loading: true, error: false };
-    case 'FETCH_SUCCESS':
+    case 'FETCH_SUCCESS': {
+      const raw = action.payload?.data || [];
+      const flat = normalizeStrapiData(raw);
       return {
         ...state,
-        data: action.payload.data.slice(0, state.limit),
-        total: action.payload.data,
+        data: flat.slice(0, state.limit),
+        total: flat,
         pagination: action.payload.meta?.pagination || null,
         loading: false,
         error: false,
       };
+    }
     case 'FETCH_FAILURE':
       return { ...state, loading: false, error: true };
     case 'LOAD_MORE':

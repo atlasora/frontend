@@ -120,7 +120,7 @@ const InfoText = styled.p`
 const BackendIntegration = () => {
 	const { isConnected, address } = useAccount();
 	const { loggedIn, token, user } = useContext(AuthContext);
-	const { createBooking, contractAddresses } = useContracts();
+	const { createBooking, contractAddresses, publicClient } = useContracts();
 	const [activeTab, setActiveTab] = useState('overview');
 	const [selectedProperty, setSelectedProperty] = useState(null);
 	const backendBaseUrl = useMemo(() => (import.meta.env.VITE_BACKEND_BASE_URL || 'http://localhost:3000'), []);
@@ -313,8 +313,9 @@ const BackendIntegration = () => {
 			}
 			try {
 				setLoading(true);
-				const checkInTs = Math.floor(new Date(form.checkInDate).getTime() / 1000);
-				const checkOutTs = Math.floor(new Date(form.checkOutDate).getTime() / 1000);
+				const toUtcDay = (d) => Math.floor(new Date(`${d}T00:00:00Z`).getTime() / 1000);
+				const checkInTs = toUtcDay(form.checkInDate);
+				const checkOutTs = toUtcDay(form.checkOutDate);
 				if (checkOutTs <= checkInTs) {
 					throw new Error('Check-out must be after check-in');
 				}
@@ -400,9 +401,17 @@ const BackendIntegration = () => {
 												paymentData.checkOutTs,
 												BigInt(paymentData.totalAmountWei)
 											);
-											setSuccess(`Booked! Tx: ${txHash}`);
-											setForm({ checkInDate: '', checkOutDate: '' });
-											setShowPayment(false);
+											// Wait for receipt and show confirmation modal
+											try {
+												const receipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
+												setSuccess(`Booked! Tx: ${txHash}`);
+												setForm({ checkInDate: '', checkOutDate: '' });
+												setShowPayment(false);
+												const explorer = 'https://testnet.vicscan.xyz/tx/' + txHash;
+												Modal.success({ title: 'Booking Confirmed', content: `Success. Tx: ${txHash}\n${explorer}` });
+											} catch (waitErr) {
+												Modal.info({ title: 'Transaction Submitted', content: `Tx submitted. Awaiting confirmation. Hash: ${txHash}` });
+											}
 										} catch (err) {
 											setError(err.message || 'Failed to create booking');
 										} finally {
@@ -593,22 +602,19 @@ const BackendIntegration = () => {
 						<SectionDescription>
 							Select a property, choose dates, sign booking meta-tx; backend relays and admin syncs.
 						</SectionDescription>
-						{!isConnected ? (
-							<div style={{ textAlign: 'center', padding: '40px' }}>
-								<p>Please connect your wallet to book a property.</p>
+						{!isConnected && (
+							<div style={{ textAlign: 'center', padding: '20px', color: '#555' }}>
+								<p>You can browse properties below. Connect your wallet to book.</p>
 							</div>
-						) : (
-							<>
-								<PropertySelector
-									onPropertySelected={setSelectedProperty}
-									cmsUsersByAddress={cmsUsersByAddress}
-									useStrapi={true}
-									adminBaseUrl={adminBaseUrl}
-									adminToken={adminToken}
-								/>
-								{selectedProperty && <BackendBookingForm property={selectedProperty} />}
-							</>
 						)}
+						<PropertySelector
+							onPropertySelected={setSelectedProperty}
+							cmsUsersByAddress={cmsUsersByAddress}
+							useStrapi={true}
+							adminBaseUrl={adminBaseUrl}
+							adminToken={adminToken}
+						/>
+						{selectedProperty && isConnected && <BackendBookingForm property={selectedProperty} />}
 					</DemoSection>
 				</TabContent>
 

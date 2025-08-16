@@ -37,7 +37,7 @@ export default function useStrapiPropertySearchUrl(search) {
       filterParams.push(`filters[$or][4][Address3][$eq]=${address}`);
       filterParams.push(`filters[$or][5][Address4][$eq]=${address}`);
       filterParams.push(`filters[$or][6][Address5][$eq]=${address}`);
-    } else {
+    } else if (address && address.length > 0) {
       filterParams.push(`filters[$or][0][Title][$containsi]=${address}`);
     }
     //room and guest filter

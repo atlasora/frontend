@@ -114,7 +114,7 @@ export const ContractProvider = ({ children }) => {
 	});
 
 	// Write contract hooks
-	const { writeContract, isPending: isWritePending, error: writeError } = useWriteContract();
+	const { writeContract, writeContractAsync, isPending: isWritePending, error: writeError } = useWriteContract();
 
 	// Transaction receipt hooks
 	const { data: transactionReceipt, isLoading: isTransactionLoading } = useWaitForTransactionReceipt();
@@ -122,16 +122,39 @@ export const ContractProvider = ({ children }) => {
 	// Booking Manager Write Functions
 	const createBooking = async (propertyId, checkInDate, checkOutDate, value) => {
 		try {
-			const result = await writeContract({
+			console.debug('[createBooking] start', {
+				contract: contracts.bookingManager.address,
+				propertyId,
+				checkInDate,
+				checkOutDate,
+				value: typeof value === 'bigint' ? value.toString() : value,
+			});
+			// Optional: simulate to catch clear revert reasons before sending
+			try {
+				await publicClient.simulateContract({
+					...contracts.bookingManager,
+					functionName: 'createBooking',
+					args: [propertyId, checkInDate, checkOutDate],
+					value,
+					account: address,
+				});
+				console.debug('[createBooking] simulation ok');
+			} catch (simErr) {
+				console.error('[createBooking] simulation failed', simErr);
+				throw simErr;
+			}
+			const hash = await writeContractAsync({
 				...contracts.bookingManager,
 				functionName: 'createBooking',
 				args: [propertyId, checkInDate, checkOutDate],
 				value: value,
 			});
-			return result;
+			console.debug('[createBooking] tx sent hash', hash);
+			return hash;
 		} catch (error) {
 			console.error('Error creating booking:', error);
-			throw error;
+			const short = error?.shortMessage || error?.message || 'Transaction failed';
+			throw new Error(short);
 		}
 	};
 
@@ -360,10 +383,40 @@ export const ContractProvider = ({ children }) => {
 		}
 	};
 
+	// Debug/consistency helpers
+	const getBookingManagerMarketplaceAddress = async () => {
+		try {
+			const result = await publicClient.readContract({
+				...contracts.bookingManager,
+				functionName: 'propertyMarketplace',
+			});
+			return result;
+		} catch (error) {
+			console.error('Error reading booking manager marketplace address:', error);
+			throw error;
+		}
+	};
+
+	const getPropertyFromMarketplace = async (marketplaceAddress, propertyId) => {
+		try {
+			const result = await publicClient.readContract({
+				address: marketplaceAddress,
+				abi: PropertyMarketplaceABI.abi,
+				functionName: 'properties',
+				args: [propertyId],
+			});
+			return result;
+		} catch (error) {
+			console.error('Error reading property from specified marketplace:', error);
+			throw error;
+		}
+	};
+
 	const value = {
 		// Contract configurations
 		contracts,
 		contractAddresses: addr,
+		publicClient,
 		
 		// State
 		isConnected,
@@ -395,6 +448,8 @@ export const ContractProvider = ({ children }) => {
 		getProperty,
 		hasBookingConflict,
 		getActivePropertyIds,
+		getBookingManagerMarketplaceAddress,
+		getPropertyFromMarketplace,
 		
 		// Data and loading states
 		bookingManagerData,

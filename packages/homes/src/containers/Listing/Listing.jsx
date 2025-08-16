@@ -27,6 +27,11 @@ export default function Listing() {
   const [searchReady, setSearchReady] = useState(false);
   const strapiUrl = useStrapiPropertySearchUrl(location.search);
   const hasQuery = location.search && location.search.length > 1;
+  const adminBaseUrl = useMemo(() => (import.meta.env.VITE_APP_API_URL || 'http://localhost:1337/api/'), []);
+  const defaultUrl = useMemo(() => {
+    const base = adminBaseUrl.endsWith('/') ? adminBaseUrl : `${adminBaseUrl}/`;
+    return `${base}properties?publicationState=preview&populate=*`;
+  }, [adminBaseUrl]);
 
   // 1. On first load, fallback to stored filters if no query
   useEffect(() => {
@@ -79,9 +84,9 @@ export default function Listing() {
   }, [data]);
 
   useEffect(() => {
-    if (!searchReady || !strapiUrl) return;
-    doFetch(strapiUrl);
-  }, [searchReady, strapiUrl, doFetch]);
+    if (!searchReady) return;
+    doFetch(strapiUrl || defaultUrl);
+  }, [searchReady, strapiUrl, defaultUrl, doFetch]);
 
   const limit = 100;
   const columnWidth = showMap
