@@ -1,3 +1,5 @@
+//todo : add uer permission to property booking (wait for connors stuff)
+
 import React, { useEffect, useContext } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
@@ -37,16 +39,23 @@ const PaymentPage = () => {
   const endDate = searchParams.get('endDate');
   const guest = searchParams.get('guest');
   const room = searchParams.get('room');
+  const propertyId = searchParams.get('propertyId');
   const slug = searchParams.get('slug');
+
   const deslug = slug ? slug.replace(/-/g, ' ') : '';
+
+  // ✅ Handle missing query data early
+  useEffect(() => {
+    if (!propertyId || !slug || !startDate || !endDate || !guest || !room) {
+      alert('Missing or invalid booking details.');
+      navigate('/', { replace: true });
+    }
+  }, [propertyId, slug, startDate, endDate, guest, room, navigate]);
 
   const { data, loading } = useDataApi(
     `${import.meta.env.VITE_APP_API_URL}properties?filters[Title][$eqi]=${deslug}&populate[Images]=true&populate[currency]=true`,
     import.meta.env.VITE_APP_API_TOKEN,
     10,
-    'properties',
-    [],
-    true,
   );
 
   useEffect(() => {
@@ -57,14 +66,19 @@ const PaymentPage = () => {
     }
   }, [loggedIn, navigate]);
 
-  if (
-    !loggedIn ||
-    loading ||
-    !data ||
-    !Array.isArray(data) ||
-    data.length === 0
-  ) {
-    return null;
+  // ✅ Handle not found or bad response
+  if (!loggedIn || loading) return null;
+
+  if (!data || !Array.isArray(data) || data.length === 0) {
+    return (
+      <PageWrapper>
+        <h2>Error</h2>
+        <p>Sorry, we couldn't find the property you are trying to book.</p>
+        <Button type="primary" onClick={() => navigate('/')}>
+          Back to Home
+        </Button>
+      </PageWrapper>
+    );
   }
 
   const raw = data[0];
@@ -91,7 +105,7 @@ const PaymentPage = () => {
   const handlePayment = async (paymentMethod) => {
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_APP_API_URL}proeprty-bookings`,
+        `${import.meta.env.VITE_APP_API_URL}property-bookings`,
         {
           method: 'POST',
           headers: {
