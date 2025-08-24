@@ -4,6 +4,10 @@ import { themeGet } from '@styled-system/theme-get';
 const HeaderWrapper = styled.header`
   width: 100%;
 
+  img.header-logo-image {
+    max-width: 140px;
+  }
+
   @media (max-width: 991px) {
     .transparent {
       .navbar_search {
