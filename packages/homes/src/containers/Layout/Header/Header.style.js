@@ -7,7 +7,7 @@ const HeaderWrapper = styled.header`
   img.header-logo-image {
     max-width: 140px;
   }
-    
+
   @media (max-width: 991px) {
     .transparent {
       .navbar_search {
