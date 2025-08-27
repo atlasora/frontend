@@ -2,7 +2,7 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { Menu } from 'antd';
 
-import { HOME_PAGE, LISTING_POSTS_PAGE } from 'settings/constant';
+import { HOME_PAGE, LISTING_POSTS_PAGE, BACKEND_INTEGRATION_PAGE } from 'settings/constant';
 
 const menuItems = [
   {
