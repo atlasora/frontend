@@ -20,6 +20,8 @@ import {
   AGENT_ACCOUNT_SETTINGS_PAGE,
   AGENT_IMAGE_EDIT_PAGE,
   AGENT_PASSWORD_CHANGE_PAGE,
+  SMART_CONTRACT_DEMO_PAGE,
+  BACKEND_INTEGRATION_PAGE,
 } from './settings/constant';
 
 // 🔐 Protected route wrapper
@@ -81,6 +83,12 @@ const PaymentPage = React.lazy(() => import('containers/Payment/Payment'));
 const ThankYouPage = React.lazy(
   () => import('containers/ThankYou/ThankYouPage'),
 );
+const SmartContractDemoPage = React.lazy(
+  () => import('containers/SmartContractDemo/SmartContractDemo'),
+);
+const BackendIntegrationPage = React.lazy(
+  () => import('containers/BackendIntegration/BackendIntegration'),
+);
 
 export default function AppRoutes() {
   return (
@@ -135,6 +143,23 @@ export default function AppRoutes() {
             </React.Suspense>
           }
         />
+        <Route
+          path={SMART_CONTRACT_DEMO_PAGE}
+          element={
+            <React.Suspense fallback={<Loader />}>
+              <SmartContractDemoPage />
+            </React.Suspense>
+          }
+        />
+        <Route
+          path={BACKEND_INTEGRATION_PAGE}
+          element={
+            <React.Suspense fallback={<Loader />}>
+              <BackendIntegrationPage />
+            </React.Suspense>
+          }
+        />
+        
         <Route
           path={LOGIN_PAGE}
           element={

@@ -1,10 +1,12 @@
-import React, { useContext, Fragment } from 'react';
+import React, { useContext, Fragment, useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { Row, Col, Input, Select, Button, DatePicker } from 'antd';
 import FormControl from 'components/UI/FormControl/FormControl';
 import { FormTitle } from './AccountSettings.style';
 import { AuthContext } from 'context/AuthProvider';
 import dayjs from 'dayjs';
+import { useAccount } from 'wagmi';
+import { ethers } from 'ethers';
 
 const genderOptions = [
   { label: 'Male', value: 'male' },
@@ -20,7 +22,11 @@ const languageOptions = [
 ];
 
 const AgentCreateOrUpdateForm = () => {
-  const { user: userInfo } = useContext(AuthContext);
+  const { user: userInfo, token } = useContext(AuthContext);
+  const { address, isConnected } = useAccount();
+  const [linking, setLinking] = useState(false);
+  const [linkError, setLinkError] = useState('');
+  const [linkSuccess, setLinkSuccess] = useState('');
 
   const {
     control,
@@ -48,7 +54,7 @@ const AgentCreateOrUpdateForm = () => {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${import.meta.env.VITE_APP_API_TOKEN}`,
+            Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify(payload),
         },
@@ -64,6 +70,42 @@ const AgentCreateOrUpdateForm = () => {
     } catch (error) {
       console.error('❌ Error updating user:', error);
     }
+  };
+
+  const adminBaseUrl = import.meta.env.VITE_APP_API_URL || 'http://localhost:1337/api/';
+
+  const linkWallet = async () => {
+      try {
+          setLinking(true);
+          setLinkError('');
+          setLinkSuccess('');
+          if (!window.ethereum) throw new Error('MetaMask not found');
+          const provider = new ethers.BrowserProvider(window.ethereum);
+          const signer = await provider.getSigner();
+          const userAddress = await signer.getAddress();
+
+          // Sign a simple message to prove ownership
+          const message = `Linking wallet to account ${userInfo?.email || userInfo?.username} at ${new Date().toISOString()}`;
+          const signature = await signer.signMessage(message);
+
+          // Send to Strapi custom endpoint or direct user update if permitted
+          // Expecting a custom route to verify signature and save walletAddress
+          const res = await fetch(`${adminBaseUrl}users-permissions/link-wallet`, {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json',
+                  Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify({ walletAddress: userAddress, message, signature }),
+          });
+          const result = await res.json();
+          if (!res.ok) throw new Error(result?.error?.message || result?.error || 'Failed to link wallet');
+          setLinkSuccess('Wallet linked successfully');
+      } catch (err) {
+          setLinkError(err.message || 'Failed to link wallet');
+      } finally {
+          setLinking(false);
+      }
   };
 
   return (
@@ -284,6 +326,17 @@ const AgentCreateOrUpdateForm = () => {
           </Button>
         </div>
       </form>
+      <hr />
+      <h3>Wallet</h3>
+      <p>Link your wallet to your account to enable on-chain actions.</p>
+      <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <button onClick={linkWallet} disabled={linking}>
+              {linking ? 'Linking...' : isConnected ? 'Link Connected Wallet' : 'Connect Wallet then Link'}
+          </button>
+          {address && <small>Connected: {address.slice(0,6)}...{address.slice(-4)}</small>}
+      </div>
+      {linkError && <div style={{ color: '#dc3545', marginTop: 8 }}>{linkError}</div>}
+      {linkSuccess && <div style={{ color: '#28a745', marginTop: 8 }}>{linkSuccess}</div>}
     </Fragment>
   );
 };

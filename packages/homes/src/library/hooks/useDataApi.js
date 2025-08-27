@@ -9,7 +9,7 @@ async function SuperFetch(
   customHeaders = {},
 ) {
   const headers = {
-    'Content-Type': 'application/json',
+    ...(method !== 'GET' ? { 'Content-Type': 'application/json' } : {}),
     ...(token && { Authorization: `Bearer ${token}` }),
     ...customHeaders,
   };
@@ -22,24 +22,70 @@ async function SuperFetch(
       : {}),
   };
 
+  try {
+    // Debug: request summary
+    if (import.meta?.env?.MODE !== 'production') {
+      console.debug('[useDataApi] →', method, url, token ? '(auth)' : '(no auth)');
+    }
+
   const res = await fetch(url, options);
-  if (!res.ok) throw new Error(`HTTP error ${res.status}`);
-  return res.json();
+    const text = await res.text();
+
+    if (!res.ok) {
+      let details = text;
+      try {
+        const json = JSON.parse(text);
+        details = json?.error?.message || JSON.stringify(json);
+      } catch {}
+      const errMsg = `HTTP error ${res.status}: ${details}`;
+      console.error('[useDataApi] ✖', errMsg);
+      throw new Error(errMsg);
+    }
+
+    // Parse JSON after ok
+    const json = text ? JSON.parse(text) : {};
+    if (import.meta?.env?.MODE !== 'production') {
+      const count = Array.isArray(json?.data) ? json.data.length : 0;
+      console.debug('[useDataApi] ✓', url, `items=${count}`);
+    }
+    return json;
+  } catch (e) {
+    console.error('[useDataApi] fetch failed:', e.message);
+    throw e;
+  }
+}
+
+function normalizeStrapiData(arr) {
+  if (!Array.isArray(arr)) return [];
+  return arr.map((item) => {
+    if (item && typeof item === 'object' && item.attributes) {
+      // Flatten attributes to top-level; preserve id/documentId
+      return {
+        id: item.id,
+        documentId: item.documentId,
+        ...item.attributes,
+      };
+    }
+    return item;
+  });
 }
 
 function dataFetchReducer(state, action) {
   switch (action.type) {
     case 'FETCH_INIT':
       return { ...state, loading: true, error: false };
-    case 'FETCH_SUCCESS':
+    case 'FETCH_SUCCESS': {
+      const raw = action.payload?.data || [];
+      const flat = normalizeStrapiData(raw);
       return {
         ...state,
-        data: action.payload.data.slice(0, state.limit),
-        total: action.payload.data,
+        data: flat.slice(0, state.limit),
+        total: flat,
         pagination: action.payload.meta?.pagination || null,
         loading: false,
         error: false,
       };
+    }
     case 'FETCH_FAILURE':
       return { ...state, loading: false, error: true };
     case 'LOAD_MORE':
@@ -88,7 +134,7 @@ const useDataApi = (
         if (!cancelled) {
           dispatch({ type: 'FETCH_SUCCESS', payload: result });
         }
-      } catch {
+      } catch (e) {
         if (!cancelled) {
           dispatch({ type: 'FETCH_FAILURE' });
         }

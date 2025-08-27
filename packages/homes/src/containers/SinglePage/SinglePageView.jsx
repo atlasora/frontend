@@ -56,7 +56,9 @@ const SinglePage = () => {
 
   // Extract data
   const title = raw.Title;
+  const blockchainId = raw.BlockchainPropertyId || raw.blockchainPropertyId || '';
   const price = raw.PricePerNight;
+  const pricePerNightEth = Number(price || 0);
   const gallery = raw.Images || [];
   const descriptionBlocks = raw.Description || [];
   const locationBlocks = raw.Location || [];
@@ -66,6 +68,7 @@ const SinglePage = () => {
   const ratingCount = reviews.length;
   const rating = raw.Stars;
   const amenities = raw.property_amenities || [];
+  const propertyChainId = blockchainId || ((title && title.split(' ').slice(-1)[0]) || '');
 
   return (
     <SinglePageWrapper>
@@ -136,10 +139,11 @@ const SinglePage = () => {
                 <Reservation
                   title={title}
                   price={`${currency}${price}`}
+                  pricePerNightEth={pricePerNightEth}
                   currency={currency}
                   rating={rating}
                   ratingCount={ratingCount}
-                  propertyId={raw.id}
+                  propertyId={propertyChainId}
                   slug={slug} // from URL params or generate from title
                 />
               </Sticky>
