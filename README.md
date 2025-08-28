@@ -10,9 +10,8 @@ This template built with React, NextJS, TypeScript, Styled-Components, HeadlessU
 - https://tripfinder-hotel.vercel.app/
 
 #### Support Link: https://redqsupport.ticksy.com/
-
+.
 <br>
-
 
 # Getting Started
 
