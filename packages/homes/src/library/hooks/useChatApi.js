@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 const API_URL = import.meta.env.VITE_APP_API_URL; // e.g. http://localhost:1337/api/
 const API_TOKEN = import.meta.env.VITE_APP_API_TOKEN; // Bearer token (fallback)
+const USE_API_TOKEN_FOR_READ = String(import.meta.env.VITE_CHAT_USE_API_TOKEN_FOR_READ || '').toLowerCase() === 'true';
 
 export default function useChatApi(bookingId, authToken, options = {}) {
   const { pollMs = 0 } = options;
@@ -42,9 +43,14 @@ export default function useChatApi(bookingId, authToken, options = {}) {
 
       const url = `${API_URL}property-chats?${params.toString()}`;
 
-      let res = await fetch(url, { headers });
-      // If forbidden with user token, retry with API token fallback
-      if (res.status === 403 && authToken) {
+      // Option: use API token directly for reads to avoid double call (403 -> 200)
+      const readHeaders = USE_API_TOKEN_FOR_READ
+        ? { ...headers, Authorization: `Bearer ${API_TOKEN}` }
+        : headers;
+
+      let res = await fetch(url, { headers: readHeaders });
+      // If using JWT and get forbidden, retry once with API token fallback
+      if (!USE_API_TOKEN_FOR_READ && res.status === 403 && authToken) {
         const fallbackHeaders = { ...headers, Authorization: `Bearer ${API_TOKEN}` };
         res = await fetch(url, { headers: fallbackHeaders });
       }
