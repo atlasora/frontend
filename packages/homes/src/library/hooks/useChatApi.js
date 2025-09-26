@@ -4,6 +4,21 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 // - GET:  `${VITE_APP_API_URL}property-chats?filters[proeprty_booking][id][$eq]={bookingId}&populate=users_permissions_user,admin_user,proeprty_booking&sort=createdAt:asc`
 // - POST: `${VITE_APP_API_URL}property-chats`
 
+
+/*
+TODO
+
+replace polling with websockets
+add a ... if someone is typing a message
+in booking info add a host / booker chat button and make it context aware (the booker admin has to be thought out)
+deal with deleted messages
+do we want to store this on the block chain
+we can simply this, we do not require a booker / host dtops as we have this in the booking we can just have message owner.  The admin flag is also technally not required as we can just check the booking owner.
+
+
+
+*/
+
 const API_URL = import.meta.env.VITE_APP_API_URL; // e.g. http://localhost:1337/api/
 const API_TOKEN = import.meta.env.VITE_APP_API_TOKEN; // Bearer token (fallback)
 const USE_API_TOKEN_FOR_READ = String(import.meta.env.VITE_CHAT_USE_API_TOKEN_FOR_READ || '').toLowerCase() === 'true';
@@ -14,6 +29,7 @@ export default function useChatApi(bookingId, authToken, options = {}) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const pollRef = useRef(null);
+  const lastSigRef = useRef('');
 
   const headers = useMemo(
     () => ({
@@ -109,11 +125,23 @@ export default function useChatApi(bookingId, authToken, options = {}) {
           userName: displayName,
         };
       });
+      // Compute a lightweight signature to detect changes
+      const newSig = mapped
+        .map((m) => `${m.id}|${m.createdAt || ''}|${m.message || ''}`)
+        .join('~');
+      const changed = newSig !== lastSigRef.current;
+      if (process.env.NODE_ENV !== 'production') {
+        // eslint-disable-next-line no-console
+        console.log('[useChatApi] sig changed:', changed);
+      }
+      if (changed) {
+        lastSigRef.current = newSig;
+        setMessages(mapped);
+      }
       if (process.env.NODE_ENV !== 'production') {
         // eslint-disable-next-line no-console
         console.log('[useChatApi] mapped messages:', mapped);
       }
-      setMessages(mapped);
     } catch (e) {
       setError(e);
     } finally {
