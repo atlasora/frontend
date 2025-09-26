@@ -78,14 +78,35 @@ export default function useChatApi(bookingId, authToken, options = {}) {
           attr?.admin_user ||
           null;
 
+        // Determine host vs booker: prefer explicit flag, then relation presence
+        const isHost = attr?.adminMessage === true || !!adminRel;
+
+        // Choose the relation to use for display name
+        // If it's a host message, prefer the property owner relation (users_permissions_user) when present,
+        // otherwise fall back to admin_user. For non-host, use users_permissions_user.
+        const nameSource = isHost
+          ? (userRel || adminRel || null)
+          : (userRel || null);
+
+        // Generic helper over chosen relation
+        const pickName = (rel) =>
+          (rel?.username && String(rel.username).trim()) ||
+          (rel?.firstname && String(rel.firstname).trim()) ||
+          (rel?.firstName && String(rel.firstName).trim()) ||
+          (rel?.lastname && String(rel.lastname).trim()) ||
+          (rel?.lastName && String(rel.lastName).trim()) ||
+          (rel?.email && String(rel.email).trim()) ||
+          null;
+
+        const displayName = pickName(nameSource) || (isHost ? 'Admin' : 'User');
+
         return {
           id: item.id,
           message: attr.message,
           adminMessage: !!attr.adminMessage,
           createdAt: attr.createdAt || item?.createdAt,
-          userName: attr.adminMessage
-            ? adminRel?.firstname || adminRel?.username || 'Admin'
-            : userRel?.username || userRel?.email || 'User',
+          isHost,
+          userName: displayName,
         };
       });
       if (process.env.NODE_ENV !== 'production') {

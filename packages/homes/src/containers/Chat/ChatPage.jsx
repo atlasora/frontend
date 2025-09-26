@@ -55,15 +55,15 @@ const ChatPage = () => {
             <Text content={`Host: ${hostName}${hostId ? ` (ID: ${hostId})` : ''}`} />
           )}
         </div>
-        <button onClick={() => refresh()} style={{ padding: '6px 12px', marginLeft: 'auto' }} title={`Refresh (auto every ${Math.round(POLL_MS/1000)}s)`}>
+        <button type="button" onClick={() => refresh()} style={{ padding: '6px 12px', marginLeft: 'auto' }} title={`Refresh (auto every ${Math.round(POLL_MS/1000)}s)`}>
           ⟳ Refresh
         </button>
       </div>
 
-      {/* Loading / Error */}
+      {/* Inline Refreshing indicator (do not hide conversation) */}
       {loading && (
-        <div style={{ marginTop: 12 }}>
-          <Text content="Loading conversation..." />
+        <div style={{ marginTop: 8, fontSize: 12, opacity: 0.7 }}>
+          Refreshing…
         </div>
       )}
       {error && (
@@ -72,48 +72,47 @@ const ChatPage = () => {
         </div>
       )}
 
-      {/* Conversation */}
-      {!loading && (
-        <div
-          style={{
-            border: '1px solid #eee',
-            borderRadius: 8,
-            padding: 16,
-            marginTop: 16,
-            minHeight: 240,
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 8,
-          }}
-        >
-          {(!messages || messages.length === 0) ? (
-            <Text content="No messages yet. Start the conversation!" />
-          ) : (
-            messages.map((m) => {
-              const isHost = !!m.adminMessage;
-              const bubbleBg = isHost ? '#f1f5f9' : '#e6f7ff';
-              const alignSelf = isHost ? 'flex-start' : 'flex-end';
-              const tailStyle = isHost
-                ? {
-                    position: 'absolute',
-                    left: -8,
-                    bottom: 10,
-                    width: 0,
-                    height: 0,
-                    borderTop: '8px solid transparent',
-                    borderBottom: '8px solid transparent',
-                    borderRight: `8px solid ${bubbleBg}`,
-                  }
-                : {
-                    position: 'absolute',
-                    right: -8,
-                    bottom: 10,
-                    width: 0,
-                    height: 0,
-                    borderTop: '8px solid transparent',
-                    borderBottom: '8px solid transparent',
-                    borderLeft: `8px solid ${bubbleBg}`,
-                  };
+      {/* Conversation (always visible) */}
+      <div
+        style={{
+          border: '1px solid #eee',
+          borderRadius: 8,
+          padding: 16,
+          marginTop: 16,
+          minHeight: 240,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 8,
+        }}
+      >
+        {(!messages || messages.length === 0) ? (
+          <Text content="No messages yet. Start the conversation!" />
+        ) : (
+          messages.map((m) => {
+            const isHost = !!m.adminMessage;
+            const bubbleBg = isHost ? '#f1f5f9' : '#e6f7ff';
+            const alignSelf = isHost ? 'flex-start' : 'flex-end';
+            const tailStyle = isHost
+              ? {
+                  position: 'absolute',
+                  left: -8,
+                  bottom: 10,
+                  width: 0,
+                  height: 0,
+                  borderTop: '8px solid transparent',
+                  borderBottom: '8px solid transparent',
+                  borderRight: `8px solid ${bubbleBg}`,
+                }
+              : {
+                  position: 'absolute',
+                  right: -8,
+                  bottom: 10,
+                  width: 0,
+                  height: 0,
+                  borderTop: '8px solid transparent',
+                  borderBottom: '8px solid transparent',
+                  borderLeft: `8px solid ${bubbleBg}`,
+                };
 
               // Fallback display names when relations aren't populated on first load
               const fallbackUserName = user?.username || user?.email || 'You';
@@ -207,8 +206,7 @@ const ChatPage = () => {
               );
             })
           )}
-        </div>
-      )}
+      </div>
 
       <form onSubmit={handleSend} style={{ marginTop: 12, display: 'flex', gap: 8 }}>
         <input
