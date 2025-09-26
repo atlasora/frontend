@@ -37,9 +37,17 @@ const AgentBookingPage = () => {
     // TODO: Show modal or redirect with form
   };
 
-  const handleMessageHost = (property) => {
-    console.log('Message host for property:', property);
-    // TODO: Open contact modal or messaging system
+  const handleMessageHost = (booking) => {
+    if (!booking?.id) return;
+    const { id: bookingId, property } = booking || {};
+    const state = {
+      propertyId: property?.id || property?._id,
+      propertyTitle: property?.Title,
+      hostId: property?.Owner?.id,
+      hostName: property?.Owner?.username || property?.Owner?.name,
+    };
+    // Navigate to chat screen with booking identifier and preload info
+    navigate(`/chat/${bookingId}`, { state });
   };
 
   if (!loggedIn) return null; // Or <Loader />
@@ -101,7 +109,7 @@ const AgentBookingPage = () => {
                 </button>
                 <button
                   style={{ padding: '6px 12px' }}
-                  onClick={() => handleMessageHost(property)}
+                  onClick={() => handleMessageHost(booking)}
                 >
                   💬 Message Host
                 </button>
