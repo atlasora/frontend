@@ -38,10 +38,20 @@ const PaymentPage = () => {
   const guest = searchParams.get('guest');
   const room = searchParams.get('room');
   const slug = searchParams.get('slug');
+  const propertyId = searchParams.get('propertyId');
   const deslug = slug ? slug.replace(/-/g, ' ') : '';
+  const backendBaseUrl = import.meta.env.VITE_BACKEND_BASE_URL || '';
+  const paymentsServerUrl = import.meta.env.VITE_PAYMENTS_SERVER_URL || backendBaseUrl;
+  const revolutStatusParam = searchParams.get('revolut_status') || searchParams.get('status');
+
+  const propertiesUrl = `${import.meta.env.VITE_APP_API_URL}properties?filters[$or][0][documentId][$eq]=${encodeURIComponent(
+    propertyId || ''
+  )}&filters[$or][1][Title][$eqi]=${encodeURIComponent(
+    deslug
+  )}&populate[Images]=true&populate[currency]=true`;
 
   const { data, loading } = useDataApi(
-    `${import.meta.env.VITE_APP_API_URL}properties?filters[Title][$eqi]=${deslug}&populate[Images]=true&populate[currency]=true`,
+    propertiesUrl,
     import.meta.env.VITE_APP_API_TOKEN,
     10,
     'properties',
@@ -57,13 +67,113 @@ const PaymentPage = () => {
     }
   }, [loggedIn, navigate]);
 
-  if (
-    !loggedIn ||
-    loading ||
-    !data ||
-    !Array.isArray(data) ||
-    data.length === 0
-  ) {
+  // Handle Revolut return: if redirected back with success parameters, create the booking then go to thank you
+  useEffect(() => {
+    // Wait until property data has loaded to compute booking fields
+    if (loading || !data || !Array.isArray(data) || data.length === 0) return;
+
+    const p = new URLSearchParams(window.location.search);
+    const revolutStatus = p.get('revolut_status') || p.get('status');
+    const revolutOrderId = p.get('revolut_order_id') || p.get('orderId');
+    const revolutPaymentId = p.get('revolut_payment_id') || p.get('paymentId');
+    const revolutAmount = p.get('amount');
+    const revolutCurrency = p.get('currency');
+    const alreadyBooked = p.get('booking_created');
+
+    const shouldCreateBooking =
+      revolutStatus && (revolutStatus.toLowerCase() === 'success' || revolutStatus.toLowerCase() === 'completed') && !alreadyBooked;
+
+    if (!shouldCreateBooking) return;
+    console.debug('[payments] detected Revolut success, creating booking', {
+      revolutStatus,
+      revolutOrderId,
+      revolutPaymentId,
+      revolutAmount,
+      revolutCurrency,
+    });
+
+    (async () => {
+      try {
+        // Append a flag so we don't double-create on re-render
+        p.set('booking_created', '1');
+        const newUrl = `${window.location.pathname}?${p.toString()}`;
+        window.history.replaceState(null, '', newUrl);
+
+        // Compute booking fields now that data is available
+        const prop = data[0];
+        const _price = prop.PricePerNight;
+        const _atlasfees = prop.AtlasFees;
+        const _cleaningfee = prop.CleaningFee;
+        const _currency = prop.currency?.symbol || '$';
+        const _nights =
+          startDate && endDate
+            ? moment(endDate, 'MM-DD-YYYY').diff(moment(startDate, 'MM-DD-YYYY'), 'days')
+            : 0;
+        const _total = _nights * _price;
+        const _feesTotal = _nights * _atlasfees;
+        const _totalWithCleaningFee = _total + _feesTotal + _cleaningfee;
+
+        // Create booking record with Revolut payment details
+        const response = await fetch(
+          `${import.meta.env.VITE_APP_API_URL}proeprty-bookings`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${import.meta.env.VITE_APP_API_TOKEN}`,
+            },
+            body: JSON.stringify({
+              data: {
+                property: prop?.documentId,
+                StartDate: moment(startDate).format('YYYY-MM-DD'),
+                EndDate: moment(endDate).format('YYYY-MM-DD'),
+                Guests: parseInt(guest),
+                Rooms: parseInt(room),
+                PriceperNight: _price,
+                NumberOfNights: _nights,
+                AtlasFee: _atlasfees,
+                CleaningFee: _cleaningfee,
+                TotalPaid: _totalWithCleaningFee,
+                PaidBy: 'Credit Card',
+                PaymentProvider: 'Revolut',
+                PaymentOrderId: revolutOrderId || null,
+                PaymentId: revolutPaymentId || null,
+                PaymentStatus: revolutStatus,
+                PaymentCurrency: revolutCurrency || _currency,
+                PaymentAmount: revolutAmount ? Number(revolutAmount) : _totalWithCleaningFee,
+              },
+            }),
+          },
+        );
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          console.error('Booking error (post-Revolut):', errorData);
+          alert('Payment succeeded but booking creation failed. Please contact support.');
+          return;
+        }
+        console.debug('[payments] booking created successfully after Revolut');
+        alert('Booking confirmed.');
+        navigate('/thank-you');
+      } catch (err) {
+        console.error('Error submitting booking after Revolut payment:', err);
+        alert('Payment succeeded but booking failed.');
+      }
+    })();
+  }, [loading, data, navigate]);
+
+  if (!loggedIn) {
+    return null;
+  }
+  if (loading || !data || !Array.isArray(data) || data.length === 0) {
+    if (revolutStatusParam) {
+      return (
+        <PageWrapper>
+          <h2>Processing payment…</h2>
+          <p>Please wait while we confirm your booking.</p>
+        </PageWrapper>
+      );
+    }
     return null;
   }
 
@@ -130,6 +240,77 @@ const PaymentPage = () => {
     }
   };
 
+  const startRevolutHostedCheckout = async () => {
+    try {
+      if (!backendBaseUrl) {
+        alert('Backend URL not configured. Please set VITE_BACKEND_BASE_URL');
+        return;
+      }
+      // Require property data to avoid bad propertyId (e.g., 'disconnect')
+      if (!Array.isArray(data) || data.length === 0 || !data[0]?.documentId) {
+        alert('Loading property details, please try again in a moment.');
+        return;
+      }
+      const propIdForCheckout = data[0].documentId;
+
+      const successUrl = `${window.location.origin}${window.location.pathname}?${new URLSearchParams({
+        startDate,
+        endDate,
+        guest,
+        room,
+        propertyId: propIdForCheckout,
+        slug,
+        revolut_status: 'success',
+      }).toString()}`;
+      const cancelUrl = `${window.location.href}`;
+      console.debug('[payments] starting Revolut checkout', { endpoint: `${paymentsServerUrl}/payments/revolut/checkout`, successUrl, cancelUrl });
+
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 15000);
+      const res = await fetch(`${paymentsServerUrl}/payments/revolut/checkout`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          amount: totalWithCleaningFee,
+          currency,
+          description: `Booking for ${title}`,
+          successUrl,
+          cancelUrl,
+          metadata: {
+            propertyId: propIdForCheckout,
+            startDate,
+            endDate,
+            guest,
+            room,
+            slug,
+          },
+        }),
+        signal: controller.signal,
+      });
+      clearTimeout(timer);
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        console.error('Failed to create Revolut checkout', err);
+        alert('Failed to start payment.');
+        return;
+      }
+
+      const payload = await res.json().catch(() => null);
+      console.debug('[payments] checkout response', payload);
+      const redirectUrl = payload?.redirectUrl || payload?.url;
+      if (!redirectUrl) {
+        alert('Payment could not be started.');
+        return;
+      }
+      window.location.assign(redirectUrl);
+    } catch (e) {
+      console.error('Revolut checkout error', e);
+      const aborted = e?.name === 'AbortError';
+      alert(aborted ? 'Payment server did not respond in time. Please try again.' : 'Failed to start Revolut payment.');
+    }
+  };
+
   return (
     <PageWrapper>
       <h2>Confirm and Pay</h2>
@@ -193,7 +374,7 @@ const PaymentPage = () => {
         <Button
           type="primary"
           size="large"
-          onClick={() => handlePayment('Credit Card')}
+          onClick={startRevolutHostedCheckout}
         >
           Pay with Credit Card
         </Button>
