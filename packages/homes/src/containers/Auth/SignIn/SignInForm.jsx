@@ -34,6 +34,10 @@ export default function SignInForm() {
 
   if (loggedIn) {
     // Redirect if already logged in
+    const returnTo = localStorage.getItem('returnTo');
+    if (returnTo && returnTo !== '/login' && returnTo !== '/sign-in') {
+      return <Navigate to={returnTo} replace={true} />;
+    }
     return <Navigate to="/" replace={true} />;
   }
 

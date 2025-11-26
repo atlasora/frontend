@@ -189,9 +189,9 @@ const PaymentPage = () => {
   const nights =
     startDate && endDate
       ? moment(endDate, 'MM-DD-YYYY').diff(
-          moment(startDate, 'MM-DD-YYYY'),
-          'days',
-        )
+        moment(startDate, 'MM-DD-YYYY'),
+        'days',
+      )
       : 0;
 
   const total = nights * price;
