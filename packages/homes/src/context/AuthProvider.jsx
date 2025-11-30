@@ -46,8 +46,6 @@ const AuthProvider = (props) => {
         console.log('🔁 Redirecting to returnTo:', returnTo);
         localStorage.removeItem('returnTo');
         navigate(returnTo, { replace: true });
-      } else {
-        navigate('/', { replace: true });
       }
     }
   }, [loggedIn]);

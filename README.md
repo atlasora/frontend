@@ -86,3 +86,8 @@ For homes you need to run,
 ```
 pnpm build:homes
 ```
+## start payment server
+
+```
+pnpm --filter payments-server dev
+```
