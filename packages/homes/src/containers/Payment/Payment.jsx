@@ -182,7 +182,8 @@ const PaymentPage = () => {
   const price = raw.PricePerNight;
   const gallery = raw.Images || [];
   const homeImage = gallery[0]?.url;
-  const currency = raw.currency?.symbol || '$';
+  console.log('Property Currency Data:', raw.currency);
+  const currency = 'USD'; // Force USD for debugging, was: raw.currency?.code || 'USD';
   const atlasfees = raw.AtlasFees;
   const cleaningfee = raw.CleaningFee;
 

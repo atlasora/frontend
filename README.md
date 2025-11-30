@@ -34,30 +34,37 @@ If it's not installed in your system then please install them by checking offici
 1. https://nodejs.org/en/
 2. https://pnpm.io/installation
 
-> ### Before starting the project, you need to configure the .env.local file for the every one of our packages.
+> ### Before starting the project, you need to configure the `.env.local` file in the `frontend/` root directory.
 
 <br/>
 
 ## Configuration
 
-### Hotel
+### Centralized Configuration
 
-For configuring hotel package, go to `packages/hotel/` and create `.env.local` file and configure it with your information in the `.env.local` file.
+Create a `.env.local` file in the `frontend/` directory. This file is shared across packages.
 
-```
+```env
+# Google Maps
 VITE_APP_GOOGLE_MAP_API_KEY=YOUR_GOOGLE_MAP_API_KEY
-```
-
-### Hotel Next
-
-After creating a `.env.local` file at the root of the hotel-next directory then copy and paste below env variables and replace those variable values with your information.
-
-```
 NEXT_PUBLIC_REACT_APP_GOOGLE_MAP_API_KEY=https://maps.googleapis.com/maps/api/js?v=3.exp&key=YOUR_GOOGLE_MAP_API_KEY
+
+# API
 NEXT_PUBLIC_SERVER_API=YOUR_SERVER_API_ENDPOINT
 VITE_APP_API_TOKEN=TOKEN
 VITE_APP_API_URL=URL
+
+# Payments
+REVOLUT_API_KEY=sk_sandbox_...
 ```
+
+### Payments Server
+
+For details on the payments server, see [../payments-server/README.md](../payments-server/README.md).
+
+### Hotel Next
+
+You can add `http://localhost:3001/` as your NEXT_PUBLIC_SERVER_API endpoint.
 
 You can add `http://localhost:3001/` as your NEXT_PUBLIC_SERVER_API endpoint.
 
