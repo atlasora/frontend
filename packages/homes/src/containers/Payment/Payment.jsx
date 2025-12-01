@@ -1,7 +1,8 @@
-import React, { useEffect, useContext } from 'react';
+import React, { useEffect, useContext, useState, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
-import { Button, Divider } from 'antd';
+import { Button, Divider, Modal, Spin, message } from 'antd';
+import { CopyOutlined, CheckCircleOutlined, LoadingOutlined } from '@ant-design/icons';
 import moment from 'moment';
 import useDataApi from 'library/hooks/useDataApi';
 import resolveURL from 'library/helpers/resolveURL';
@@ -27,10 +28,78 @@ const SummaryBox = styled.div`
   border-radius: 8px;
 `;
 
+const CryptoPaymentBox = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 16px;
+  padding: 20px;
+`;
+
+const QRCodeContainer = styled.div`
+  background: white;
+  padding: 16px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+`;
+
+const AddressBox = styled.div`
+  background: #f5f5f5;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-family: monospace;
+  word-break: break-all;
+  font-size: 12px;
+  max-width: 320px;
+`;
+
+const AmountBox = styled.div`
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 16px 24px;
+  border-radius: 12px;
+  text-align: center;
+`;
+
+const StatusBadge = styled.div`
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-weight: 500;
+  background: ${props => {
+    switch (props.status) {
+      case 'pending': return '#fff7e6';
+      case 'confirming': return '#e6f7ff';
+      case 'completed': return '#f6ffed';
+      case 'expired': return '#fff1f0';
+      default: return '#f5f5f5';
+    }
+  }};
+  color: ${props => {
+    switch (props.status) {
+      case 'pending': return '#d48806';
+      case 'confirming': return '#1890ff';
+      case 'completed': return '#52c41a';
+      case 'expired': return '#f5222d';
+      default: return '#666';
+    }
+  }};
+`;
+
 const PaymentPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { loggedIn } = useContext(AuthContext);
+  const { loggedIn, user } = useContext(AuthContext);
+
+  // Crypto payment state
+  const [cryptoModalOpen, setCryptoModalOpen] = useState(false);
+  const [cryptoPayment, setCryptoPayment] = useState(null);
+  const [cryptoLoading, setCryptoLoading] = useState(false);
+  const [paymentStatus, setPaymentStatus] = useState(null);
+  const [pollingInterval, setPollingInterval] = useState(null);
 
   const searchParams = new URLSearchParams(location.search);
   const startDate = searchParams.get('startDate');
@@ -198,6 +267,183 @@ const PaymentPage = () => {
   const total = nights * price;
   const feesTotal = nights * atlasfees;
   const totalWithCleaningFee = total + feesTotal + cleaningfee;
+
+  // Clean up polling on unmount
+  useEffect(() => {
+    return () => {
+      if (pollingInterval) {
+        clearInterval(pollingInterval);
+      }
+    };
+  }, [pollingInterval]);
+
+  // Poll for crypto payment status
+  const pollPaymentStatus = useCallback(async (paymentId) => {
+    try {
+      const res = await fetch(`${backendBaseUrl}/api/payments/crypto/status/${paymentId}`);
+      if (!res.ok) return;
+
+      const status = await res.json();
+      setPaymentStatus(status);
+
+      if (status.status === 'completed') {
+        // Payment confirmed! Create booking in CMS
+        if (pollingInterval) {
+          clearInterval(pollingInterval);
+          setPollingInterval(null);
+        }
+
+        message.success('Payment confirmed! Creating your booking...');
+
+        // Create booking record
+        const prop = data[0];
+        const _price = prop.PricePerNight;
+        const _atlasfees = prop.AtlasFees;
+        const _cleaningfee = prop.CleaningFee;
+        const _currency = prop.currency?.symbol || '$';
+        const _nights = startDate && endDate
+          ? moment(endDate, 'MM-DD-YYYY').diff(moment(startDate, 'MM-DD-YYYY'), 'days')
+          : 0;
+        const _total = _nights * _price;
+        const _feesTotal = _nights * _atlasfees;
+        const _totalWithCleaningFee = _total + _feesTotal + _cleaningfee;
+
+        const response = await fetch(
+          `${import.meta.env.VITE_APP_API_URL}proeprty-bookings`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${import.meta.env.VITE_APP_API_TOKEN}`,
+            },
+            body: JSON.stringify({
+              data: {
+                property: prop?.documentId,
+                StartDate: moment(startDate).format('YYYY-MM-DD'),
+                EndDate: moment(endDate).format('YYYY-MM-DD'),
+                Guests: parseInt(guest),
+                Rooms: parseInt(room),
+                PriceperNight: _price,
+                NumberOfNights: _nights,
+                AtlasFee: _atlasfees,
+                CleaningFee: _cleaningfee,
+                TotalPaid: _totalWithCleaningFee,
+                PaidBy: 'Crypto (ETH)',
+                PaymentProvider: 'Crypto',
+                PaymentOrderId: `crypto:${paymentId}`,
+                PaymentStatus: 'completed',
+                PaymentCurrency: 'ETH',
+                PaymentAmount: status.receivedAmountWei ? Number(status.receivedAmountWei) / 1e18 : null,
+              },
+            }),
+          },
+        );
+
+        if (!response.ok) {
+          console.error('Booking error (post-crypto):', await response.json());
+          message.error('Payment succeeded but booking creation failed. Please contact support.');
+          return;
+        }
+
+        setCryptoModalOpen(false);
+        navigate('/thank-you');
+      } else if (status.status === 'expired') {
+        if (pollingInterval) {
+          clearInterval(pollingInterval);
+          setPollingInterval(null);
+        }
+        message.warning('Payment session expired. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error polling payment status:', error);
+    }
+  }, [backendBaseUrl, data, startDate, endDate, guest, room, pollingInterval, navigate]);
+
+  // Initialize crypto payment
+  const startCryptoPayment = async () => {
+    if (!user?.id) {
+      message.error('Please sign in to continue');
+      return;
+    }
+
+    if (!Array.isArray(data) || data.length === 0 || !data[0]?.documentId) {
+      message.warning('Loading property details, please try again in a moment.');
+      return;
+    }
+
+    setCryptoLoading(true);
+    setCryptoModalOpen(true);
+
+    try {
+      const prop = data[0];
+      const propId = prop.documentId;
+
+      // Convert USD price to ETH (simplified - in production use price oracle)
+      // For now, use a fixed rate or fetch from API
+      const ethPriceUsd = 2000; // Placeholder - should fetch real price
+      const totalEth = totalWithCleaningFee / ethPriceUsd;
+      const totalWei = BigInt(Math.floor(totalEth * 1e18)).toString();
+
+      const checkInTs = Math.floor(moment(startDate, 'MM-DD-YYYY').valueOf() / 1000);
+      const checkOutTs = Math.floor(moment(endDate, 'MM-DD-YYYY').valueOf() / 1000);
+
+      const res = await fetch(`${backendBaseUrl}/api/payments/crypto/init`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: user.id,
+          propertyId: propId,
+          checkInDate: checkInTs,
+          checkOutDate: checkOutTs,
+          totalAmountWei: totalWei,
+          metadata: {
+            propertyTitle: prop.Title,
+            guests: parseInt(guest),
+            rooms: parseInt(room),
+            priceUsd: totalWithCleaningFee,
+            ethPriceUsd,
+          },
+        }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || 'Failed to initialize crypto payment');
+      }
+
+      const payment = await res.json();
+      setCryptoPayment(payment);
+      setPaymentStatus({ status: 'pending' });
+
+      // Start polling for payment status
+      const interval = setInterval(() => {
+        pollPaymentStatus(payment.paymentId);
+      }, 5000);
+      setPollingInterval(interval);
+
+    } catch (error) {
+      console.error('Crypto payment init error:', error);
+      message.error(error.message || 'Failed to start crypto payment');
+      setCryptoModalOpen(false);
+    } finally {
+      setCryptoLoading(false);
+    }
+  };
+
+  const copyToClipboard = (text) => {
+    navigator.clipboard.writeText(text);
+    message.success('Copied to clipboard!');
+  };
+
+  const closeCryptoModal = () => {
+    if (pollingInterval) {
+      clearInterval(pollingInterval);
+      setPollingInterval(null);
+    }
+    setCryptoModalOpen(false);
+    setCryptoPayment(null);
+    setPaymentStatus(null);
+  };
 
   const handlePayment = async (paymentMethod) => {
     try {
@@ -367,11 +613,11 @@ const PaymentPage = () => {
         <Button
           type="primary"
           size="large"
-          onClick={() => handlePayment('ETH')}
+          onClick={startCryptoPayment}
+          style={{ marginRight: 12 }}
         >
-          Pay with Crypto
+          Pay with Crypto (ETH)
         </Button>
-        <div style={{ height: '10px' }} />
         <Button
           type="primary"
           size="large"
@@ -380,6 +626,108 @@ const PaymentPage = () => {
           Pay with Credit Card
         </Button>
       </Section>
+
+      {/* Crypto Payment Modal */}
+      <Modal
+        open={cryptoModalOpen}
+        onCancel={closeCryptoModal}
+        footer={null}
+        title="Pay with Crypto"
+        centered
+        width={420}
+      >
+        {cryptoLoading ? (
+          <CryptoPaymentBox>
+            <Spin indicator={<LoadingOutlined style={{ fontSize: 48 }} spin />} />
+            <p>Generating payment address...</p>
+          </CryptoPaymentBox>
+        ) : cryptoPayment ? (
+          <CryptoPaymentBox>
+            {/* Status Badge */}
+            <StatusBadge status={paymentStatus?.status || 'pending'}>
+              {paymentStatus?.status === 'pending' && (
+                <>
+                  <LoadingOutlined spin />
+                  Waiting for payment...
+                </>
+              )}
+              {paymentStatus?.status === 'confirming' && (
+                <>
+                  <LoadingOutlined spin />
+                  Confirming transaction...
+                </>
+              )}
+              {paymentStatus?.status === 'completed' && (
+                <>
+                  <CheckCircleOutlined />
+                  Payment confirmed!
+                </>
+              )}
+              {paymentStatus?.status === 'expired' && 'Payment expired'}
+            </StatusBadge>
+
+            {/* QR Code */}
+            <QRCodeContainer>
+              <img
+                alt="Payment QR Code"
+                width={200}
+                height={200}
+                style={{ borderRadius: 8 }}
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(cryptoPayment.qrData)}`}
+              />
+            </QRCodeContainer>
+
+            {/* Amount */}
+            <AmountBox>
+              <div style={{ fontSize: 14, opacity: 0.9 }}>Send exactly</div>
+              <div style={{ fontSize: 28, fontWeight: 700 }}>
+                {cryptoPayment.expectedAmountEth} ETH
+              </div>
+              <div style={{ fontSize: 12, opacity: 0.8 }}>
+                on Base Sepolia (Chain ID: {cryptoPayment.chainId})
+              </div>
+            </AmountBox>
+
+            {/* Address */}
+            <div>
+              <div style={{ fontSize: 12, color: '#666', marginBottom: 4 }}>
+                To this address:
+              </div>
+              <AddressBox>
+                {cryptoPayment.paymentAddress}
+              </AddressBox>
+              <Button
+                type="link"
+                icon={<CopyOutlined />}
+                onClick={() => copyToClipboard(cryptoPayment.paymentAddress)}
+                style={{ marginTop: 4 }}
+              >
+                Copy Address
+              </Button>
+            </div>
+
+            {/* Expiry */}
+            <div style={{ fontSize: 12, color: '#999' }}>
+              Payment session expires at {new Date(cryptoPayment.expiresAt).toLocaleTimeString()}
+            </div>
+
+            {/* Instructions */}
+            <div style={{ fontSize: 13, color: '#666', textAlign: 'left', background: '#f9f9f9', padding: 12, borderRadius: 8 }}>
+              <strong>How to pay:</strong>
+              <ol style={{ margin: '8px 0 0 0', paddingLeft: 20 }}>
+                <li>Open your crypto wallet (Coinbase, MetaMask, etc.)</li>
+                <li>Scan the QR code or copy the address</li>
+                <li>Send the exact amount shown above</li>
+                <li>Wait for confirmation (usually 1-2 minutes)</li>
+              </ol>
+            </div>
+          </CryptoPaymentBox>
+        ) : (
+          <CryptoPaymentBox>
+            <p>Something went wrong. Please try again.</p>
+          </CryptoPaymentBox>
+        )}
+      </Modal>
     </PageWrapper>
   );
 };

@@ -1,21 +1,21 @@
 import React, { createContext, useContext, useMemo, useEffect, useState } from 'react';
 import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt, usePublicClient } from 'wagmi';
 
-// Define Viction Testnet chain
-const victionTestnet = {
-	id: 89,
-	name: 'Viction Testnet',
+// Define Base Sepolia chain (Primary)
+const baseSepolia = {
+	id: 84532,
+	name: 'Base Sepolia',
 	nativeCurrency: {
 		decimals: 18,
-		name: 'VIC',
-		symbol: 'VIC',
+		name: 'Ethereum',
+		symbol: 'ETH',
 	},
 	rpcUrls: {
-		default: { http: ['https://rpc-testnet.viction.xyz'] },
-		public: { http: ['https://rpc-testnet.viction.xyz'] },
+		default: { http: ['https://sepolia.base.org'] },
+		public: { http: ['https://sepolia.base.org'] },
 	},
 	blockExplorers: {
-		default: { name: 'VictionScan', url: 'https://testnet.vicscan.xyz' },
+		default: { name: 'BaseScan', url: 'https://sepolia.basescan.org' },
 	},
 	testnet: true,
 };
@@ -25,11 +25,12 @@ import BookingManagerABI from '../../public/abis/BookingManager.sol/BookingManag
 import PropertyMarketplaceABI from '../../public/abis/PropertyMarketplace.sol/PropertyMarketplace.json';
 import PropertyTokenABI from '../../public/abis/PropertyToken.sol/PropertyToken.json';
 
-// Contract addresses defaults (env)
+// Contract addresses defaults (env) - Base Sepolia
 const DEFAULT_ADDRESSES = {
-	victionTestnet: {
-		bookingManager: import.meta.env.VITE_BOOKING_MANAGER_ADDRESS || '0x54c3160A6d4238e3C6a2bD2BF386DDBc7722d0FB',
-		propertyMarketplace: import.meta.env.VITE_PROPERTY_MARKETPLACE_ADDRESS || '0x19641331663866894b69CD893b629ef405e11f8d',
+	baseSepolia: {
+		bookingManager: import.meta.env.VITE_BOOKING_MANAGER_ADDRESS || '0xD29898532bD0dEDE57129B2e29728e2BB27C5f9e',
+		propertyMarketplace: import.meta.env.VITE_PROPERTY_MARKETPLACE_ADDRESS || '0x4a98B0c7AD421008d8bFd60Eb8b02698c1fFf23b',
+		forwarder: import.meta.env.VITE_FORWARDER_ADDRESS || '0xC2625a5ddBEe6023634bCaD0615aecFA5552D9e7',
 	},
 };
 
@@ -61,9 +62,10 @@ export const ContractProvider = ({ children }) => {
 				const c = json?.contracts || {};
 				if (c.PropertyMarketplace && c.BookingManager) {
 					setAddr({
-						victionTestnet: {
+						baseSepolia: {
 							bookingManager: c.BookingManager,
 							propertyMarketplace: c.PropertyMarketplace,
+							forwarder: c.MetaTransactionForwarder || DEFAULT_ADDRESSES.baseSepolia.forwarder,
 						},
 					});
 				}
@@ -76,11 +78,11 @@ export const ContractProvider = ({ children }) => {
 	// Contract configurations
 	const contracts = useMemo(() => ({
 		bookingManager: {
-			address: addr.victionTestnet.bookingManager,
+			address: addr.baseSepolia.bookingManager,
 			abi: BookingManagerABI.abi,
 		},
 		propertyMarketplace: {
-			address: addr.victionTestnet.propertyMarketplace,
+			address: addr.baseSepolia.propertyMarketplace,
 			abi: PropertyMarketplaceABI.abi,
 		},
 	}), [addr]);
@@ -257,19 +259,7 @@ export const ContractProvider = ({ children }) => {
 	};
 
 	// Property Marketplace Write Functions
-	const listProperty = async (propertyURI, pricePerNight, tokenName, tokenSymbol) => {
-		try {
-			const result = await writeContract({
-				...contracts.propertyMarketplace,
-				functionName: 'listProperty',
-				args: [propertyURI, pricePerNight, tokenName, tokenSymbol],
-			});
-			return result;
-		} catch (error) {
-			console.error('Error listing property:', error);
-			throw error;
-		}
-	};
+	// Note: listProperty removed - properties are now created via CMS and synced to blockchain
 
 	const updateProperty = async (propertyId, pricePerNight, isActive) => {
 		try {
@@ -437,7 +427,6 @@ export const ContractProvider = ({ children }) => {
 		escalateDispute,
 		
 		// Property Marketplace Functions
-		listProperty,
 		updateProperty,
 		removeProperty,
 		

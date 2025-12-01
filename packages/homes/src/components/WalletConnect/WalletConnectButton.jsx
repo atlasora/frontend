@@ -5,21 +5,21 @@ import { getSafeRedirectPath } from 'library/helpers/navigation';
 import { config } from 'context/WalletProvider';
 import styled from 'styled-components';
 
-// Define Viction Testnet chain
-const victionTestnet = {
-	id: 89,
-	name: 'Viction Testnet',
+// Define Base Sepolia chain (Primary)
+const baseSepolia = {
+	id: 84532,
+	name: 'Base Sepolia',
 	nativeCurrency: {
 		decimals: 18,
-		name: 'VIC',
-		symbol: 'VIC',
+		name: 'Ethereum',
+		symbol: 'ETH',
 	},
 	rpcUrls: {
-		default: { http: ['https://rpc-testnet.viction.xyz'] },
-		public: { http: ['https://rpc-testnet.viction.xyz'] },
+		default: { http: ['https://sepolia.base.org'] },
+		public: { http: ['https://sepolia.base.org'] },
 	},
 	blockExplorers: {
-		default: { name: 'VictionScan', url: 'https://testnet.vicscan.xyz' },
+		default: { name: 'BaseScan', url: 'https://sepolia.basescan.org' },
 	},
 	testnet: true,
 };
@@ -56,16 +56,16 @@ const WalletConnectButton = ({ label = "Connect Wallet" }) => {
 	const location = useLocation();
 	const navigate = useNavigate();
 
-	// Force switch to Viction Testnet if connected to wrong network
+	// Force switch to Base Sepolia if connected to wrong network
 	useEffect(() => {
-		if (isConnected && chainId && chainId !== victionTestnet.id) {
-			switchChain({ chainId: victionTestnet.id });
+		if (isConnected && chainId && chainId !== baseSepolia.id) {
+			switchChain({ chainId: baseSepolia.id });
 		}
 	}, [isConnected, chainId, switchChain]);
 
-	// Handle redirect after successful connection (only when address is set and on Viction Testnet)
+	// Handle redirect after successful connection (only when address is set and on Base Sepolia)
 	useEffect(() => {
-		if (isConnected && address && chainId === victionTestnet.id) {
+		if (isConnected && address && chainId === baseSepolia.id) {
 			const redirectPath = location.state?.from || '/';
 			const safeRedirectPath = getSafeRedirectPath(redirectPath, '/');
 			navigate(safeRedirectPath, { replace: true });
@@ -73,11 +73,11 @@ const WalletConnectButton = ({ label = "Connect Wallet" }) => {
 	}, [isConnected, address, chainId, location.state?.from, navigate]);
 
 	if (isConnected && address) {
-		// Show switching message if not on Viction Testnet
-		if (chainId !== victionTestnet.id) {
+		// Show switching message if not on Base Sepolia
+		if (chainId !== baseSepolia.id) {
 			return (
 				<StyledConnectButton disabled>
-					{isSwitchPending ? 'Switching to Viction Testnet...' : 'Please switch to Viction Testnet'}
+					{isSwitchPending ? 'Switching to Base Sepolia...' : 'Please switch to Base Sepolia'}
 				</StyledConnectButton>
 			);
 		}
@@ -86,7 +86,7 @@ const WalletConnectButton = ({ label = "Connect Wallet" }) => {
 			<StyledConnectButton onClick={() => disconnect()}>
 				{address.slice(0, 6)}...{address.slice(-4)}
 				<span style={{ marginLeft: 8, fontSize: 13, color: '#e0e0e0' }}>
-					(Viction Testnet)
+					(Base Sepolia)
 				</span>
 			</StyledConnectButton>
 		);

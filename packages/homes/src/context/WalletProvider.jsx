@@ -4,21 +4,21 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { injected, walletConnect } from 'wagmi/connectors';
 import { ContractProvider } from './ContractProvider';
 
-// Define Viction Testnet chain
-const victionTestnet = {
-	id: 89,
-	name: 'Viction Testnet',
+// Define Base Sepolia chain (Primary)
+const baseSepolia = {
+	id: 84532,
+	name: 'Base Sepolia',
 	nativeCurrency: {
 		decimals: 18,
-		name: 'VIC',
-		symbol: 'VIC',
+		name: 'Ethereum',
+		symbol: 'ETH',
 	},
 	rpcUrls: {
-		default: { http: ['https://rpc-testnet.viction.xyz'] },
-		public: { http: ['https://rpc-testnet.viction.xyz'] },
+		default: { http: ['https://sepolia.base.org'] },
+		public: { http: ['https://sepolia.base.org'] },
 	},
 	blockExplorers: {
-		default: { name: 'VictionScan', url: 'https://testnet.vicscan.xyz' },
+		default: { name: 'BaseScan', url: 'https://sepolia.basescan.org' },
 	},
 	testnet: true,
 };
@@ -34,11 +34,11 @@ export const useWallet = () => {
 	return context;
 };
 
-// Basic wagmi Configuration (Viction Testnet ONLY)
+// Basic wagmi Configuration (Base Sepolia)
 export const config = createConfig({
-	chains: [victionTestnet], // Only Viction Testnet
+	chains: [baseSepolia],
 	transports: {
-		[victionTestnet.id]: http(),
+		[baseSepolia.id]: http(),
 	},
 	connectors: [
 		injected(),
