@@ -94,12 +94,12 @@ const PaymentPage = () => {
   const navigate = useNavigate();
   const { loggedIn, user } = useContext(AuthContext);
 
-  // Crypto payment state
-  const [cryptoModalOpen, setCryptoModalOpen] = useState(false);
-  const [cryptoPayment, setCryptoPayment] = useState(null);
-  const [cryptoLoading, setCryptoLoading] = useState(false);
-  const [paymentStatus, setPaymentStatus] = useState(null);
-  const [pollingInterval, setPollingInterval] = useState(null);
+  // EURC payment state
+  const [eurcModalOpen, setEurcModalOpen] = useState(false);
+  const [eurcPayment, setEurcPayment] = useState(null);
+  const [eurcLoading, setEurcLoading] = useState(false);
+  const [eurcStatus, setEurcStatus] = useState(null);
+  const [eurcPollingInterval, setEurcPollingInterval] = useState(null);
 
   const searchParams = new URLSearchParams(location.search);
   const startDate = searchParams.get('startDate');
@@ -231,6 +231,15 @@ const PaymentPage = () => {
     })();
   }, [loading, data, navigate]);
 
+  // Clean up EURC polling on unmount
+  useEffect(() => {
+    return () => {
+      if (eurcPollingInterval) {
+        clearInterval(eurcPollingInterval);
+      }
+    };
+  }, [eurcPollingInterval]);
+
   if (!loggedIn) {
     return null;
   }
@@ -253,8 +262,8 @@ const PaymentPage = () => {
   const homeImage = gallery[0]?.url;
   console.log('Property Currency Data:', raw.currency);
   const currency = 'USD'; // Force USD for debugging, was: raw.currency?.code || 'USD';
-  const atlasfees = raw.AtlasFees;
-  const cleaningfee = raw.CleaningFee;
+  const atlasfees = raw.AtlasFees || 0;
+  const cleaningfee = raw.CleaningFee || 0;
 
   const nights =
     startDate && endDate
@@ -265,184 +274,134 @@ const PaymentPage = () => {
       : 0;
 
   const total = nights * price;
-  const feesTotal = nights * atlasfees;
+  // AtlasFees is a percentage (e.g., 3 means 3%), not a flat fee
+  const feesTotal = total * (atlasfees / 100);
   const totalWithCleaningFee = total + feesTotal + cleaningfee;
-
-  // Clean up polling on unmount
-  useEffect(() => {
-    return () => {
-      if (pollingInterval) {
-        clearInterval(pollingInterval);
-      }
-    };
-  }, [pollingInterval]);
-
-  // Poll for crypto payment status
-  const pollPaymentStatus = useCallback(async (paymentId) => {
-    try {
-      const res = await fetch(`${backendBaseUrl}/api/payments/crypto/status/${paymentId}`);
-      if (!res.ok) return;
-
-      const status = await res.json();
-      setPaymentStatus(status);
-
-      if (status.status === 'completed') {
-        // Payment confirmed! Create booking in CMS
-        if (pollingInterval) {
-          clearInterval(pollingInterval);
-          setPollingInterval(null);
-        }
-
-        message.success('Payment confirmed! Creating your booking...');
-
-        // Create booking record
-        const prop = data[0];
-        const _price = prop.PricePerNight;
-        const _atlasfees = prop.AtlasFees;
-        const _cleaningfee = prop.CleaningFee;
-        const _currency = prop.currency?.symbol || '$';
-        const _nights = startDate && endDate
-          ? moment(endDate, 'MM-DD-YYYY').diff(moment(startDate, 'MM-DD-YYYY'), 'days')
-          : 0;
-        const _total = _nights * _price;
-        const _feesTotal = _nights * _atlasfees;
-        const _totalWithCleaningFee = _total + _feesTotal + _cleaningfee;
-
-        const response = await fetch(
-          `${import.meta.env.VITE_APP_API_URL}proeprty-bookings`,
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${import.meta.env.VITE_APP_API_TOKEN}`,
-            },
-            body: JSON.stringify({
-              data: {
-                property: prop?.documentId,
-                StartDate: moment(startDate).format('YYYY-MM-DD'),
-                EndDate: moment(endDate).format('YYYY-MM-DD'),
-                Guests: parseInt(guest),
-                Rooms: parseInt(room),
-                PriceperNight: _price,
-                NumberOfNights: _nights,
-                AtlasFee: _atlasfees,
-                CleaningFee: _cleaningfee,
-                TotalPaid: _totalWithCleaningFee,
-                PaidBy: 'Crypto (ETH)',
-                PaymentProvider: 'Crypto',
-                PaymentOrderId: `crypto:${paymentId}`,
-                PaymentStatus: 'completed',
-                PaymentCurrency: 'ETH',
-                PaymentAmount: status.receivedAmountWei ? Number(status.receivedAmountWei) / 1e18 : null,
-              },
-            }),
-          },
-        );
-
-        if (!response.ok) {
-          console.error('Booking error (post-crypto):', await response.json());
-          message.error('Payment succeeded but booking creation failed. Please contact support.');
-          return;
-        }
-
-        setCryptoModalOpen(false);
-        navigate('/thank-you');
-      } else if (status.status === 'expired') {
-        if (pollingInterval) {
-          clearInterval(pollingInterval);
-          setPollingInterval(null);
-        }
-        message.warning('Payment session expired. Please try again.');
-      }
-    } catch (error) {
-      console.error('Error polling payment status:', error);
-    }
-  }, [backendBaseUrl, data, startDate, endDate, guest, room, pollingInterval, navigate]);
-
-  // Initialize crypto payment
-  const startCryptoPayment = async () => {
-    if (!user?.id) {
-      message.error('Please sign in to continue');
-      return;
-    }
-
-    if (!Array.isArray(data) || data.length === 0 || !data[0]?.documentId) {
-      message.warning('Loading property details, please try again in a moment.');
-      return;
-    }
-
-    setCryptoLoading(true);
-    setCryptoModalOpen(true);
-
-    try {
-      const prop = data[0];
-      const propId = prop.documentId;
-
-      // Convert USD price to ETH (simplified - in production use price oracle)
-      // For now, use a fixed rate or fetch from API
-      const ethPriceUsd = 2000; // Placeholder - should fetch real price
-      const totalEth = totalWithCleaningFee / ethPriceUsd;
-      const totalWei = BigInt(Math.floor(totalEth * 1e18)).toString();
-
-      const checkInTs = Math.floor(moment(startDate, 'MM-DD-YYYY').valueOf() / 1000);
-      const checkOutTs = Math.floor(moment(endDate, 'MM-DD-YYYY').valueOf() / 1000);
-
-      const res = await fetch(`${backendBaseUrl}/api/payments/crypto/init`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId: user.id,
-          propertyId: propId,
-          checkInDate: checkInTs,
-          checkOutDate: checkOutTs,
-          totalAmountWei: totalWei,
-          metadata: {
-            propertyTitle: prop.Title,
-            guests: parseInt(guest),
-            rooms: parseInt(room),
-            priceUsd: totalWithCleaningFee,
-            ethPriceUsd,
-          },
-        }),
-      });
-
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.error || 'Failed to initialize crypto payment');
-      }
-
-      const payment = await res.json();
-      setCryptoPayment(payment);
-      setPaymentStatus({ status: 'pending' });
-
-      // Start polling for payment status
-      const interval = setInterval(() => {
-        pollPaymentStatus(payment.paymentId);
-      }, 5000);
-      setPollingInterval(interval);
-
-    } catch (error) {
-      console.error('Crypto payment init error:', error);
-      message.error(error.message || 'Failed to start crypto payment');
-      setCryptoModalOpen(false);
-    } finally {
-      setCryptoLoading(false);
-    }
-  };
 
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text);
     message.success('Copied to clipboard!');
   };
 
-  const closeCryptoModal = () => {
-    if (pollingInterval) {
-      clearInterval(pollingInterval);
-      setPollingInterval(null);
+  // Initialize EURC payment - user sends to their custodial wallet, then booking is created automatically
+  const startEURCPayment = async () => {
+    if (!user?.id) {
+      message.error('Please sign in to continue');
+      return;
     }
-    setCryptoModalOpen(false);
-    setCryptoPayment(null);
-    setPaymentStatus(null);
+
+    if (!Array.isArray(data) || data.length === 0 || !data[0]?.BlockchainPropertyId) {
+      message.warning('This property is not available for EURC payment yet. Please use Credit Card.');
+      return;
+    }
+
+    setEurcLoading(true);
+    setEurcModalOpen(true);
+    setEurcStatus('initializing');
+
+    try {
+      const prop = data[0];
+      const blockchainPropertyId = prop.BlockchainPropertyId;
+
+      // Total in EURC (6 decimals) - prices are in EUR which matches EURC 1:1
+      const totalEURC = totalWithCleaningFee;
+      const totalEURCBase = BigInt(Math.floor(totalEURC * 1e6)).toString();
+
+      const checkInTs = Math.floor(moment(startDate, 'MM-DD-YYYY').valueOf() / 1000);
+      const checkOutTs = Math.floor(moment(endDate, 'MM-DD-YYYY').valueOf() / 1000);
+
+      // Initialize EURC payment session - get unique payment address
+      const res = await fetch(`${backendBaseUrl}/api/payments/eurc/init`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: user.id,
+          propertyId: blockchainPropertyId,
+          checkInDate: checkInTs,
+          checkOutDate: checkOutTs,
+          totalAmountEURC: totalEURCBase,
+          metadata: {
+            propertyTitle: prop.Title,
+            cmsPropertyId: prop.documentId,
+            guests: parseInt(guest),
+            rooms: parseInt(room),
+            pricePerNight: price,
+            atlasFee: atlasfees,
+            cleaningFee: cleaningfee,
+            nights: nights,
+          },
+        }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || 'Failed to initialize EURC payment');
+      }
+
+      const payment = await res.json();
+      setEurcPayment(payment);
+      setEurcStatus('pending');
+
+      // Start polling for payment status
+      const interval = setInterval(() => {
+        pollEURCPaymentStatus(payment.paymentId);
+      }, 5000);
+      setEurcPollingInterval(interval);
+
+    } catch (error) {
+      console.error('EURC payment init error:', error);
+      message.error(error.message || 'Failed to initialize EURC payment');
+      setEurcStatus('error');
+    } finally {
+      setEurcLoading(false);
+    }
+  };
+
+  // Poll for EURC payment status
+  const pollEURCPaymentStatus = async (paymentId) => {
+    try {
+      const res = await fetch(`${backendBaseUrl}/api/payments/crypto/status/${paymentId}`);
+      if (!res.ok) return;
+
+      const status = await res.json();
+
+      if (status.status === 'completed') {
+        // Payment confirmed! Backend has already created the on-chain booking and CMS record
+        if (eurcPollingInterval) {
+          clearInterval(eurcPollingInterval);
+          setEurcPollingInterval(null);
+        }
+
+        setEurcStatus('completed');
+        message.success('Booking confirmed!');
+
+        setTimeout(() => {
+          setEurcModalOpen(false);
+          navigate('/thank-you');
+        }, 1500);
+      } else if (status.status === 'expired') {
+        if (eurcPollingInterval) {
+          clearInterval(eurcPollingInterval);
+          setEurcPollingInterval(null);
+        }
+        setEurcStatus('expired');
+        message.warning('Payment session expired. Please try again.');
+      } else if (status.status === 'confirming') {
+        setEurcStatus('confirming');
+      }
+    } catch (error) {
+      console.error('Error polling EURC payment status:', error);
+    }
+  };
+
+  const closeEurcModal = () => {
+    if (eurcPollingInterval) {
+      clearInterval(eurcPollingInterval);
+      setEurcPollingInterval(null);
+    }
+    setEurcModalOpen(false);
+    setEurcPayment(null);
+    setEurcStatus(null);
   };
 
   const handlePayment = async (paymentMethod) => {
@@ -613,10 +572,10 @@ const PaymentPage = () => {
         <Button
           type="primary"
           size="large"
-          onClick={startCryptoPayment}
-          style={{ marginRight: 12 }}
+          onClick={startEURCPayment}
+          style={{ marginRight: 12, background: '#0052FF' }}
         >
-          Pay with Crypto (ETH)
+          Pay with EURC
         </Button>
         <Button
           type="primary"
@@ -627,79 +586,80 @@ const PaymentPage = () => {
         </Button>
       </Section>
 
-      {/* Crypto Payment Modal */}
+      {/* EURC Payment Modal */}
       <Modal
-        open={cryptoModalOpen}
-        onCancel={closeCryptoModal}
+        open={eurcModalOpen}
+        onCancel={closeEurcModal}
         footer={null}
-        title="Pay with Crypto"
+        title="Pay with EURC (Euro Stablecoin)"
         centered
         width={420}
       >
-        {cryptoLoading ? (
+        {eurcLoading ? (
           <CryptoPaymentBox>
             <Spin indicator={<LoadingOutlined style={{ fontSize: 48 }} spin />} />
-            <p>Generating payment address...</p>
+            <p>Setting up payment...</p>
           </CryptoPaymentBox>
-        ) : cryptoPayment ? (
+        ) : eurcPayment ? (
           <CryptoPaymentBox>
             {/* Status Badge */}
-            <StatusBadge status={paymentStatus?.status || 'pending'}>
-              {paymentStatus?.status === 'pending' && (
+            <StatusBadge status={eurcStatus || 'pending'}>
+              {eurcStatus === 'pending' && (
                 <>
                   <LoadingOutlined spin />
-                  Waiting for payment...
+                  Waiting for EURC...
                 </>
               )}
-              {paymentStatus?.status === 'confirming' && (
+              {eurcStatus === 'confirming' && (
                 <>
                   <LoadingOutlined spin />
-                  Confirming transaction...
+                  Creating booking...
                 </>
               )}
-              {paymentStatus?.status === 'completed' && (
+              {eurcStatus === 'completed' && (
                 <>
                   <CheckCircleOutlined />
-                  Payment confirmed!
+                  Booking confirmed!
                 </>
               )}
-              {paymentStatus?.status === 'expired' && 'Payment expired'}
+              {eurcStatus === 'expired' && 'Payment expired'}
+              {eurcStatus === 'error' && 'Error occurred'}
             </StatusBadge>
 
             {/* QR Code */}
             <QRCodeContainer>
               <img
-                alt="Payment QR Code"
+                alt="EURC Payment QR Code"
                 width={200}
                 height={200}
                 style={{ borderRadius: 8 }}
-                src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(cryptoPayment.qrData)}`}
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(eurcPayment.qrData || eurcPayment.paymentAddress)}`}
               />
             </QRCodeContainer>
 
             {/* Amount */}
-            <AmountBox>
+            <AmountBox style={{ background: 'linear-gradient(135deg, #0052FF 0%, #0039B3 100%)' }}>
               <div style={{ fontSize: 14, opacity: 0.9 }}>Send exactly</div>
               <div style={{ fontSize: 28, fontWeight: 700 }}>
-                {cryptoPayment.expectedAmountEth} ETH
+                {eurcPayment.expectedAmountEURC} EURC
               </div>
               <div style={{ fontSize: 12, opacity: 0.8 }}>
-                on Base Sepolia (Chain ID: {cryptoPayment.chainId})
+                ≈ €{eurcPayment.expectedAmountEURC} (1:1 with EUR) on Base Sepolia
               </div>
             </AmountBox>
 
             {/* Address */}
             <div>
               <div style={{ fontSize: 12, color: '#666', marginBottom: 4 }}>
-                To this address:
+                Send to your Atlas wallet:
               </div>
               <AddressBox>
-                {cryptoPayment.paymentAddress}
+                {eurcPayment.paymentAddress}
               </AddressBox>
               <Button
                 type="link"
                 icon={<CopyOutlined />}
-                onClick={() => copyToClipboard(cryptoPayment.paymentAddress)}
+                onClick={() => copyToClipboard(eurcPayment.paymentAddress)}
                 style={{ marginTop: 4 }}
               >
                 Copy Address
@@ -708,23 +668,20 @@ const PaymentPage = () => {
 
             {/* Expiry */}
             <div style={{ fontSize: 12, color: '#999' }}>
-              Payment session expires at {new Date(cryptoPayment.expiresAt).toLocaleTimeString()}
+              Payment session expires at {new Date(eurcPayment.expiresAt).toLocaleTimeString()}
             </div>
 
-            {/* Instructions */}
-            <div style={{ fontSize: 13, color: '#666', textAlign: 'left', background: '#f9f9f9', padding: 12, borderRadius: 8 }}>
-              <strong>How to pay:</strong>
-              <ol style={{ margin: '8px 0 0 0', paddingLeft: 20 }}>
-                <li>Open your crypto wallet (Coinbase, MetaMask, etc.)</li>
-                <li>Scan the QR code or copy the address</li>
-                <li>Send the exact amount shown above</li>
-                <li>Wait for confirmation (usually 1-2 minutes)</li>
-              </ol>
-            </div>
+            {eurcStatus === 'completed' && (
+              <div style={{ color: '#52c41a', fontSize: 14, fontWeight: 500 }}>
+                <CheckCircleOutlined style={{ marginRight: 8 }} />
+                Booking confirmed! Redirecting...
+              </div>
+            )}
           </CryptoPaymentBox>
         ) : (
           <CryptoPaymentBox>
             <p>Something went wrong. Please try again.</p>
+            <Button onClick={closeEurcModal}>Close</Button>
           </CryptoPaymentBox>
         )}
       </Modal>
