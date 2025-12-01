@@ -7,6 +7,7 @@ import {
   AGENT_PROFILE_PAGE,
   AGENT_ACCOUNT_SETTINGS_PAGE,
   ADD_HOTEL_PAGE,
+  HOST_WALLET_PAGE,
 } from 'settings/constant';
 
 export default function ProfileMenu({ avatar }) {
@@ -34,6 +35,10 @@ export default function ProfileMenu({ avatar }) {
     {
       label: <NavLink to={ADD_HOTEL_PAGE}>Add Property</NavLink>,
       key: 'add_hotel',
+    },
+    {
+      label: <NavLink to={HOST_WALLET_PAGE}>Wallet & Payouts</NavLink>,
+      key: 'host_wallet',
     },
     {
       label: (
