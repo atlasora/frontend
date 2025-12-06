@@ -6,6 +6,7 @@ import { Button, Upload, message } from 'antd';
 import { FaCamera } from 'react-icons/fa';
 import styled from 'styled-components';
 import FormControl from 'components/UI/FormControl/FormControl';
+import resolveURL from 'library/helpers/resolveURL';
 import addListingAction from './AddListingAction';
 import { FormHeader, Title, FormContent, FormAction } from './AddListing.style';
 
@@ -71,10 +72,10 @@ const HotelPhotos = ({ setStep }) => {
           uid: f.id,
           name: f.name,
           status: 'done',
-          url: `${import.meta.env.VITE_APP_ADMIN_URL}${f.url}`,
+          url: resolveURL(f.url),
           thumbUrl: f.formats?.thumbnail
-            ? `${import.meta.env.VITE_APP_ADMIN_URL}${f.formats.thumbnail.url}`
-            : `${import.meta.env.VITE_APP_ADMIN_URL}${f.url}`,
+            ? resolveURL(f.formats.thumbnail.url)
+            : resolveURL(f.url),
           id: f.id,
         }));
       }

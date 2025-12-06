@@ -23,10 +23,6 @@ const MobileMenu = ({ className }) => {
       key: 'listing',
     },
     {
-      label: <NavLink to={`${PRICING_PLAN_PAGE}`}>Pricing</NavLink>,
-      key: 'pricing',
-    },
-    {
       label: loggedIn && (
         <NavLink to={`${AGENT_ACCOUNT_SETTINGS_PAGE}`}>
           Account Settings

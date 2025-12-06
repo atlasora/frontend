@@ -80,7 +80,7 @@ const LocationGrid = () => {
                 {data.map((post, index) => (
                   <GlideSlide key={index}>
                     <ImageCard
-                      link="listing"
+                      link={`listing?address=${post.City}`}
                       imageSrc={
                         resolveURL(post.locationImage?.url) || '/default.jpg'
                       }
