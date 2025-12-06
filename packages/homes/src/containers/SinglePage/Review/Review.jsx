@@ -14,13 +14,13 @@ const CommentBox = (props) => {
   const { reviews } = props;
   return reviews && reviews.length !== 0
     ? reviews.map((singleReview, i) => {
-        return (
-          <Fragment key={i}>
-            <Divider />
-            <CommentCard singleReview={singleReview} />
-          </Fragment>
-        );
-      })
+      return (
+        <Fragment key={i}>
+          <Divider />
+          <CommentCard singleReview={singleReview} />
+        </Fragment>
+      );
+    })
     : 'No Review Found';
 };
 
@@ -74,14 +74,17 @@ const Review = (props) => {
         <HeaderSection>
           <RatingStatus>
             <Heading
-              content={`${ratingCount} Reviews`}
+              content={`${ratingCount} Review(s)`}
               {...statusHeadingStyle}
             />
+            {/*
+            replace this with the actual stars
             <IoIosStar />
             <IoIosStar />
             <IoIosStar />
             <IoIosStar />
             <IoIosStar />
+            */}
           </RatingStatus>
         </HeaderSection>
 
