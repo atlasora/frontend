@@ -47,6 +47,7 @@ const PostGrid = ({
   slug,
   link,
   currency,
+  publishedAt,
 }) => {
   const { isFavorite, toggleFavorite } = useFavorites();
   // lStorage when the component mounts
@@ -85,6 +86,24 @@ const PostGrid = ({
         sliderClass=""
         slidesToSlide={1}
       >
+        {publishedAt === null && (
+          <span
+            style={{
+              position: 'absolute',
+              top: '10px',
+              left: '10px',
+              background: '#ffaa00',
+              color: '#fff',
+              padding: '4px 8px',
+              borderRadius: '4px',
+              fontSize: '12px',
+              fontWeight: 'bold',
+              zIndex: 9,
+            }}
+          >
+            Draft
+          </span>
+        )}
         {gallery.map(({ url, title }, index) => (
           <img
             src={resolveUrl(url)}

@@ -65,42 +65,44 @@ export default function SectionGrid({
       <Box className="grid_wrapper" {...rowStyle}>
         {data && data.length
           ? data.map((item) => {
-              const {
-                id,
-                Title,
-                FormattedAddress,
-                PricePerNight,
-                Rooms,
-                Bathrooms,
-                Size,
-                Images,
-                currency,
-              } = item;
+            const {
+              id,
+              Title,
+              FormattedAddress,
+              PricePerNight,
+              Rooms,
+              Bathrooms,
+              Size,
+              Images,
+              currency,
+              publishedAt,
+            } = item;
 
-              const imageUrl = resolveURL(Images?.[0]?.url) || '/default.jpg';
+            const imageUrl = resolveURL(Images?.[0]?.url) || '/default.jpg';
 
-              return (
-                <Box
-                  className="grid_column"
-                  width={columnWidth}
-                  key={id}
-                  {...columnStyle}
-                >
-                  <ProductCard
-                    id={id}
-                    title={Title}
-                    description={FormattedAddress}
-                    price={PricePerNight}
-                    rooms={Rooms}
-                    bathrooms={Bathrooms}
-                    size={Size}
-                    image={imageUrl}
-                    gallery={Images || []}
-                    currency={currency?.symbol || '$'}
-                  />
-                </Box>
-              );
-            })
+            return (
+              <Box
+                className="grid_column"
+                width={columnWidth}
+                key={id}
+                {...columnStyle}
+              >
+                <ProductCard
+                  id={id}
+                  title={Title}
+                  description={FormattedAddress}
+                  price={PricePerNight}
+                  rooms={Rooms}
+                  bathrooms={Bathrooms}
+                  size={Size}
+                  image={imageUrl}
+                  gallery={Images || []}
+                  currency={currency?.symbol || '$'}
+                  publishedAt={publishedAt}
+                />
+              </Box>
+            );
+          })
           : null}
 
         {loading &&

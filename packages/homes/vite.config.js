@@ -16,9 +16,9 @@ export default defineConfig({
     },
   },
   server: {
-    // 👇 This is correct Vite usage (from Connect middleware under the hood)
+    port: 3000,
     fs: {
-      allow: ['.'],
+      allow: ['..', '../../node_modules'],
     },
   },
   build: {
