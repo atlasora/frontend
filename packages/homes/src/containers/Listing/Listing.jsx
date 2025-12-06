@@ -109,9 +109,11 @@ export default function Listing() {
           }
           right={
             <ShowMapCheckbox>
+              {/*
               <Checkbox defaultChecked={false} onChange={handleMapToggle}>
                 Show map
               </Checkbox>
+              */}
             </ShowMapCheckbox>
           }
         />
