@@ -240,8 +240,8 @@ const PaymentPage = () => {
           </p>
           <p>This reservation is non-refundable.</p>
           <p>
-            <strong>Dates:</strong> {moment(startDate).format('MMM D, YYYY')} –{' '}
-            {moment(endDate).format('MMM D, YYYY')}
+            <strong>Dates:</strong> {moment(startDate, 'MM-DD-YYYY').format('MMM D, YYYY')} –{' '}
+            {moment(endDate, 'MM-DD-YYYY').format('MMM D, YYYY')}
           </p>
           <p>
             <strong>Guests:</strong> {guest}

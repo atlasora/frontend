@@ -15,7 +15,7 @@ const MobileMenu = ({ className }) => {
 
   const navigations = [
     {
-      label: <NavLink to={HOME_PAGE}>Hotels</NavLink>,
+      label: <NavLink to={HOME_PAGE}>Home</NavLink>,
       key: 'hotels',
     },
     {

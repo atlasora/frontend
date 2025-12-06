@@ -6,9 +6,9 @@ const Container = ({ children, className, fullWidth, noGutter, fluid }) => {
   return (
     <ContainerWrapper
       className={className}
-      fullWidth={fullWidth}
-      noGutter={noGutter}
-      fluid={fluid}
+      $fullWidth={fullWidth}
+      $noGutter={noGutter}
+      $fluid={fluid}
     >
       {children}
     </ContainerWrapper>
