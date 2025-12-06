@@ -105,7 +105,7 @@ const HotelAmenities = ({ setStep }) => {
               <div style={{ wordBreak: 'break-all' }}><strong>Transaction:</strong> {result.transactionHash}</div>
             </div>
           ),
-          onOk: () => {}
+          onOk: () => { }
         });
         actions.addListingResetAction();
         navigate('/listing');
@@ -135,7 +135,7 @@ const HotelAmenities = ({ setStep }) => {
         },
       };
 
-      const res = await fetch(`${import.meta.env.VITE_APP_API_URL}properties`, {
+      const res = await fetch(`${import.meta.env.VITE_APP_API_URL}properties?status=draft`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

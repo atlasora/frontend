@@ -21,9 +21,9 @@ const victionTestnet = {
 };
 
 // Import contract ABIs
-import BookingManagerABI from '../../public/abis/BookingManager.sol/BookingManager.json';
-import PropertyMarketplaceABI from '../../public/abis/PropertyMarketplace.sol/PropertyMarketplace.json';
-import PropertyTokenABI from '../../public/abis/PropertyToken.sol/PropertyToken.json';
+import BookingManagerABI from '../abis/BookingManager.sol/BookingManager.json';
+import PropertyMarketplaceABI from '../abis/PropertyMarketplace.sol/PropertyMarketplace.json';
+import PropertyTokenABI from '../abis/PropertyToken.sol/PropertyToken.json';
 
 // Contract addresses defaults (env)
 const DEFAULT_ADDRESSES = {
@@ -417,7 +417,7 @@ export const ContractProvider = ({ children }) => {
 		contracts,
 		contractAddresses: addr,
 		publicClient,
-		
+
 		// State
 		isConnected,
 		address,
@@ -425,7 +425,7 @@ export const ContractProvider = ({ children }) => {
 		isTransactionLoading,
 		writeError,
 		transactionReceipt,
-		
+
 		// Booking Manager Functions
 		createBooking,
 		checkIn,
@@ -435,12 +435,12 @@ export const ContractProvider = ({ children }) => {
 		hostResolveDispute,
 		guestResolveDispute,
 		escalateDispute,
-		
+
 		// Property Marketplace Functions
 		listProperty,
 		updateProperty,
 		removeProperty,
-		
+
 		// Read Functions
 		getBooking,
 		getGuestBookings,
@@ -450,7 +450,7 @@ export const ContractProvider = ({ children }) => {
 		getActivePropertyIds,
 		getBookingManagerMarketplaceAddress,
 		getPropertyFromMarketplace,
-		
+
 		// Data and loading states
 		bookingManagerData,
 		bookingManagerLoading,
@@ -458,7 +458,7 @@ export const ContractProvider = ({ children }) => {
 		propertyMarketplaceData,
 		propertyMarketplaceLoading,
 		propertyMarketplaceError,
-		
+
 		// Refetch functions
 		refetchBookingManager,
 		refetchPropertyMarketplace,
