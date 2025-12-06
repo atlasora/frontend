@@ -78,6 +78,7 @@ const Review = (props) => {
               {...statusHeadingStyle}
             />
             {/*
+            
             replace this with the actual stars
             <IoIosStar />
             <IoIosStar />
