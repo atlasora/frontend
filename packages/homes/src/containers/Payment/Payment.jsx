@@ -6,6 +6,7 @@ import moment from 'moment';
 import useDataApi from 'library/hooks/useDataApi';
 import resolveURL from 'library/helpers/resolveURL';
 import { AuthContext } from 'context/AuthProvider';
+import formatPrice from 'library/helpers/formatPrice';
 
 const PageWrapper = styled.div`
   max-width: 800px;
@@ -250,21 +251,16 @@ const PaymentPage = () => {
             <strong>Rooms:</strong> {room}
           </p>
           <p>
-            <strong>Price:</strong> {currency}
-            {price} × {nights} nights = {currency}
-            {total}
+            <strong>Price:</strong> {formatPrice(price, currency)} × {nights} nights = {formatPrice(total, currency)}
           </p>
           <p>
-            <strong>Atlas Fees:</strong> {currency}
-            {feesTotal}
+            <strong>Atlas Fees:</strong> {formatPrice(feesTotal, currency)}
           </p>
           <p>
-            <strong>Cleaning Fee:</strong> {currency}
-            {cleaningfee}
+            <strong>Cleaning Fee:</strong> {formatPrice(cleaningfee, currency)}
           </p>
           <p>
-            <strong>Total:</strong> {currency}
-            {totalWithCleaningFee}
+            <strong>Total:</strong> {formatPrice(totalWithCleaningFee, currency)}
           </p>
         </SummaryBox>
       </Section>

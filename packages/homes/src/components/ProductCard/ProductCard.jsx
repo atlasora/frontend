@@ -9,6 +9,7 @@ import GridCard from '../GridCard/GridCard';
 import resolveUrl from 'library/helpers/resolveURL';
 import slugify from 'library/helpers/slugify';
 import useFavorites from 'library/hooks/useFavorites'; // adjust path if needed
+import formatPrice from 'library/helpers/formatPrice';
 
 const responsive = {
   desktop: {
@@ -66,7 +67,7 @@ const PostGrid = ({
       }
       location={location}
       title={<TextLink link={`/post/${slugify(title)}`} content={title} />}
-      price={`${currency}${price}/Night - Free Cancellation`}
+      price={`${formatPrice(price, currency)}/Night - Free Cancellation`}
       rating={<Rating rating={rating} ratingCount={ratingCount} type="bulk" />}
 
     >

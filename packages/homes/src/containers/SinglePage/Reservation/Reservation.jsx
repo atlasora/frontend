@@ -1,4 +1,5 @@
 import React, { Fragment } from 'react';
+import formatPrice from 'library/helpers/formatPrice';
 import PropTypes from 'prop-types';
 import Card from 'components/UI/Card/Card';
 import Heading from 'components/UI/Heading/Heading';
@@ -7,6 +8,7 @@ import RenderReservationForm from './RenderReservationForm';
 
 const CardHeader = ({
   price,
+  currency,
   priceStyle = {
     color: '#2C2C2C',
     fontSize: '25px',
@@ -27,7 +29,7 @@ const CardHeader = ({
       <Heading
         content={
           <Fragment>
-            {price} <Text as="span" content="/ night" {...pricePeriodStyle} />
+            {formatPrice(price, currency)} <Text as="span" content="/ night" {...pricePeriodStyle} />
           </Fragment>
         }
         {...priceStyle}
@@ -37,11 +39,11 @@ const CardHeader = ({
 };
 
 // ✅ Accept propertyId and slug as props
-export default function Reservation({ price, pricePerNightEth, propertyId, slug }) {
+export default function Reservation({ price, currency, pricePerNightEth, propertyId, slug }) {
   return (
     <Card
       className="reservation_sidebar"
-      header={<CardHeader price={price} />}
+      header={<CardHeader price={price} currency={currency} />}
       content={<RenderReservationForm propertyId={propertyId} slug={slug} pricePerNightEth={pricePerNightEth} />}
       footer={<p></p>}
     />

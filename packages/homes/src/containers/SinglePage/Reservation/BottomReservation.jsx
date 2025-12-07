@@ -5,7 +5,7 @@ import { Button, Modal } from 'antd';
 import StickyBooking from 'components/StickyBooking/StickyBooking';
 import Reservation from './Reservation';
 
-const BottomReservation = ({ title, price, rating, ratingCount }) => {
+const BottomReservation = ({ title, price, currency, rating, ratingCount }) => {
   const [visible, setVisible] = useState(false);
 
   return (
@@ -14,6 +14,7 @@ const BottomReservation = ({ title, price, rating, ratingCount }) => {
         logo="/images/logo-alt.svg"
         title={title}
         price={price}
+        currency={currency}
         rating={
           <Rating rating={rating} ratingCount={ratingCount} type="bulk" />
         }
