@@ -19,6 +19,7 @@ export const AGENT_PROFILE_LISTING = 'listing';
 export const PRICING_PLAN_PAGE = '/pricing-plan';
 export const PRIVACY_PAGE = '/privacy';
 export const ADD_HOTEL_PAGE = '/add-property';
+export const HOST_WALLET_PAGE = '/host-wallet';
 export const SMART_CONTRACT_DEMO_PAGE = '/smart-contract-demo';
 export const BACKEND_INTEGRATION_PAGE = '/backend-integration';
 

@@ -3,21 +3,21 @@ import { useConnect, useAccount, useDisconnect, useChainId, useSwitchChain } fro
 import { config } from 'context/WalletProvider';
 import styled from 'styled-components';
 
-// Define Viction Testnet chain
-const victionTestnet = {
-	id: 89,
-	name: 'Viction Testnet',
+// Define Base Sepolia chain (Primary)
+const baseSepolia = {
+	id: 84532,
+	name: 'Base Sepolia',
 	nativeCurrency: {
 		decimals: 18,
-		name: 'VIC',
-		symbol: 'VIC',
+		name: 'Ethereum',
+		symbol: 'ETH',
 	},
 	rpcUrls: {
-		default: { http: ['https://rpc-testnet.viction.xyz'] },
-		public: { http: ['https://rpc-testnet.viction.xyz'] },
+		default: { http: ['https://sepolia.base.org'] },
+		public: { http: ['https://sepolia.base.org'] },
 	},
 	blockExplorers: {
-		default: { name: 'VictionScan', url: 'https://testnet.vicscan.xyz' },
+		default: { name: 'BaseScan', url: 'https://sepolia.basescan.org' },
 	},
 	testnet: true,
 };
@@ -50,16 +50,16 @@ const WalletStatus = () => {
 	const chainId = useChainId();
 	const { switchChain, isPending: isSwitchPending } = useSwitchChain();
 
-	// Force switch to Viction Testnet if connected to wrong network
+	// Force switch to Base Sepolia if connected to wrong network
 	useEffect(() => {
-		if (isConnected && chainId && chainId !== victionTestnet.id) {
-			switchChain({ chainId: victionTestnet.id });
+		if (isConnected && chainId && chainId !== baseSepolia.id) {
+			switchChain({ chainId: baseSepolia.id });
 		}
 	}, [isConnected, chainId, switchChain]);
 
 	if (!isConnected) {
 		return (
-			<WalletStatusButton 
+			<WalletStatusButton
 				onClick={() => connect({ connector: connectors[0] })}
 				disabled={isPending}
 			>
@@ -68,8 +68,8 @@ const WalletStatus = () => {
 		);
 	}
 
-	// Show switching message if not on Viction Testnet
-	if (chainId !== victionTestnet.id) {
+	// Show switching message if not on Base Sepolia
+	if (chainId !== baseSepolia.id) {
 		return (
 			<WalletStatusButton disabled>
 				{isSwitchPending ? 'Switching...' : 'Wrong Network'}
@@ -81,7 +81,7 @@ const WalletStatus = () => {
 		<WalletStatusButton onClick={() => disconnect()}>
 			{address ? `${address.slice(0, 6)}...${address.slice(-4)}` : 'Wallet'}
 			<span style={{ marginLeft: 8, fontSize: 13, color: '#e0e0e0' }}>
-				(Viction Testnet)
+				(Base Sepolia)
 			</span>
 		</WalletStatusButton>
 	);

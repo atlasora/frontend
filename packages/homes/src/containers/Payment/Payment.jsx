@@ -1,7 +1,8 @@
-import React, { useEffect, useContext } from 'react';
+import React, { useEffect, useContext, useState, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
-import { Button, Divider } from 'antd';
+import { Button, Divider, Modal, Spin, message } from 'antd';
+import { CopyOutlined, CheckCircleOutlined, LoadingOutlined } from '@ant-design/icons';
 import moment from 'moment';
 import useDataApi from 'library/hooks/useDataApi';
 import resolveURL from 'library/helpers/resolveURL';
@@ -28,10 +29,78 @@ const SummaryBox = styled.div`
   border-radius: 8px;
 `;
 
+const CryptoPaymentBox = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 16px;
+  padding: 20px;
+`;
+
+const QRCodeContainer = styled.div`
+  background: white;
+  padding: 16px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+`;
+
+const AddressBox = styled.div`
+  background: #f5f5f5;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-family: monospace;
+  word-break: break-all;
+  font-size: 12px;
+  max-width: 320px;
+`;
+
+const AmountBox = styled.div`
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 16px 24px;
+  border-radius: 12px;
+  text-align: center;
+`;
+
+const StatusBadge = styled.div`
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-weight: 500;
+  background: ${props => {
+    switch (props.status) {
+      case 'pending': return '#fff7e6';
+      case 'confirming': return '#e6f7ff';
+      case 'completed': return '#f6ffed';
+      case 'expired': return '#fff1f0';
+      default: return '#f5f5f5';
+    }
+  }};
+  color: ${props => {
+    switch (props.status) {
+      case 'pending': return '#d48806';
+      case 'confirming': return '#1890ff';
+      case 'completed': return '#52c41a';
+      case 'expired': return '#f5222d';
+      default: return '#666';
+    }
+  }};
+`;
+
 const PaymentPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { loggedIn } = useContext(AuthContext);
+  const { loggedIn, user } = useContext(AuthContext);
+
+  // EURC payment state
+  const [eurcModalOpen, setEurcModalOpen] = useState(false);
+  const [eurcPayment, setEurcPayment] = useState(null);
+  const [eurcLoading, setEurcLoading] = useState(false);
+  const [eurcStatus, setEurcStatus] = useState(null);
+  const [eurcPollingInterval, setEurcPollingInterval] = useState(null);
 
   const searchParams = new URLSearchParams(location.search);
   const startDate = searchParams.get('startDate');
@@ -70,6 +139,15 @@ const PaymentPage = () => {
 
 
 
+  // Clean up EURC polling on unmount
+  useEffect(() => {
+    return () => {
+      if (eurcPollingInterval) {
+        clearInterval(eurcPollingInterval);
+      }
+    };
+  }, [eurcPollingInterval]);
+
   if (!loggedIn) {
     return null;
   }
@@ -92,8 +170,8 @@ const PaymentPage = () => {
   const homeImage = gallery[0]?.url;
   console.log('Property Currency Data:', raw.currency);
   const currency = 'USD'; // Force USD for debugging, was: raw.currency?.code || 'USD';
-  const atlasfees = raw.AtlasFees;
-  const cleaningfee = raw.CleaningFee;
+  const atlasfees = raw.AtlasFees || 0;
+  const cleaningfee = raw.CleaningFee || 0;
 
   const nights =
     startDate && endDate
@@ -104,8 +182,135 @@ const PaymentPage = () => {
       : 0;
 
   const total = nights * price;
-  const feesTotal = nights * atlasfees;
+  // AtlasFees is a percentage (e.g., 3 means 3%), not a flat fee
+  const feesTotal = total * (atlasfees / 100);
   const totalWithCleaningFee = total + feesTotal + cleaningfee;
+
+  const copyToClipboard = (text) => {
+    navigator.clipboard.writeText(text);
+    message.success('Copied to clipboard!');
+  };
+
+  // Initialize EURC payment - user sends to their custodial wallet, then booking is created automatically
+  const startEURCPayment = async () => {
+    if (!user?.id) {
+      message.error('Please sign in to continue');
+      return;
+    }
+
+    if (!Array.isArray(data) || data.length === 0 || !data[0]?.BlockchainPropertyId) {
+      message.warning('This property is not available for EURC payment yet. Please use Credit Card.');
+      return;
+    }
+
+    setEurcLoading(true);
+    setEurcModalOpen(true);
+    setEurcStatus('initializing');
+
+    try {
+      const prop = data[0];
+      const blockchainPropertyId = prop.BlockchainPropertyId;
+
+      // Total in EURC (6 decimals) - prices are in EUR which matches EURC 1:1
+      const totalEURC = totalWithCleaningFee;
+      const totalEURCBase = BigInt(Math.floor(totalEURC * 1e6)).toString();
+
+      const checkInTs = Math.floor(moment(startDate, 'MM-DD-YYYY').valueOf() / 1000);
+      const checkOutTs = Math.floor(moment(endDate, 'MM-DD-YYYY').valueOf() / 1000);
+
+      // Initialize EURC payment session - get unique payment address
+      const res = await fetch(`${backendBaseUrl}/api/payments/eurc/init`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: user.id,
+          propertyId: blockchainPropertyId,
+          checkInDate: checkInTs,
+          checkOutDate: checkOutTs,
+          totalAmountEURC: totalEURCBase,
+          metadata: {
+            propertyTitle: prop.Title,
+            cmsPropertyId: prop.documentId,
+            guests: parseInt(guest),
+            rooms: parseInt(room),
+            pricePerNight: price,
+            atlasFee: atlasfees,
+            cleaningFee: cleaningfee,
+            nights: nights,
+          },
+        }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || 'Failed to initialize EURC payment');
+      }
+
+      const payment = await res.json();
+      setEurcPayment(payment);
+      setEurcStatus('pending');
+
+      // Start polling for payment status
+      const interval = setInterval(() => {
+        pollEURCPaymentStatus(payment.paymentId);
+      }, 5000);
+      setEurcPollingInterval(interval);
+
+    } catch (error) {
+      console.error('EURC payment init error:', error);
+      message.error(error.message || 'Failed to initialize EURC payment');
+      setEurcStatus('error');
+    } finally {
+      setEurcLoading(false);
+    }
+  };
+
+  // Poll for EURC payment status
+  const pollEURCPaymentStatus = async (paymentId) => {
+    try {
+      const res = await fetch(`${backendBaseUrl}/api/payments/crypto/status/${paymentId}`);
+      if (!res.ok) return;
+
+      const status = await res.json();
+
+      if (status.status === 'completed') {
+        // Payment confirmed! Backend has already created the on-chain booking and CMS record
+        if (eurcPollingInterval) {
+          clearInterval(eurcPollingInterval);
+          setEurcPollingInterval(null);
+        }
+
+        setEurcStatus('completed');
+        message.success('Booking confirmed!');
+
+        setTimeout(() => {
+          setEurcModalOpen(false);
+          navigate('/thank-you');
+        }, 1500);
+      } else if (status.status === 'expired') {
+        if (eurcPollingInterval) {
+          clearInterval(eurcPollingInterval);
+          setEurcPollingInterval(null);
+        }
+        setEurcStatus('expired');
+        message.warning('Payment session expired. Please try again.');
+      } else if (status.status === 'confirming') {
+        setEurcStatus('confirming');
+      }
+    } catch (error) {
+      console.error('Error polling EURC payment status:', error);
+    }
+  };
+
+  const closeEurcModal = () => {
+    if (eurcPollingInterval) {
+      clearInterval(eurcPollingInterval);
+      setEurcPollingInterval(null);
+    }
+    setEurcModalOpen(false);
+    setEurcPayment(null);
+    setEurcStatus(null);
+  };
 
   const handlePayment = async (paymentMethod) => {
     try {
@@ -271,11 +476,11 @@ const PaymentPage = () => {
         <Button
           type="primary"
           size="large"
-          onClick={() => handlePayment('ETH')}
+          onClick={startEURCPayment}
+          style={{ marginRight: 12, background: '#0052FF' }}
         >
-          Pay with Crypto
+          Pay with EURC
         </Button>
-        <div style={{ height: '10px' }} />
         <Button
           type="primary"
           size="large"
@@ -284,6 +489,106 @@ const PaymentPage = () => {
           Pay with Credit Card
         </Button>
       </Section>
+
+      {/* EURC Payment Modal */}
+      <Modal
+        open={eurcModalOpen}
+        onCancel={closeEurcModal}
+        footer={null}
+        title="Pay with EURC (Euro Stablecoin)"
+        centered
+        width={420}
+      >
+        {eurcLoading ? (
+          <CryptoPaymentBox>
+            <Spin indicator={<LoadingOutlined style={{ fontSize: 48 }} spin />} />
+            <p>Setting up payment...</p>
+          </CryptoPaymentBox>
+        ) : eurcPayment ? (
+          <CryptoPaymentBox>
+            {/* Status Badge */}
+            <StatusBadge status={eurcStatus || 'pending'}>
+              {eurcStatus === 'pending' && (
+                <>
+                  <LoadingOutlined spin />
+                  Waiting for EURC...
+                </>
+              )}
+              {eurcStatus === 'confirming' && (
+                <>
+                  <LoadingOutlined spin />
+                  Creating booking...
+                </>
+              )}
+              {eurcStatus === 'completed' && (
+                <>
+                  <CheckCircleOutlined />
+                  Booking confirmed!
+                </>
+              )}
+              {eurcStatus === 'expired' && 'Payment expired'}
+              {eurcStatus === 'error' && 'Error occurred'}
+            </StatusBadge>
+
+            {/* QR Code */}
+            <QRCodeContainer>
+              <img
+                alt="EURC Payment QR Code"
+                width={200}
+                height={200}
+                style={{ borderRadius: 8 }}
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(eurcPayment.qrData || eurcPayment.paymentAddress)}`}
+              />
+            </QRCodeContainer>
+
+            {/* Amount */}
+            <AmountBox style={{ background: 'linear-gradient(135deg, #0052FF 0%, #0039B3 100%)' }}>
+              <div style={{ fontSize: 14, opacity: 0.9 }}>Send exactly</div>
+              <div style={{ fontSize: 28, fontWeight: 700 }}>
+                {eurcPayment.expectedAmountEURC} EURC
+              </div>
+              <div style={{ fontSize: 12, opacity: 0.8 }}>
+                ≈ €{eurcPayment.expectedAmountEURC} (1:1 with EUR) on Base Sepolia
+              </div>
+            </AmountBox>
+
+            {/* Address */}
+            <div>
+              <div style={{ fontSize: 12, color: '#666', marginBottom: 4 }}>
+                Send to your Atlas wallet:
+              </div>
+              <AddressBox>
+                {eurcPayment.paymentAddress}
+              </AddressBox>
+              <Button
+                type="link"
+                icon={<CopyOutlined />}
+                onClick={() => copyToClipboard(eurcPayment.paymentAddress)}
+                style={{ marginTop: 4 }}
+              >
+                Copy Address
+              </Button>
+            </div>
+
+            {/* Expiry */}
+            <div style={{ fontSize: 12, color: '#999' }}>
+              Payment session expires at {new Date(eurcPayment.expiresAt).toLocaleTimeString()}
+            </div>
+
+            {eurcStatus === 'completed' && (
+              <div style={{ color: '#52c41a', fontSize: 14, fontWeight: 500 }}>
+                <CheckCircleOutlined style={{ marginRight: 8 }} />
+                Booking confirmed! Redirecting...
+              </div>
+            )}
+          </CryptoPaymentBox>
+        ) : (
+          <CryptoPaymentBox>
+            <p>Something went wrong. Please try again.</p>
+            <Button onClick={closeEurcModal}>Close</Button>
+          </CryptoPaymentBox>
+        )}
+      </Modal>
     </PageWrapper>
   );
 };

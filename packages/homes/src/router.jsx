@@ -17,6 +17,7 @@ import {
   REGISTRATION_PAGE,
   FORGET_PASSWORD_PAGE,
   ADD_HOTEL_PAGE,
+  HOST_WALLET_PAGE,
   AGENT_ACCOUNT_SETTINGS_PAGE,
   AGENT_IMAGE_EDIT_PAGE,
   AGENT_PASSWORD_CHANGE_PAGE,
@@ -88,6 +89,9 @@ const SmartContractDemoPage = React.lazy(
 );
 const BackendIntegrationPage = React.lazy(
   () => import('containers/BackendIntegration/BackendIntegration'),
+);
+const HostWalletPage = React.lazy(
+  () => import('containers/HostWallet/HostWallet'),
 );
 
 export default function AppRoutes() {
@@ -192,6 +196,17 @@ export default function AppRoutes() {
             <React.Suspense fallback={<Loader />}>
               <RequireAuth>
                 <AddListingPage />
+              </RequireAuth>
+            </React.Suspense>
+          }
+        />
+
+        <Route
+          path={HOST_WALLET_PAGE}
+          element={
+            <React.Suspense fallback={<Loader />}>
+              <RequireAuth>
+                <HostWalletPage />
               </RequireAuth>
             </React.Suspense>
           }

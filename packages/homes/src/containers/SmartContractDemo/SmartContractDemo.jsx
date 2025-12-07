@@ -4,7 +4,6 @@ import { useContracts } from 'context/ContractProvider';
 import BookingForm from 'components/Booking/BookingForm';
 import PropertySelector from 'components/Booking/PropertySelector';
 import BookingManagement from 'components/Booking/BookingManagement';
-import PropertyListingForm from 'components/Property/PropertyListingForm';
 import WalletStatus from 'components/WalletConnect/WalletStatus';
 import styled from 'styled-components';
 
@@ -153,7 +152,6 @@ const SmartContractDemo = () => {
 	const tabs = [
 		{ id: 'overview', label: 'Overview' },
 		{ id: 'booking', label: 'Book Property' },
-		{ id: 'listing', label: 'List Property' },
 		{ id: 'management', label: 'My Bookings' },
 	];
 
@@ -235,28 +233,6 @@ const SmartContractDemo = () => {
 									/>
 								)}
 							</>
-						)}
-					</DemoSection>
-				</TabContent>
-
-				{/* Listing Tab */}
-				<TabContent active={activeTab === 'listing'}>
-					<DemoSection>
-						<SectionTitle>List Your Property</SectionTitle>
-						<SectionDescription>
-							Property owners can list their properties on the marketplace. Each property gets its own ERC20 token for fractional ownership.
-						</SectionDescription>
-						
-						{!isConnected ? (
-							<div style={{ textAlign: 'center', padding: '40px' }}>
-								<p>Please connect your wallet to list a property.</p>
-							</div>
-						) : (
-							<PropertyListingForm 
-								onPropertyListed={(txHash) => {
-									console.log('Property listed:', txHash);
-								}}
-							/>
 						)}
 					</DemoSection>
 				</TabContent>
