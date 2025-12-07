@@ -37,9 +37,11 @@ const AgentItemLists = () => {
     return <Text content="You have no favorites yet." />;
   }
 
-  const filterQuery = `filters[Title][$in]=${favoriteTitles
-    .map(encodeURIComponent)
-    .join(',')}`;
+  // Create a query that matches ANY of the favorites by Title (case-insensitive)
+  // filters[$or][0][Title][$eqi]=Title1&filters[$or][1][Title][$eqi]=Title2...
+  const filterQuery = favoriteTitles
+    .map((title, index) => `filters[$or][${index}][Title][$eqi]=${encodeURIComponent(title)}`)
+    .join('&');
 
   const {
     data: listingsData,
@@ -50,7 +52,6 @@ const AgentItemLists = () => {
     `${import.meta.env.VITE_APP_API_URL}properties?${filterQuery}&populate[Images]=true&populate[property_reviews]=true`,
     import.meta.env.VITE_APP_API_TOKEN,
     10,
-    'properties',
     [],
   );
 
