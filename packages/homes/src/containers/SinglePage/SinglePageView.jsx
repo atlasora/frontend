@@ -138,9 +138,9 @@ const SinglePage = () => {
               >
                 <Reservation
                   title={title}
-                  price={`${currency}${price}`}
+                  price={price}
                   pricePerNightEth={pricePerNightEth}
-                  currency={currency}
+                  currency={raw.currency?.code || 'USD'}
                   rating={rating}
                   ratingCount={ratingCount}
                   propertyId={propertyChainId}
@@ -150,7 +150,8 @@ const SinglePage = () => {
             ) : (
               <BottomReservation
                 title={title}
-                price={`${currency}${price}`}
+                price={price}
+                currency={raw.currency?.code || 'USD'}
                 rating={rating}
                 ratingCount={ratingCount}
               />

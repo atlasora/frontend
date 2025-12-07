@@ -97,7 +97,7 @@ export default function SectionGrid({
                   size={Size}
                   image={imageUrl}
                   gallery={Images || []}
-                  currency={currency?.symbol || '$'}
+                  currency={currency?.code || 'USD'}
                   publishedAt={publishedAt}
                 />
               </Box>

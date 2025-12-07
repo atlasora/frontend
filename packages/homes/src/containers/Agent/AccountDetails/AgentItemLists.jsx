@@ -25,7 +25,6 @@ const AgentItemLists = () => {
     `${import.meta.env.VITE_APP_API_URL}properties?filters[users_permissions_user][id][$eq]=${userInfo?.id}&populate=*&publicationState=preview`,
     import.meta.env.VITE_APP_API_TOKEN,
     10,
-    'properties',
     [],
   );
 

@@ -24,7 +24,7 @@ const TopHomesGrid = () => {
     `${import.meta.env.VITE_APP_API_URL}properties?populate=*&filters[Featured][$eq]=true`,
     import.meta.env.VITE_APP_API_TOKEN,
     10,
-    '',
+    [],
   );
 
   const { width } = useWindowSize();

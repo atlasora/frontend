@@ -40,7 +40,7 @@ const Description = ({
         <RatingMeta>
           <Rating rating={rating} ratingCount={ratingCount} type="bulk" />
         </RatingMeta>
-        <Text content={content} {...contentStyle} />
+        <Text content={content} {...contentStyle} as="div" />
       </DescriptionWrapper>
     </Element>
   );
