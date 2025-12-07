@@ -154,6 +154,8 @@ const SinglePage = () => {
                 currency={raw.currency?.code || 'USD'}
                 rating={rating}
                 ratingCount={ratingCount}
+                propertyId={propertyChainId}
+                slug={slug}
               />
             )}
           </Col>
