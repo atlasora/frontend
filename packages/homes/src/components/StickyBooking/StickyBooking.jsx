@@ -1,4 +1,5 @@
 import React from 'react';
+import formatPrice from 'library/helpers/formatPrice';
 import useWindowSize from './useWindowSize';
 import StickyBookingWrapper, {
   HotelInfo,
@@ -11,7 +12,7 @@ import StickyBookingWrapper, {
   HotelRating,
 } from './StickyBooking.style';
 
-const StickyBooking = ({ logo, title, price, rating, action, className }) => {
+const StickyBooking = ({ logo, title, price, currency, rating, action, className }) => {
   const addAllClasses = ['sticky_booking'];
   const windowSize = useWindowSize();
   const windowInnerWidth = windowSize.innerWidth;
@@ -33,7 +34,7 @@ const StickyBooking = ({ logo, title, price, rating, action, className }) => {
               <>{title && <Title>{title}</Title>}</>
             ) : (
               <Price>
-                <span>${price}</span> / Night
+                <span>{formatPrice(price, currency)}</span> / Night
               </Price>
             )}
             {rating && <HotelRating>{rating}</HotelRating>}
@@ -46,7 +47,7 @@ const StickyBooking = ({ logo, title, price, rating, action, className }) => {
       <HotelAction className="hotel_action">
         {windowInnerWidth > 767 && (
           <Price>
-            <span>${price}</span> / Night
+            <span>{formatPrice(price, currency)}</span> / Night
           </Price>
         )}
         <ActionBtn>{action}</ActionBtn>

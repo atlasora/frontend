@@ -10,7 +10,43 @@ import {
 } from 'styled-system';
 import { base, themed } from '../Base';
 
-const TextWrapper = styled('p')(
+const TextWrapper = styled('p').withConfig({
+  shouldForwardProp: (prop) =>
+    ![
+      'fontFamily',
+      'fontWeight',
+      'textAlign',
+      'lineHeight',
+      'letterSpacing',
+      'm',
+      'mt',
+      'mb',
+      'ml',
+      'mr',
+      'mx',
+      'my',
+      'p',
+      'pt',
+      'pb',
+      'pl',
+      'pr',
+      'px',
+      'py',
+      'width',
+      'height',
+      'display',
+      'color',
+      'flex',
+      'order',
+      'alignSelf',
+      'borders',
+      'borderColor',
+      'minWidth',
+      'maxWidth',
+      'minHeight',
+      'maxHeight',
+    ].includes(prop),
+})(
   base,
   fontFamily,
   fontWeight,

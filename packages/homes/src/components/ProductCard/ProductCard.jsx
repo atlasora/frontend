@@ -9,6 +9,7 @@ import GridCard from '../GridCard/GridCard';
 import resolveUrl from 'library/helpers/resolveURL';
 import slugify from 'library/helpers/slugify';
 import useFavorites from 'library/hooks/useFavorites'; // adjust path if needed
+import formatPrice from 'library/helpers/formatPrice';
 
 const responsive = {
   desktop: {
@@ -47,6 +48,7 @@ const PostGrid = ({
   slug,
   link,
   currency,
+  publishedAt,
 }) => {
   const { isFavorite, toggleFavorite } = useFavorites();
   // lStorage when the component mounts
@@ -65,7 +67,7 @@ const PostGrid = ({
       }
       location={location}
       title={<TextLink link={`/post/${slugify(title)}`} content={title} />}
-      price={`${currency}${price}/Night - Free Cancellation`}
+      price={`${formatPrice(price, currency)}/Night - Free Cancellation`}
       rating={<Rating rating={rating} ratingCount={ratingCount} type="bulk" />}
 
     >
@@ -85,6 +87,24 @@ const PostGrid = ({
         sliderClass=""
         slidesToSlide={1}
       >
+        {publishedAt === null && (
+          <span
+            style={{
+              position: 'absolute',
+              top: '10px',
+              left: '10px',
+              background: '#ffaa00',
+              color: '#fff',
+              padding: '4px 8px',
+              borderRadius: '4px',
+              fontSize: '12px',
+              fontWeight: 'bold',
+              zIndex: 9,
+            }}
+          >
+            Draft
+          </span>
+        )}
         {gallery.map(({ url, title }, index) => (
           <img
             src={resolveUrl(url)}

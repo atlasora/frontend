@@ -43,7 +43,7 @@ const SinglePage = () => {
 
   const { data, loading } = useDataApi(
     //todo: pass in the review revirews and images re
-    `${import.meta.env.VITE_APP_API_URL}properties?filters[Title][$eqi]=${deslug}&populate[Images]=true&populate[property_reviews]=true`,
+    `${import.meta.env.VITE_APP_API_URL}properties?filters[Title][$eqi]=${deslug}&populate[Images]=true&populate[property_reviews]=true&populate[property_amenities]=true`,
     import.meta.env.VITE_APP_API_TOKEN,
     10,
     'properties',
@@ -138,9 +138,9 @@ const SinglePage = () => {
               >
                 <Reservation
                   title={title}
-                  price={`${currency}${price}`}
+                  price={price}
                   pricePerNightEth={pricePerNightEth}
-                  currency={currency}
+                  currency={raw.currency?.code || 'USD'}
                   rating={rating}
                   ratingCount={ratingCount}
                   propertyId={propertyChainId}
@@ -150,9 +150,12 @@ const SinglePage = () => {
             ) : (
               <BottomReservation
                 title={title}
-                price={`${currency}${price}`}
+                price={price}
+                currency={raw.currency?.code || 'USD'}
                 rating={rating}
                 ratingCount={ratingCount}
+                propertyId={propertyChainId}
+                slug={slug}
               />
             )}
           </Col>

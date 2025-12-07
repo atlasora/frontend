@@ -7,6 +7,7 @@ import moment from 'moment';
 import useDataApi from 'library/hooks/useDataApi';
 import resolveURL from 'library/helpers/resolveURL';
 import { AuthContext } from 'context/AuthProvider';
+import formatPrice from 'library/helpers/formatPrice';
 
 const PageWrapper = styled.div`
   max-width: 800px;
@@ -136,100 +137,7 @@ const PaymentPage = () => {
     }
   }, [loggedIn, navigate]);
 
-  // Handle Revolut return: if redirected back with success parameters, create the booking then go to thank you
-  useEffect(() => {
-    // Wait until property data has loaded to compute booking fields
-    if (loading || !data || !Array.isArray(data) || data.length === 0) return;
 
-    const p = new URLSearchParams(window.location.search);
-    const revolutStatus = p.get('revolut_status') || p.get('status');
-    const revolutOrderId = p.get('revolut_order_id') || p.get('orderId');
-    const revolutPaymentId = p.get('revolut_payment_id') || p.get('paymentId');
-    const revolutAmount = p.get('amount');
-    const revolutCurrency = p.get('currency');
-    const alreadyBooked = p.get('booking_created');
-
-    const shouldCreateBooking =
-      revolutStatus && (revolutStatus.toLowerCase() === 'success' || revolutStatus.toLowerCase() === 'completed') && !alreadyBooked;
-
-    if (!shouldCreateBooking) return;
-    console.debug('[payments] detected Revolut success, creating booking', {
-      revolutStatus,
-      revolutOrderId,
-      revolutPaymentId,
-      revolutAmount,
-      revolutCurrency,
-    });
-
-    (async () => {
-      try {
-        // Append a flag so we don't double-create on re-render
-        p.set('booking_created', '1');
-        const newUrl = `${window.location.pathname}?${p.toString()}`;
-        window.history.replaceState(null, '', newUrl);
-
-        // Compute booking fields now that data is available
-        const prop = data[0];
-        const _price = prop.PricePerNight;
-        const _atlasfees = prop.AtlasFees;
-        const _cleaningfee = prop.CleaningFee;
-        const _currency = prop.currency?.symbol || '$';
-        const _nights =
-          startDate && endDate
-            ? moment(endDate, 'MM-DD-YYYY').diff(moment(startDate, 'MM-DD-YYYY'), 'days')
-            : 0;
-        const _total = _nights * _price;
-        const _feesTotal = _nights * _atlasfees;
-        const _totalWithCleaningFee = _total + _feesTotal + _cleaningfee;
-
-        // Create booking record with Revolut payment details
-        const response = await fetch(
-          `${import.meta.env.VITE_APP_API_URL}proeprty-bookings`,
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${import.meta.env.VITE_APP_API_TOKEN}`,
-            },
-            body: JSON.stringify({
-              data: {
-                property: prop?.documentId,
-                StartDate: moment(startDate).format('YYYY-MM-DD'),
-                EndDate: moment(endDate).format('YYYY-MM-DD'),
-                Guests: parseInt(guest),
-                Rooms: parseInt(room),
-                PriceperNight: _price,
-                NumberOfNights: _nights,
-                AtlasFee: _atlasfees,
-                CleaningFee: _cleaningfee,
-                TotalPaid: _totalWithCleaningFee,
-                PaidBy: 'Credit Card',
-                PaymentProvider: 'Revolut',
-                PaymentOrderId: revolutOrderId || null,
-                PaymentId: revolutPaymentId || null,
-                PaymentStatus: revolutStatus,
-                PaymentCurrency: revolutCurrency || _currency,
-                PaymentAmount: revolutAmount ? Number(revolutAmount) : _totalWithCleaningFee,
-              },
-            }),
-          },
-        );
-
-        if (!response.ok) {
-          const errorData = await response.json();
-          console.error('Booking error (post-Revolut):', errorData);
-          alert('Payment succeeded but booking creation failed. Please contact support.');
-          return;
-        }
-        console.debug('[payments] booking created successfully after Revolut');
-        alert('Booking confirmed.');
-        navigate('/thank-you');
-      } catch (err) {
-        console.error('Error submitting booking after Revolut payment:', err);
-        alert('Payment succeeded but booking failed.');
-      }
-    })();
-  }, [loading, data, navigate]);
 
   // Clean up EURC polling on unmount
   useEffect(() => {
@@ -459,7 +367,7 @@ const PaymentPage = () => {
       }
       const propIdForCheckout = data[0].documentId;
 
-      const successUrl = `${window.location.origin}${window.location.pathname}?${new URLSearchParams({
+      const successUrl = `${window.location.origin}/thank-you?${new URLSearchParams({
         startDate,
         endDate,
         guest,
@@ -468,6 +376,7 @@ const PaymentPage = () => {
         slug,
         revolut_status: 'success',
       }).toString()}`;
+      console.log('[Payment] Generated successUrl:', successUrl);
       const cancelUrl = `${window.location.href}`;
       console.debug('[payments] starting Revolut checkout', { endpoint: `${paymentsServerUrl}/payments/revolut/checkout`, successUrl, cancelUrl });
 
@@ -537,8 +446,8 @@ const PaymentPage = () => {
           </p>
           <p>This reservation is non-refundable.</p>
           <p>
-            <strong>Dates:</strong> {moment(startDate).format('MMM D, YYYY')} –{' '}
-            {moment(endDate).format('MMM D, YYYY')}
+            <strong>Dates:</strong> {moment(startDate, 'MM-DD-YYYY').format('MMM D, YYYY')} –{' '}
+            {moment(endDate, 'MM-DD-YYYY').format('MMM D, YYYY')}
           </p>
           <p>
             <strong>Guests:</strong> {guest}
@@ -547,21 +456,16 @@ const PaymentPage = () => {
             <strong>Rooms:</strong> {room}
           </p>
           <p>
-            <strong>Price:</strong> {currency}
-            {price} × {nights} nights = {currency}
-            {total}
+            <strong>Price:</strong> {formatPrice(price, currency)} × {nights} nights = {formatPrice(total, currency)}
           </p>
           <p>
-            <strong>Atlas Fees:</strong> {currency}
-            {feesTotal}
+            <strong>Atlas Fees:</strong> {formatPrice(feesTotal, currency)}
           </p>
           <p>
-            <strong>Cleaning Fee:</strong> {currency}
-            {cleaningfee}
+            <strong>Cleaning Fee:</strong> {formatPrice(cleaningfee, currency)}
           </p>
           <p>
-            <strong>Total:</strong> {currency}
-            {totalWithCleaningFee}
+            <strong>Total:</strong> {formatPrice(totalWithCleaningFee, currency)}
           </p>
         </SummaryBox>
       </Section>

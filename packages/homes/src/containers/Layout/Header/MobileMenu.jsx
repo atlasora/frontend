@@ -15,16 +15,12 @@ const MobileMenu = ({ className }) => {
 
   const navigations = [
     {
-      label: <NavLink to={HOME_PAGE}>Hotels</NavLink>,
+      label: <NavLink to={HOME_PAGE}>Home</NavLink>,
       key: 'hotels',
     },
     {
       label: <NavLink to={`${LISTING_POSTS_PAGE}`}>Listing</NavLink>,
       key: 'listing',
-    },
-    {
-      label: <NavLink to={`${PRICING_PLAN_PAGE}`}>Pricing</NavLink>,
-      key: 'pricing',
     },
     {
       label: loggedIn && (

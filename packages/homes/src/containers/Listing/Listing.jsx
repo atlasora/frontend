@@ -34,13 +34,12 @@ export default function Listing() {
   }, [adminBaseUrl]);
 
   // 1. On first load, fallback to stored filters if no query
+  // 1. On first load, always show all if no query (don't restore old search)
   useEffect(() => {
-    const storedParams = localStorage.getItem(PARAMS_KEY);
-    if (!hasQuery && storedParams) {
-      navigate(`/listing${storedParams}`, { replace: true });
-    } else {
-      setSearchReady(true);
+    if (!hasQuery) {
+      localStorage.removeItem(PARAMS_KEY);
     }
+    setSearchReady(true);
   }, []); // Run only once on mount
 
   // 2. On query param change (e.g., nav search), update all stored filters
@@ -110,9 +109,11 @@ export default function Listing() {
           }
           right={
             <ShowMapCheckbox>
+              {/*
               <Checkbox defaultChecked={false} onChange={handleMapToggle}>
                 Show map
               </Checkbox>
+              */}
             </ShowMapCheckbox>
           }
         />

@@ -84,7 +84,7 @@ const HotelAmenities = ({ setStep }) => {
         },
       };
 
-      const res = await fetch(`${import.meta.env.VITE_APP_API_URL}properties`, {
+      const res = await fetch(`${import.meta.env.VITE_APP_API_URL}properties?status=draft`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

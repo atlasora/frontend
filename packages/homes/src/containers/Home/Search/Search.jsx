@@ -37,7 +37,7 @@ const SearchArea = ({
         <SearchWrapper>
           <Heading
             {...searchTitleStyle}
-            content="Latest reviews. Lowest prices."
+            content="Latest reviews. Lowest prices!"
           />
           <Text
             {...searchDescriptionStyle}

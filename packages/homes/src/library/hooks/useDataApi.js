@@ -28,7 +28,7 @@ async function SuperFetch(
       console.debug('[useDataApi] →', method, url, token ? '(auth)' : '(no auth)');
     }
 
-  const res = await fetch(url, options);
+    const res = await fetch(url, options);
     const text = await res.text();
 
     if (!res.ok) {
@@ -36,7 +36,7 @@ async function SuperFetch(
       try {
         const json = JSON.parse(text);
         details = json?.error?.message || JSON.stringify(json);
-      } catch {}
+      } catch { }
       const errMsg = `HTTP error ${res.status}: ${details}`;
       console.error('[useDataApi] ✖', errMsg);
       throw new Error(errMsg);
@@ -120,6 +120,10 @@ const useDataApi = (
     limit,
     pagination: null,
   });
+
+  useEffect(() => {
+    setUrl(initialUrl);
+  }, [initialUrl]);
 
   useEffect(() => {
     if (!url) return;

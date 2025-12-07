@@ -4,13 +4,13 @@ const ContainerWrapper = styled.div`
   margin-left: auto;
   margin-right: auto;
   ${(props) =>
-    props.fullWidth &&
+    props.$fullWidth &&
     css`
       width: 100%;
       max-width: none !important;
     `};
   ${(props) =>
-    (props.noGutter &&
+    (props.$noGutter &&
       css`
         padding-left: 0;
         padding-right: 0;
@@ -26,7 +26,7 @@ const ContainerWrapper = styled.div`
     `};
 
   ${(props) =>
-    props.fluid &&
+    props.$fluid &&
     css`
       width: 100% !important;
       max-width: 1920px !important;
