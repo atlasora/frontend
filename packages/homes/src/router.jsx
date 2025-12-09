@@ -93,6 +93,7 @@ const BackendIntegrationPage = React.lazy(
 const HostWalletPage = React.lazy(
   () => import('containers/HostWallet/HostWallet'),
 );
+const ChatPage = React.lazy(() => import('containers/Chat/ChatPage'));
 
 export default function AppRoutes() {
   return (
@@ -163,7 +164,19 @@ export default function AppRoutes() {
             </React.Suspense>
           }
         />
-        
+
+        {/* Chat - protected route */}
+        <Route
+          path="/chat/:bookingId"
+          element={
+            <React.Suspense fallback={<Loader />}>
+              <RequireAuth>
+                <ChatPage />
+              </RequireAuth>
+            </React.Suspense>
+          }
+        />
+
         <Route
           path={LOGIN_PAGE}
           element={
