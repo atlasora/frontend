@@ -275,6 +275,19 @@ const AgentBookingPage = () => {
     }
   };
 
+  const handleMessageHost = (booking) => {
+    if (!booking?.id) return;
+    const { id: bookingId, property } = booking || {};
+    const state = {
+      propertyId: property?.id || property?._id,
+      propertyTitle: property?.Title,
+      hostId: property?.Owner?.id,
+      hostName: property?.Owner?.username || property?.Owner?.name,
+    };
+    // Navigate to chat screen with booking identifier and preload info
+    navigate(`/chat/${bookingId}`, { state });
+  };
+
   if (!loggedIn) return null;
   if (bookingsLoading) return <Loader />;
 
@@ -364,6 +377,12 @@ const AgentBookingPage = () => {
                     {isLoading ? 'Processing...' : '✕ Cancel Booking'}
                   </DangerButton>
                 )}
+
+                <SecondaryButton
+                  onClick={() => handleMessageHost(booking)}
+                >
+                  💬 Message Host
+                </SecondaryButton>
 
                 {BookingStatus === 'Complete' && (
                   <SecondaryButton disabled>
