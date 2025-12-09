@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import styled from 'styled-components';
 import { useLocation, useNavigate } from 'react-router-dom';
 import moment from 'moment';
 import useDataApi from 'library/hooks/useDataApi';
+import { AuthContext } from 'context/AuthProvider';
 
 const Wrapper = styled.div`
   max-width: 600px;
@@ -17,8 +18,10 @@ const Wrapper = styled.div`
 const ThankYouPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { user } = useContext(AuthContext);
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState(null);
+  const backendBaseUrl = import.meta.env.VITE_BACKEND_BASE_URL || '';
 
   useEffect(() => {
     // Clear the listing_search_params from localStorage
@@ -44,7 +47,7 @@ const ThankYouPage = () => {
   const propertiesUrl = shouldCreateBooking
     ? `${import.meta.env.VITE_APP_API_URL}properties?filters[documentId][$eq]=${encodeURIComponent(
       propertyId
-    )}&populate[currency]=true`
+    )}&populate[currency]=true&fields[0]=Title&fields[1]=PricePerNight&fields[2]=AtlasFees&fields[3]=CleaningFee&fields[4]=BlockchainPropertyId`
     : null;
 
   const { data, loading } = useDataApi(
@@ -70,68 +73,106 @@ const ThankYouPage = () => {
         window.history.replaceState(null, '', newUrl);
 
         const revolutOrderId = searchParams.get('revolut_order_id') || searchParams.get('orderId');
-        const revolutPaymentId = searchParams.get('revolut_payment_id') || searchParams.get('paymentId');
-        const revolutAmount = searchParams.get('amount');
-        const revolutCurrency = searchParams.get('currency');
 
         const prop = data[0];
+        const blockchainPropertyId = prop.BlockchainPropertyId;
         const _price = prop.PricePerNight;
-        const _atlasfees = prop.AtlasFees;
-        const _cleaningfee = prop.CleaningFee;
+        const _atlasfees = prop.AtlasFees || 0;
+        const _cleaningfee = prop.CleaningFee || 0;
         const _currency = prop.currency?.code || 'USD';
         const _nights =
           startDate && endDate
             ? moment(endDate, 'MM-DD-YYYY').diff(moment(startDate, 'MM-DD-YYYY'), 'days')
             : 0;
         const _total = _nights * _price;
-        const _feesTotal = _nights * _atlasfees;
+        const _feesTotal = _total * (_atlasfees / 100);
         const _totalWithCleaningFee = _total + _feesTotal + _cleaningfee;
 
-        console.debug('[ThankYou] Creating booking...', {
-          propertyId,
+        // Convert to unix timestamps
+        const checkInTs = Math.floor(moment(startDate, 'MM-DD-YYYY').valueOf() / 1000);
+        const checkOutTs = Math.floor(moment(endDate, 'MM-DD-YYYY').valueOf() / 1000);
+
+        // Convert total to base units (cents/pence)
+        const totalAmountUnits = Math.round(_totalWithCleaningFee * 100);
+
+        console.debug('[ThankYou] Creating on-chain booking...', {
+          propertyId: blockchainPropertyId,
           revolutOrderId,
           amount: _totalWithCleaningFee,
+          userId: user?.id,
         });
 
-        const response = await fetch(
-          `${import.meta.env.VITE_APP_API_URL}proeprty-bookings`,
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${import.meta.env.VITE_APP_API_TOKEN}`,
-            },
-            body: JSON.stringify({
-              data: {
-                property: prop?.documentId,
-                StartDate: moment(startDate).format('YYYY-MM-DD'),
-                EndDate: moment(endDate).format('YYYY-MM-DD'),
-                Guests: parseInt(guest || '1'),
-                Rooms: parseInt(room || '1'),
-                PriceperNight: _price,
-                NumberOfNights: _nights,
-                AtlasFee: _atlasfees,
-                CleaningFee: _cleaningfee,
-                TotalPaid: _totalWithCleaningFee,
-                PaidBy: 'Credit Card',
-                // PaymentProvider: 'Revolut', // Removed due to schema validation error
-                // PaymentOrderId: revolutOrderId || null,
-                // PaymentId: revolutPaymentId || null,
-                // PaymentStatus: revolutStatus,
-                // PaymentCurrency: revolutCurrency || _currency,
-                // PaymentAmount: revolutAmount ? Number(revolutAmount) : _totalWithCleaningFee,
+        // If property doesn't have blockchain ID, fall back to CMS-only booking
+        if (!blockchainPropertyId) {
+          console.warn('[ThankYou] Property has no BlockchainPropertyId, creating CMS-only booking');
+          const response = await fetch(
+            `${import.meta.env.VITE_APP_API_URL}proeprty-bookings`,
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${import.meta.env.VITE_APP_API_TOKEN}`,
               },
-            }),
-          },
-        );
+              body: JSON.stringify({
+                data: {
+                  property: prop?.documentId,
+                  StartDate: moment(startDate, 'MM-DD-YYYY').format('YYYY-MM-DD'),
+                  EndDate: moment(endDate, 'MM-DD-YYYY').format('YYYY-MM-DD'),
+                  Guests: parseInt(guest || '1'),
+                  Rooms: parseInt(room || '1'),
+                  PriceperNight: _price,
+                  NumberOfNights: _nights,
+                  AtlasFee: _atlasfees,
+                  CleaningFee: _cleaningfee,
+                  TotalPaid: _totalWithCleaningFee,
+                  PaidBy: 'Credit Card',
+                },
+              }),
+            },
+          );
 
-        if (!response.ok) {
-          const errorData = await response.json();
-          console.error('Booking error:', errorData);
-          throw new Error('Failed to create booking record');
+          if (!response.ok) {
+            const errorData = await response.json();
+            console.error('Booking error:', errorData);
+            throw new Error('Failed to create booking record');
+          }
+          console.log('[ThankYou] CMS-only booking created successfully');
+          return;
         }
 
-        console.log('[ThankYou] Booking created successfully');
+        // Create on-chain booking via backend
+        const response = await fetch(`${backendBaseUrl}/api/bookings/create-fiat`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: user?.id,
+            propertyId: blockchainPropertyId,
+            checkInDate: checkInTs,
+            checkOutDate: checkOutTs,
+            totalAmount: totalAmountUnits.toString(),
+            paymentReference: `revolut:${revolutOrderId || Date.now()}`,
+            metadata: {
+              guests: parseInt(guest || '1'),
+              rooms: parseInt(room || '1'),
+              pricePerNight: _price,
+              subtotal: _total,
+              platformFee: _feesTotal,
+              cleaningFee: _cleaningfee,
+              currency: _currency,
+              cmsPropertyId: prop?.documentId,
+              propertyTitle: prop?.Title,
+            },
+          }),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          console.error('On-chain booking error:', errorData);
+          throw new Error(errorData.error || 'Failed to create on-chain booking');
+        }
+
+        const result = await response.json();
+        console.log('[ThankYou] On-chain booking created successfully:', result);
       } catch (err) {
         console.error('Error in ThankYou page booking:', err);
         setError('Payment was successful, but we failed to save your booking. Please contact support.');

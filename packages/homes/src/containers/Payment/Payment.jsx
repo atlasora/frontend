@@ -380,6 +380,11 @@ const PaymentPage = () => {
       const cancelUrl = `${window.location.href}`;
       console.debug('[payments] starting Revolut checkout', { endpoint: `${paymentsServerUrl}/payments/revolut/checkout`, successUrl, cancelUrl });
 
+      const prop = data[0];
+      const blockchainPropertyId = prop.BlockchainPropertyId;
+      const checkInTs = Math.floor(moment(startDate, 'MM-DD-YYYY').valueOf() / 1000);
+      const checkOutTs = Math.floor(moment(endDate, 'MM-DD-YYYY').valueOf() / 1000);
+
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), 15000);
       const res = await fetch(`${paymentsServerUrl}/payments/revolut/checkout`, {
@@ -392,12 +397,20 @@ const PaymentPage = () => {
           successUrl,
           cancelUrl,
           metadata: {
-            propertyId: propIdForCheckout,
+            userId: user?.id,
+            propertyId: blockchainPropertyId, // Blockchain property ID for on-chain booking
+            cmsPropertyId: propIdForCheckout, // CMS document ID
+            checkInDate: checkInTs,
+            checkOutDate: checkOutTs,
             startDate,
             endDate,
             guest,
             room,
             slug,
+            pricePerNight: price,
+            atlasFee: atlasfees,
+            cleaningFee: cleaningfee,
+            propertyTitle: title,
           },
         }),
         signal: controller.signal,
