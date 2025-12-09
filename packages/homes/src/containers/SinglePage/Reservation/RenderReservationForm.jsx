@@ -258,9 +258,6 @@ const RenderReservationForm = ({ propertyId, slug, pricePerNightEth }) => {
         <Button htmlType="submit" type="primary" block>
           Book Now
         </Button>
-        <Button style={{ marginTop: 8 }} onClick={handleOnChainBooking} block disabled={isSubmitting}>
-          Book On-Chain
-        </Button>
         {error && <div style={{ color: '#dc3545', marginTop: 8 }}>{error}</div>}
       </FormActionArea>
 
