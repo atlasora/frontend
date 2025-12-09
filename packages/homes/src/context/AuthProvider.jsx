@@ -67,7 +67,7 @@ const AuthProvider = (props) => {
       }
 
       const data = await response.json();
-      data.user.avatar = '/images/favicon.png';
+      // data.user.avatar = '/images/favicon.png';
 
       setUser(data.user);
       setToken(data.jwt);
@@ -97,7 +97,7 @@ const AuthProvider = (props) => {
       }
 
       const data = await response.json();
-      data.user.avatar = '/images/favicon.png';
+      // data.user.avatar = '/images/favicon.png';
 
       navigate('/sign-in', { replace: true });
       return { success: true };

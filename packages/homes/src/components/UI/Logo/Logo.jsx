@@ -8,12 +8,12 @@ const Logo = ({ className, withLink, linkTo, title, src }) => {
     <LogoArea className={className}>
       {withLink ? (
         <NavLink to={linkTo}>
-          {src && <img src={src} alt="TripFinder." className="header-logo-image" />}
+          {src && <img src={src} alt="Atlasora" className="header-logo-image" onError={(e) => { e.target.onerror = null; e.target.src = "/images/favicon.png" }} />}
           {/*title && <h3>{title}</h3>*/}
         </NavLink>
       ) : (
         <Fragment>
-          {src && <img src={src} alt="TripFinder." className="header-logo-image" />}
+          {src && <img src={src} alt="Atlasora" className="header-logo-image" onError={(e) => { e.target.onerror = null; e.target.src = "/images/favicon.png" }} />}
           {/*title && <h3>{title}</h3>*/}
         </Fragment>
       )}

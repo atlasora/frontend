@@ -77,7 +77,13 @@ export default function Header() {
     setState(!state);
   };
   const headerType = location.pathname === '/' ? 'transparent' : 'default';
-  const avatarImg = user?.avatar || '/images/favicon.png';
+  let avatarImg = user?.avatar;
+  if (avatarImg && typeof avatarImg === 'object' && avatarImg.url) {
+    avatarImg = avatarImg.url;
+  }
+  if (!avatarImg) {
+    avatarImg = '/images/favicon.png';
+  }
 
   return (
     <HeaderWrapper>
